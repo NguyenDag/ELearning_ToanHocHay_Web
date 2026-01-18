@@ -1,0 +1,299 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Học sinh - ToanHocHay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Thêm Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { primary: '#3B82F6', secondary: '#F97316' } }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <!-- Logo về trang chủ -->
+            <a href="/" class="flex items-center gap-2 hover:opacity-80 transition cursor-pointer">
+                <i class="fa-solid fa-shapes text-2xl text-yellow-400"></i>
+                <span class="text-xl font-bold text-primary">ToanHocHay</span>
+            </a>
+
+            <!-- User Info -->
+            <div class="flex items-center gap-4">
+                <span class="text-sm font-bold text-gray-600 hidden md:inline">Nguyễn Văn An (Lớp 6A)</span>
+                <a href="/Student/Profile" class="relative group">
+                    <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix" class="w-9 h-9 rounded-full border bg-blue-50 hover:ring-2 ring-primary transition">
+                    <div class="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 hidden group-hover:block p-1 z-50">
+                        <div class="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded">Hồ sơ cá nhân</div>
+                        <div class="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded">Đăng xuất</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
+
+        <!-- 1. PROFILE & STATS SECTION -->
+        <section class="mb-8 space-y-6">
+
+            <!-- User Profile Card (Đã tinh gọn theo yêu cầu) -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-6">
+                <!-- Avatar -->
+                <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shrink-0 border-4 border-blue-100 shadow-sm overflow-hidden">
+                    <img src="https://ui-avatars.com/api/?name=N+V+A&background=2563EB&color=fff&font-size=0.35" class="w-full h-full object-cover">
+                </div>
+
+                <!-- Info -->
+                <div class="text-center md:text-left flex-1">
+                    <h1 class="text-2xl font-extrabold text-gray-800">Nguyễn Văn An</h1>
+                    <p class="text-gray-500 text-sm mb-3">Lớp 6A1 • Môn Toán</p>
+
+                    <!-- Chỉ hiển thị Gói cước và Nút Gia hạn -->
+                    <div class="flex flex-wrap justify-center md:justify-start items-center gap-3">
+                        <span class="bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1.5 rounded-full border border-purple-200 flex items-center gap-1">
+                            <i class="fa-solid fa-crown text-yellow-500 text-sm"></i>
+                            Gói Premium: Còn 25 ngày
+                        </span>
+
+                        <button class="text-xs font-bold text-white bg-secondary hover:bg-orange-600 px-4 py-1.5 rounded-full shadow-sm transition flex items-center gap-1 animate-pulse hover:animate-none">
+                            <i class="fa-solid fa-rotate"></i> Gia hạn ngay
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1: Điểm TB -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-300 transition">
+                    <div class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center text-xl mb-3">
+                        <i class="fa-solid fa-medal"></i>
+                    </div>
+                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Điểm Trung Bình</p>
+                    <h3 class="text-3xl font-extrabold text-gray-800">8.3</h3>
+                </div>
+
+                <!-- Card 2: Chương hoàn thành -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-green-300 transition">
+                    <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center text-xl mb-3">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Chương Hoàn Thành</p>
+                    <h3 class="text-3xl font-extrabold text-gray-800">4<span class="text-xl text-gray-400 font-medium">/6</span></h3>
+                </div>
+
+                <!-- Card 3: Tổng bài KT -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-300 transition">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xl mb-3">
+                        <i class="fa-solid fa-book-open"></i>
+                    </div>
+                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Tổng Bài Kiểm Tra</p>
+                    <h3 class="text-3xl font-extrabold text-gray-800">18</h3>
+                </div>
+            </div>
+
+            <!-- CHART SECTION -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-6 h-6 rounded-full border-2 border-purple-500 flex items-center justify-center">
+                        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    </div>
+                    <h3 class="font-bold text-gray-800 text-lg">Điểm Theo Chương</h3>
+                </div>
+                <div class="h-64 w-full">
+                    <canvas id="scoreChart"></canvas>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 2. TỔNG QUAN CÁC CHƯƠNG -->
+        <section class="mb-10">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800 border-l-4 border-primary pl-3">Chương trình học</h2>
+                <div class="flex gap-2">
+                    <button class="px-3 py-1 text-sm border rounded hover:bg-gray-50 text-gray-500"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button class="px-3 py-1 text-sm border rounded hover:bg-gray-50 text-gray-500"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Chương 1 -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">Đã hoàn thành</span>
+                        <div class="radial-progress text-green-500 text-xs font-bold" style="--value:100;">100%</div>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">Chương 1: Tập hợp số tự nhiên</h3>
+                    <p class="text-xs text-gray-500 mb-4">12 Bài học • 3 Bài kiểm tra</p>
+                    <div class="flex gap-2">
+                        <a href="/Course/Lesson" class="flex-1 bg-primary text-white text-sm font-bold py-2 rounded-lg hover:bg-blue-600 text-center">Học lại</a>
+                        <a href="/Exam/Review" class="flex-1 bg-white border border-primary text-primary text-sm font-bold py-2 rounded-lg hover:bg-blue-50 text-center">
+                            <i class="fa-solid fa-file-lines mr-1"></i> Xem bài KT
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Chương 2 -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-blue-200 ring-2 ring-blue-50 relative">
+                    <span class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg">Mới nhất</span>
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded animate-pulse">Đang học</span>
+                        <span class="text-blue-600 font-bold text-sm">45%</span>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">Chương 2: Số nguyên</h3>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 mb-4">
+                        <div class="bg-blue-600 h-1.5 rounded-full" style="width: 45%"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="/Course/Lesson" class="flex-1 bg-primary text-white text-sm font-bold py-2 rounded-lg hover:bg-blue-600 shadow-lg shadow-blue-200 text-center">Tiếp tục</a>
+                        <button class="flex-1 bg-gray-100 text-gray-400 text-sm font-bold py-2 rounded-lg cursor-not-allowed" disabled>
+                            <i class="fa-solid fa-lock mr-1"></i> Bài KT
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chương 3 -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 opacity-70">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="bg-gray-100 text-gray-500 text-xs font-bold px-2 py-1 rounded">Chưa mở</span>
+                        <span class="text-gray-400 font-bold text-sm">0%</span>
+                    </div>
+                    <h3 class="font-bold text-lg text-gray-800 mb-2">Chương 3: Hình học trực quan</h3>
+                    <p class="text-xs text-gray-500 mb-4">8 Bài học • 2 Bài kiểm tra</p>
+                    <button class="w-full bg-gray-100 text-gray-500 text-sm font-bold py-2 rounded-lg cursor-not-allowed">Chưa bắt đầu</button>
+                </div>
+            </div>
+
+            <!-- PHÂN TRANG CHO CHƯƠNG -->
+            <div class="flex justify-center mt-6 gap-2">
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg border hover:bg-gray-50 text-gray-500"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg border hover:bg-gray-50 text-gray-600">2</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg border hover:bg-gray-50 text-gray-600">3</button>
+                <button class="w-8 h-8 flex items-center justify-center rounded-lg border hover:bg-gray-50 text-gray-500"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- 3. LỊCH SỬ KIỂM TRA -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-clock-rotate-left mr-2 text-primary"></i>Lịch sử kiểm tra</h2>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary bg-white">
+                        <option>Tất cả môn</option>
+                        <option>Số học</option>
+                        <option>Hình học</option>
+                    </select>
+                    <select class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary bg-white">
+                        <option>Tháng này</option>
+                        <option>Tháng trước</option>
+                    </select>
+                    <button class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-bold"><i class="fa-solid fa-filter"></i> Lọc</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600">
+                    <thead class="bg-gray-50 text-gray-700 font-bold uppercase text-xs">
+                        <tr>
+                            <th class="px-6 py-3">Tên bài kiểm tra</th>
+                            <th class="px-6 py-3">Ngày làm</th>
+                            <th class="px-6 py-3 text-center">Thời gian</th>
+                            <th class="px-6 py-3 text-center">Điểm số</th>
+                            <th class="px-6 py-3 text-right">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr class="hover:bg-blue-50/50 transition">
+                            <td class="px-6 py-4 font-semibold text-gray-800">Kiểm tra 15 phút - Số nguyên tố</td>
+                            <td class="px-6 py-4">20/11/2025</td>
+                            <td class="px-6 py-4 text-center">12m 30s</td>
+                            <td class="px-6 py-4 text-center"><span class="bg-green-100 text-green-700 px-2 py-1 rounded font-bold">9.0</span></td>
+                            <td class="px-6 py-4 text-right"><a href="/Exam/Review" class="text-primary font-bold underline">Xem</a></td>
+                        </tr>
+                        <tr class="hover:bg-blue-50/50 transition">
+                            <td class="px-6 py-4 font-semibold text-gray-800">Kiểm tra Giữa kỳ 1</td>
+                            <td class="px-6 py-4">15/11/2025</td>
+                            <td class="px-6 py-4 text-center">40m 10s</td>
+                            <td class="px-6 py-4 text-center"><span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded font-bold">7.5</span></td>
+                            <td class="px-6 py-4 text-right"><a href="/Exam/Review" class="text-primary font-bold underline">Xem</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PHÂN TRANG CHO BẢNG -->
+            <div class="p-4 border-t border-gray-100 flex justify-between items-center">
+                <span class="text-xs text-gray-500">Hiển thị 1-5 trong số 24 bài</span>
+                <div class="flex gap-1">
+                    <button class="px-3 py-1 border rounded hover:bg-gray-50 text-sm">Trước</button>
+                    <button class="px-3 py-1 bg-primary text-white rounded text-sm font-bold">1</button>
+                    <button class="px-3 py-1 border rounded hover:bg-gray-50 text-sm">2</button>
+                    <button class="px-3 py-1 border rounded hover:bg-gray-50 text-sm">Sau</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JS Logic: Vẽ biểu đồ Chart.js -->
+    <script>
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Ch1', 'Ch2', 'Ch3', 'Ch4', 'Ch5'],
+                datasets: [{
+                    label: 'Điểm trung bình',
+                    data: [8.5, 7.8, 8.2, 7.9, 7.5],
+                    backgroundColor: '#8B5CF6', // Màu tím (Purple-500)
+                    borderRadius: 6, // Bo góc cột
+                    barThickness: 50, // Độ rộng cột
+                    hoverBackgroundColor: '#7C3AED'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false } // Ẩn chú thích vì đã có title bên ngoài
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10,
+                        grid: { borderDash: [2, 2], drawBorder: false }, // Nét đứt cho lưới ngang
+                        ticks: { stepSize: 3 }
+                    },
+                    x: {
+                        grid: { display: false }, // Ẩn lưới dọc
+                        ticks: { font: { weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

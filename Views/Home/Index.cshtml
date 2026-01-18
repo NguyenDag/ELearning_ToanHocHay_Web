@@ -2,39 +2,25 @@
     ViewData["Title"] = "Trang chủ";
 }
 
-<!-- 1. HERO SLIDER (Sử dụng thẻ IMG để tự động co giãn chiều cao) -->
 <section class="relative w-full group mb-8 overflow-hidden">
-
-    <!-- Slider Track -->
     <div id="hero-track" class="flex transition-transform duration-700 ease-in-out items-start">
-
-        <!-- Slide 1: Banner chính của bạn -->
         <div class="hero-slide w-full flex-shrink-0 relative">
-             <!-- w-full h-auto: Chiều rộng full, chiều cao tự co theo ảnh -->
-             <img src="~/images/banner/banner_02.png" class="w-full h-auto object-contain" alt="ToanHocHay Banner">
+            <img src="~/images/banner/banner_02.png" class="w-full h-auto object-contain" alt="ToanHocHay Banner">
         </div>
-
-        <!-- Slide 2: Ảnh minh họa (Dùng aspect-ratio để giữ khung hình tương đối ổn định nếu ảnh khác size) -->
         <div class="hero-slide w-full flex-shrink-0 relative">
-             <!-- w-full h-auto: Chiều rộng full, chiều cao tự co theo ảnh -->
-             <img src="~/images/banner/banner_03.png" class="w-full h-auto object-contain" alt="ToanHocHay Banner">
+            <img src="~/images/banner/banner_03.png" class="w-full h-auto object-contain" alt="ToanHocHay Banner">
         </div>
-
-        <!-- Slide 3 -->
         <div class="hero-slide w-full flex-shrink-0 relative">
-             <!-- w-full h-auto: Chiều rộng full, chiều cao tự co theo ảnh -->
-             <img src="~/images/banner/banner_01.png" class="w-full h-auto object-contain" alt="ToanHocHay Banner">
+            <img src="~/images/banner/banner_01.png" class="w-full h-auto object-contain" alt="ToanHocHay Banner">
         </div>
     </div>
 
-    <!-- Slider Dots (Điều chỉnh vị trí xuống dưới cùng) -->
     <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
         <button class="hero-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white transition scale-125" onclick="goToSlide(0)"></button>
         <button class="hero-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white transition" onclick="goToSlide(1)"></button>
         <button class="hero-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white transition" onclick="goToSlide(2)"></button>
     </div>
 
-    <!-- Arrows -->
     <button onclick="prevSlide()" class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/20 hover:bg-black/40 text-white rounded-full flex items-center justify-center transition opacity-0 group-hover:opacity-100 z-20">
         <i class="fa-solid fa-chevron-left"></i>
     </button>
@@ -43,11 +29,8 @@
     </button>
 </section>
 
-<!-- 2. BODY CONTENT -->
 <section class="container mx-auto px-4 py-8">
     <div class="flex flex-col lg:flex-row gap-8">
-
-        <!-- Left Sidebar -->
         <aside class="w-full lg:w-1/4 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden self-start">
             <div class="bg-slate-50 p-4 border-b border-gray-200 flex justify-between items-center">
                 <h3 class="font-bold text-slate-800"><i class="fa-solid fa-bars mr-2 text-slate-500"></i> Danh mục bài học</h3>
@@ -80,7 +63,6 @@
             </div>
         </aside>
 
-        <!-- Right Banner (Khóa học 2 tháng) -->
         <div class="flex-1 relative rounded-2xl overflow-hidden shadow-xl min-h-[400px] flex items-center group bg-gradient-to-r from-blue-600 to-blue-400">
             <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
             <div class="relative z-10 p-8 md:p-12 max-w-2xl text-white">
@@ -88,10 +70,12 @@
                     Dành cho học sinh cấp 2
                 </span>
 
-                <!-- CẬP NHẬT: Tách thành 2 thẻ span block để chỉnh margin (mb-2) -->
                 <h2 class="text-3xl md:text-5xl font-extrabold mb-6 drop-shadow-md">
-                    <span class="block  leading-tight">HỌC TOÁN ONLINE</span>
-                    <span class="block leading-tight">HIỆU QUẢ TRONG<br> <span class="text-yellow-300" style="font-size: 65px">2 THÁNG</span></span>
+                    <span class="block leading-tight">HỌC TOÁN ONLINE</span>
+                    <span class="block leading-tight">HIỆU QUẢ TRONG</span>
+                    <span class="block leading-tight text-yellow-300 mt-1">
+                        <span class="animate-pulse inline-block">2</span> THÁNG
+                    </span>
                 </h2>
 
                 <div class="grid grid-cols-2 gap-4 text-sm font-medium text-blue-50 mb-8">
@@ -101,7 +85,7 @@
                     <div class="flex items-center gap-2"><i class="fa-solid fa-check text-yellow-400"></i> Phụ huynh theo dõi 24/7</div>
                 </div>
 
-                <button class="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-extrabold px-8 py-3 rounded-full shadow-lg shadow-yellow-400/30 transition transform hover:-translate-y-1 flex items-center gap-2">
+                <button onclick="togglePricingModal()" class="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-extrabold px-8 py-3 rounded-full shadow-lg shadow-yellow-400/30 transition transform hover:-translate-y-1 flex items-center gap-2">
                     <span>Khám phá chương trình ngay</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
@@ -110,7 +94,6 @@
     </div>
 </section>
 
-<!-- 3. HỆ THỐNG HỌC & ĐÁNH GIÁ THÔNG MINH -->
 <section class="container mx-auto px-4 py-16">
     <div class="text-center mb-12">
         <h2 class="text-3xl font-extrabold text-slate-800">Hệ thống Học & Đánh giá Thông minh</h2>
@@ -118,7 +101,6 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Card 1: AI -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition transform hover:-translate-y-1">
             <div class="h-1.5 bg-gradient-to-r from-teal-400 to-teal-600"></div>
             <div class="p-8 text-center">
@@ -129,8 +111,7 @@
                 <p class="text-sm text-gray-500 leading-relaxed">Công nghệ phân tích thông minh giúp học sinh hiểu "tại sao sai", không làm sai lại.</p>
             </div>
         </div>
-        <!-- Card 2: Dashboard -->
-         <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition transform hover:-translate-y-1">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition transform hover:-translate-y-1">
             <div class="h-1.5 bg-gradient-to-r from-orange-400 to-orange-600"></div>
             <div class="p-8 text-center">
                 <div class="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto group-hover:scale-110 transition shadow-sm border border-orange-100">
@@ -140,8 +121,7 @@
                 <p class="text-sm text-gray-500 leading-relaxed">Phụ huynh an tâm, con tự tin - Theo dõi kết quả học tập mọi lúc mọi nơi.</p>
             </div>
         </div>
-        <!-- Card 3: Lộ trình -->
-         <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition transform hover:-translate-y-1">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition transform hover:-translate-y-1">
             <div class="h-1.5 bg-gradient-to-r from-indigo-400 to-indigo-600"></div>
             <div class="p-8 text-center">
                 <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto group-hover:scale-110 transition shadow-sm border border-indigo-100">
@@ -154,9 +134,7 @@
     </div>
 </section>
 
-<!-- 4. CÙNG NHAU KIẾN TẠO HÀNH TRÌNH TRI THỨC -->
 <section class="bg-blue-50 py-16 relative overflow-hidden">
-    <!-- Decor circles -->
     <div class="absolute top-0 left-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-x-1/2 -translate-y-1/2"></div>
     <div class="absolute bottom-0 right-0 w-64 h-64 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-x-1/2 translate-y-1/2"></div>
 
@@ -165,60 +143,45 @@
         <p class="text-blue-600 mb-12 max-w-2xl mx-auto">Giải pháp toàn diện kết nối Học sinh, Phụ huynh và Giáo viên trên một nền tảng thống nhất.</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Item 1 -->
             <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
-                <div class="w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl">
-                    <i class="fa-solid fa-user-graduate"></i>
-                </div>
+                <div class="w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl"><i class="fa-solid fa-user-graduate"></i></div>
                 <h4 class="font-bold text-lg text-gray-800 mb-2">Học sinh</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Học chủ động, không áp lực. Kiến thức vững chắc nhờ lộ trình cá nhân.</p>
+                <p class="text-xs text-gray-500 leading-relaxed">Học chủ động, không áp lực.</p>
             </div>
-             <!-- Item 2 -->
-             <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
-                <div class="w-20 h-20 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-3xl">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                </div>
+            <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
+                <div class="w-20 h-20 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-3xl"><i class="fa-solid fa-chalkboard-user"></i></div>
                 <h4 class="font-bold text-lg text-gray-800 mb-2">Giáo viên</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Công cụ hỗ trợ giảng dạy hiện đại, kho tài liệu phong phú.</p>
+                <p class="text-xs text-gray-500 leading-relaxed">Công cụ hỗ trợ giảng dạy hiện đại.</p>
             </div>
-             <!-- Item 3 -->
-             <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
-                <div class="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-3xl">
-                    <i class="fa-solid fa-user-group"></i>
-                </div>
+            <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
+                <div class="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-3xl"><i class="fa-solid fa-user-group"></i></div>
                 <h4 class="font-bold text-lg text-gray-800 mb-2">Phụ huynh</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Đồng hành cùng con, nắm bắt kết quả và điểm yếu kịp thời.</p>
+                <p class="text-xs text-gray-500 leading-relaxed">Đồng hành cùng con mọi lúc.</p>
             </div>
-             <!-- Item 4 -->
-             <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
-                <div class="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-3xl">
-                    <i class="fa-solid fa-earth-asia"></i>
-                </div>
+            <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
+                <div class="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-3xl"><i class="fa-solid fa-earth-asia"></i></div>
                 <h4 class="font-bold text-lg text-gray-800 mb-2">Cộng đồng</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Môi trường thi đua lành mạnh, bảng xếp hạng vinh danh.</p>
+                <p class="text-xs text-gray-500 leading-relaxed">Môi trường thi đua lành mạnh.</p>
             </div>
         </div>
 
-        <button class="mt-12 bg-primary hover:bg-blue-700 text-white font-bold px-10 py-3.5 rounded-full shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1">
+        <button onclick="togglePricingModal()" class="mt-12 bg-primary hover:bg-blue-700 text-white font-bold px-10 py-3.5 rounded-full shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1">
             Tham gia ngay
         </button>
     </div>
 </section>
 
-<!-- 5. BẢN TIN TOANHOCHAY -->
 <section class="container mx-auto px-4 py-16">
     <div class="text-center mb-12">
         <h2 class="text-3xl font-extrabold text-gray-800">Bản Tin ToanHocHay</h2>
         <p class="text-gray-500 mt-2 text-sm">Thông báo mới nhất và mẹo học toán thú vị.</p>
         <a href="#" class="inline-block mt-3 text-primary font-bold hover:underline text-sm">Xem tất cả tin tức <i class="fa-solid fa-arrow-right ml-1"></i></a>
     </div>
-
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- News 1: Ưu đãi -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group">
             <div class="h-44 bg-emerald-100 relative flex items-center justify-center group-hover:bg-emerald-200 transition">
-                 <i class="fa-solid fa-gift text-6xl text-emerald-500 opacity-50"></i>
-                 <span class="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">-20% Ưu đãi</span>
+                <i class="fa-solid fa-gift text-6xl text-emerald-500 opacity-50"></i>
+                <span class="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">-20% Ưu đãi</span>
             </div>
             <div class="p-5">
                 <p class="text-[10px] text-gray-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-regular fa-calendar mr-1"></i> 20/11/2025</p>
@@ -227,13 +190,10 @@
                 </h4>
             </div>
         </div>
-
-        <!-- News 2: Coming Soon -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group">
             <div class="h-44 bg-amber-100 relative flex items-center justify-center group-hover:bg-amber-200 transition">
                 <div class="text-center">
                     <h4 class="text-2xl font-black text-amber-600 uppercase tracking-widest">Coming Soon</h4>
-                    <div class="bg-white text-amber-600 text-xs font-bold px-3 py-1 rounded-full mt-2 inline-block shadow-sm">10 Days To Go</div>
                 </div>
             </div>
             <div class="p-5">
@@ -243,14 +203,9 @@
                 </h4>
             </div>
         </div>
-
-        <!-- News 3: Notification -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group">
             <div class="h-44 bg-blue-900 relative flex items-center justify-center text-white group-hover:bg-blue-800 transition">
-                <div class="text-center">
-                    <i class="fa-solid fa-bell text-5xl text-yellow-400 mb-3 animate-bounce"></i>
-                    <h4 class="text-lg font-bold uppercase tracking-widest">Thông báo</h4>
-                </div>
+                <i class="fa-solid fa-bell text-5xl text-yellow-400 mb-3 animate-bounce"></i>
             </div>
             <div class="p-5">
                 <p class="text-[10px] text-gray-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-regular fa-calendar mr-1"></i> 18/11/2025</p>
@@ -262,39 +217,33 @@
     </div>
 </section>
 
-<!-- 6. FEATURED COURSES -->
 <section class="bg-slate-50 py-16 border-t border-slate-200">
     <div class="container mx-auto px-4">
         <div class="text-center mb-12">
             <h2 class="text-3xl font-extrabold text-slate-800">Khóa học nổi bật</h2>
             <p class="text-slate-500 mt-2 text-sm">Các chương trình được quan tâm nhất tháng này.</p>
-            <a href="#" class="inline-block mt-3 text-primary font-bold hover:underline text-sm">Xem tất cả khóa học <i class="fa-solid fa-arrow-right ml-1"></i></a>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Promo Banner 1 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-1 flex items-center relative overflow-hidden group hover:shadow-lg transition">
                 <div class="flex-1 p-8 z-10 relative">
                     <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-wide border border-blue-100">Cơ bản</span>
                     <h3 class="text-2xl font-black text-gray-800 mt-3 mb-2 group-hover:text-primary transition">TOÁN LỚP 6 <br> KẾT NỐI TRI THỨC</h3>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2 max-w-[200px]">Bám sát chương trình SGK mới. Đầy đủ video bài giảng và bài tập.</p>
-                    <button class="text-white bg-primary text-xs font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-blue-700 transition">Đăng ký học</button>
+                    <p class="text-xs text-gray-500 mb-6 line-clamp-2 max-w-[200px]">Bám sát chương trình SGK mới.</p>
+                    <button onclick="openPaymentModal('standard')" class="text-white bg-primary text-xs font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-blue-700 transition">Đăng ký học</button>
                 </div>
-                <!-- Placeholder Image using Icon -->
                 <div class="w-1/2 h-full absolute right-0 top-0 bottom-0 bg-gradient-to-br from-blue-100 to-white flex items-center justify-center">
                     <i class="fa-solid fa-book-open text-9xl text-blue-200 opacity-50 transform rotate-12"></i>
                 </div>
             </div>
 
-            <!-- Promo Banner 2 -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-1 flex items-center relative overflow-hidden group hover:shadow-lg transition">
                 <div class="flex-1 p-8 z-10 relative">
                     <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded uppercase tracking-wide border border-purple-100">Luyện thi</span>
                     <h3 class="text-2xl font-black text-gray-800 mt-3 mb-2 group-hover:text-purple-600 transition">LUYỆN ĐỀ <br> GIỮA KỲ 1</h3>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2 max-w-[200px]">Tổng hợp 50 đề thi thử từ các trường chuyên. Có chấm điểm AI.</p>
-                    <button class="text-white bg-purple-600 text-xs font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-purple-700 transition">Thử sức ngay</button>
+                    <p class="text-xs text-gray-500 mb-6 line-clamp-2 max-w-[200px]">Tổng hợp 50 đề thi thử từ các trường chuyên.</p>
+                    <button onclick="togglePricingModal()" class="text-white bg-purple-600 text-xs font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-purple-700 transition">Thử sức ngay</button>
                 </div>
-                <!-- Placeholder Image using Icon -->
                 <div class="w-1/2 h-full absolute right-0 top-0 bottom-0 bg-gradient-to-br from-purple-100 to-white flex items-center justify-center">
                     <i class="fa-solid fa-pen-nib text-9xl text-purple-200 opacity-50 transform -rotate-12"></i>
                 </div>
@@ -303,46 +252,272 @@
     </div>
 </section>
 
+<div id="pricing-modal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="togglePricingModal()"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform bg-white text-left shadow-xl transition-all w-full max-w-6xl rounded-3xl p-6 md:p-10 animate-fade-in-up my-8">
+
+                <button onclick="togglePricingModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition z-50">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+
+                <div class="text-center mb-10">
+                    <div class="flex items-center justify-center gap-2 mb-2">
+                        <span class="text-yellow-400 text-2xl"><i class="fa-solid fa-shapes"></i></span>
+                        <span class="font-bold text-slate-700 text-xl">ToanHocHay</span>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">Đầu tư cho tương lai Toán học của con</h2>
+                    <p class="text-slate-500 mb-8">Chọn gói học tập phù hợp để mở khóa sức mạnh của <span class="text-blue-600 font-bold">AI Tutor</span> và lộ trình cá nhân hóa.</p>
+
+                    <div class="inline-flex bg-gray-100 p-1 rounded-full relative">
+                        <div class="w-full h-full absolute inset-0 flex">
+                            <div id="toggle-bg" class="w-1/2 bg-white rounded-full shadow-sm transition-all duration-300 translate-x-0"></div>
+                        </div>
+                        <button onclick="switchPricing('month')" class="relative z-10 px-6 py-2 text-sm font-bold text-slate-800 rounded-full transition" id="btn-month">Theo tháng</button>
+                        <button onclick="switchPricing('year')" class="relative z-10 px-6 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 rounded-full transition flex items-center gap-1" id="btn-year">
+                            Theo năm <span class="bg-red-100 text-red-500 text-[10px] px-1.5 py-0.5 rounded">-30%</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+                    <div class="border border-gray-100 rounded-2xl p-6 hover:shadow-xl transition flex flex-col h-full">
+                        <div class="mb-4"><span class="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-1 rounded uppercase">Trải nghiệm</span></div>
+                        <h3 class="text-xl font-bold text-slate-800">Miễn phí</h3>
+                        <p class="text-xs text-slate-400 mt-1 mb-4">Dành cho học sinh muốn làm quen với hệ thống.</p>
+                        <div class="text-3xl font-extrabold text-slate-800 mb-6">0<span class="text-base font-medium align-top">đ</span></div>
+                        <ul class="text-sm space-y-3 mb-8 flex-1">
+                            <li class="flex items-start gap-2 text-slate-600"><i class="fa-solid fa-check text-green-500 mt-1"></i> Học thử 3 bài đầu mỗi chương</li>
+                            <li class="flex items-start gap-2 text-slate-600"><i class="fa-solid fa-check text-green-500 mt-1"></i> Bài tập cơ bản</li>
+                        </ul>
+                        <button onclick="openPaymentModal('free')" class="w-full py-3 rounded-xl border border-blue-100 text-blue-600 font-bold hover:bg-blue-50 transition">Đăng ký Free</button>
+                    </div>
+
+                    <div class="border border-blue-200 bg-blue-50/30 rounded-2xl p-6 hover:shadow-xl transition flex flex-col h-full relative overflow-hidden">
+                        <div class="mb-4"><span class="bg-blue-100 text-blue-600 text-[10px] font-bold px-2 py-1 rounded uppercase">Cơ bản</span></div>
+                        <h3 class="text-xl font-bold text-slate-800">Standard</h3>
+                        <p class="text-xs text-slate-400 mt-1 mb-4">Đầy đủ kiến thức sách giáo khoa.</p>
+                        <div class="text-3xl font-extrabold text-slate-800 mb-6 price-text" data-month="149k" data-year="1,490k">149k<span class="text-sm font-medium text-gray-400">/tháng</span></div>
+                        <ul class="text-sm space-y-3 mb-8 flex-1">
+                            <li class="flex items-start gap-2 text-slate-600"><i class="fa-solid fa-check text-green-500 mt-1"></i> Toàn bộ bài giảng & bài tập</li>
+                            <li class="flex items-start gap-2 text-slate-600"><i class="fa-solid fa-check text-green-500 mt-1"></i> AI Feedback (5 lần/ngày)</li>
+                        </ul>
+                        <button onclick="openPaymentModal('standard')" class="w-full py-3 rounded-xl border border-blue-600 text-blue-600 font-bold hover:bg-blue-600 hover:text-white transition">Chọn gói Standard</button>
+                    </div>
+
+                    <div class="border-2 border-orange-400 bg-white rounded-2xl p-6 shadow-xl relative transform md:-translate-y-4 flex flex-col h-full z-10">
+                        <div class="absolute top-0 right-0 bg-orange-400 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl rounded-tr-lg shadow-sm"><i class="fa-solid fa-star mr-1"></i> Khuyên dùng</div>
+                        <div class="mb-4 mt-2"><span class="bg-orange-100 text-orange-600 text-[10px] font-bold px-2 py-1 rounded uppercase">Nâng cao</span></div>
+                        <h3 class="text-xl font-bold text-slate-800">Premium</h3>
+                        <p class="text-xs text-slate-400 mt-1 mb-4">Tối ưu điểm số với AI Tutor.</p>
+                        <div class="text-3xl font-extrabold text-orange-500 mb-6 price-text" data-month="249k" data-year="2,490k">249k<span class="text-sm font-medium text-gray-400">/tháng</span></div>
+                        <ul class="text-sm space-y-3 mb-8 flex-1">
+                            <li class="flex items-start gap-2 text-slate-800 font-medium"><i class="fa-solid fa-check text-orange-500 mt-1"></i> AI Feedback không giới hạn</li>
+                            <li class="flex items-start gap-2 text-slate-800 font-medium"><i class="fa-solid fa-check text-orange-500 mt-1"></i> Chế độ "Luyện tập lỗi sai"</li>
+                        </ul>
+                        <button onclick="openPaymentModal('premium')" class="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition transform hover:-translate-y-1">Đăng ký Premium</button>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-2xl p-6 text-white hover:shadow-2xl transition flex flex-col h-full relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full filter blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+                        <div class="mb-4 relative z-10"><span class="bg-slate-700 text-blue-300 text-[10px] font-bold px-2 py-1 rounded uppercase border border-slate-600">Tiết kiệm nhất</span></div>
+                        <h3 class="text-xl font-bold relative z-10">Gói Năm</h3>
+                        <p class="text-xs text-slate-400 mt-1 mb-4 relative z-10">Cam kết đồng hành dài hạn.</p>
+                        <div class="text-3xl font-extrabold text-white mb-2 relative z-10">1,990k<span class="text-sm font-medium text-slate-400">/năm</span></div>
+                        <p class="text-xs text-green-400 font-bold mb-6 relative z-10">Tiết kiệm ~1 triệu đồng</p>
+                        <ul class="text-sm space-y-3 mb-8 flex-1 relative z-10 text-slate-300">
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-yellow-400 mt-1"></i> Tất cả quyền lợi Premium</li>
+                            <li class="flex items-start gap-2"><i class="fa-solid fa-check text-yellow-400 mt-1"></i> Lộ trình ôn thi Học kỳ/Cuối cấp</li>
+                        </ul>
+                        <button onclick="openPaymentModal('year_special')" class="w-full py-3 rounded-xl bg-white text-slate-900 font-bold hover:bg-gray-100 transition relative z-10">Mua gói Năm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="payment-modal" class="relative z-[60] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-md transition-opacity"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div class="relative transform bg-white text-left shadow-2xl transition-all w-full max-w-5xl rounded-3xl overflow-hidden animate-fade-in-up my-8 border border-gray-100">
+                <button onclick="closePaymentModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition z-20">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+                <div class="flex flex-col md:flex-row h-full">
+                    <div class="w-full md:w-2/3 p-8 md:p-10">
+                        <h2 class="text-2xl font-extrabold text-slate-800 mb-6 flex items-center gap-2"><i class="fa-solid fa-lock text-green-500"></i> Thanh toán an toàn</h2>
+                        <div class="flex gap-4 border-b border-gray-100 mb-6">
+                            <button class="pb-3 border-b-2 border-blue-600 text-blue-600 font-bold text-sm transition"><i class="fa-solid fa-qrcode mr-1"></i> Chuyển khoản QR</button>
+                            <button class="pb-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600 font-bold text-sm transition"><i class="fa-solid fa-credit-card mr-1"></i> Thẻ quốc tế</button>
+                        </div>
+                        <div class="bg-blue-50/50 rounded-2xl p-6 border border-blue-100 flex flex-col sm:flex-row gap-6 items-center">
+                            <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 w-40 h-40 flex-shrink-0 flex items-center justify-center relative group cursor-pointer">
+                                <i class="fa-solid fa-qrcode text-6xl text-slate-800 opacity-20"></i>
+                                <div class="absolute inset-0 flex items-center justify-center"><span class="text-xs font-bold text-slate-400">QR Code mẫu</span></div>
+                            </div>
+                            <div class="text-sm space-y-3 w-full">
+                                <div class="flex justify-between border-b border-blue-100 pb-2"><span class="text-slate-500">Ngân hàng:</span><span class="font-bold text-slate-800">MB Bank (Quân Đội)</span></div>
+                                <div class="flex justify-between border-b border-blue-100 pb-2"><span class="text-slate-500">Số tài khoản:</span><span class="font-bold text-blue-600 text-lg">0987654321</span></div>
+                                <div class="flex justify-between border-b border-blue-100 pb-2"><span class="text-slate-500">Chủ tài khoản:</span><span class="font-bold text-slate-800 uppercase">CTY TOANHOCHAY</span></div>
+                            </div>
+                        </div>
+                        <div class="mt-8">
+                            <h3 class="font-bold text-slate-800 mb-4">Thông tin kích hoạt</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-bold text-slate-500 mb-1">Họ tên</label><input type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 mb-1">SĐT (Zalo)</label><input type="text" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-1/3 bg-slate-50 p-8 md:p-10 border-l border-gray-100 flex flex-col relative">
+                        <h3 class="font-bold text-slate-800 mb-6">Đơn hàng của bạn</h3>
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex gap-4 items-start">
+                            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 flex-shrink-0"><i class="fa-solid fa-cube text-xl"></i></div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm" id="pay-pkg-name">Gói Standard</h4>
+                                <span class="text-xs text-slate-500 bg-gray-100 px-2 py-0.5 rounded mt-1 inline-block" id="pay-pkg-duration">Thời hạn: 1 Tháng</span>
+                            </div>
+                        </div>
+                        <div class="space-y-3 text-sm mb-8 border-t border-gray-200 pt-4">
+                            <div class="flex justify-between text-slate-500"><span>Giá gốc:</span><span class="line-through" id="pay-original-price">200.000đ</span></div>
+                            <div class="flex justify-between text-slate-500"><span>Giảm giá:</span><span class="text-green-500 font-bold" id="pay-discount">-30%</span></div>
+                            <div class="flex justify-between text-lg font-extrabold text-slate-800 pt-2 border-t border-gray-200 mt-2"><span>Tổng cộng:</span><span class="text-blue-600" id="pay-total-price">149.000đ</span></div>
+                        </div>
+                        <div class="mt-auto">
+                            <button class="w-full py-3.5 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold shadow-lg shadow-green-500/20 transition transform hover:-translate-y-1 mb-3 flex items-center justify-center gap-2"><i class="fa-solid fa-check-circle"></i> Xác nhận đã chuyển khoản</button>
+                            <button onclick="backToPricing()" class="w-full py-3 rounded-xl border border-gray-300 text-gray-500 font-bold hover:bg-gray-100 transition text-sm">Quay lại chọn gói</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Escape keyframes với @@ */
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.4s ease-out forwards;
+    }
+</style>
+
 @section Scripts {
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                let currentSlide = 0;
-                const slides = document.querySelectorAll('.hero-slide');
-                const track = document.getElementById('hero-track');
-                const dots = document.querySelectorAll('.hero-dot');
-                const totalSlides = slides.length;
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // === SLIDER ===
+            let currentSlide = 0;
+            const slides = document.querySelectorAll('.hero-slide');
+            const track = document.getElementById('hero-track');
+            const dots = document.querySelectorAll('.hero-dot');
+            const totalSlides = slides.length;
+            function updateSlider() {
+                if(track) track.style.transform = `translateX(-${currentSlide * 100}%)`;
+                dots.forEach((dot, index) => {
+                    dot.className = index === currentSlide ? 'hero-dot w-2 h-2 rounded-full bg-white transition scale-125' : 'hero-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white transition';
+                });
+            }
+            function nextSlide() { currentSlide = (currentSlide + 1) % totalSlides; updateSlider(); }
+            window.prevSlide = function() { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateSlider(); }
+            window.nextSlide = nextSlide;
+            window.goToSlide = function(index) { currentSlide = index; updateSlider(); }
+            setInterval(nextSlide, 4000);
+            updateSlider();
+        });
 
-                function updateSlider() {
-                    track.style.transform = `translateX(-${currentSlide * 100}%)`;
-                    dots.forEach((dot, index) => {
-                        if (index === currentSlide) {
-                            dot.classList.remove('bg-white/50');
-                            dot.classList.add('bg-white', 'scale-125');
-                        } else {
-                            dot.classList.add('bg-white/50');
-                            dot.classList.remove('bg-white', 'scale-125');
-                        }
-                    });
+        // === PRICING & PAYMENT ===
+        let isYearlyMode = false;
+
+        function togglePricingModal() {
+            const modal = document.getElementById('pricing-modal');
+            if (modal) {
+                modal.classList.toggle('hidden');
+                document.body.style.overflow = modal.classList.contains('hidden') ? 'auto' : 'hidden';
+            }
+        }
+
+        function switchPricing(type) {
+            const toggleBg = document.getElementById('toggle-bg');
+            const prices = document.querySelectorAll('.price-text');
+            const monthBtn = document.getElementById('btn-month');
+            const yearBtn = document.getElementById('btn-year');
+            isYearlyMode = (type === 'year');
+
+            if (isYearlyMode) {
+                if(toggleBg) toggleBg.classList.add('translate-x-full');
+                if(monthBtn) monthBtn.className = "relative z-10 px-6 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 rounded-full transition";
+                if(yearBtn) yearBtn.className = "relative z-10 px-6 py-2 text-sm font-bold text-slate-800 rounded-full transition flex items-center gap-1";
+                prices.forEach(p => p.innerHTML = `${p.getAttribute('data-year')}<span class="text-sm font-medium text-gray-400">/năm</span>`);
+            } else {
+                if(toggleBg) toggleBg.classList.remove('translate-x-full');
+                if(monthBtn) monthBtn.className = "relative z-10 px-6 py-2 text-sm font-bold text-slate-800 rounded-full transition";
+                if(yearBtn) yearBtn.className = "relative z-10 px-6 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 rounded-full transition flex items-center gap-1";
+                prices.forEach(p => p.innerHTML = `${p.getAttribute('data-month')}<span class="text-sm font-medium text-gray-400">/tháng</span>`);
+            }
+        }
+
+        function openPaymentModal(packageType) {
+            document.getElementById('pricing-modal').classList.add('hidden');
+            document.getElementById('payment-modal').classList.remove('hidden');
+
+            const els = {
+                name: document.getElementById('pay-pkg-name'),
+                duration: document.getElementById('pay-pkg-duration'),
+                price: document.getElementById('pay-total-price'),
+                original: document.getElementById('pay-original-price'),
+                discount: document.getElementById('pay-discount')
+            };
+
+            let data = { name: "", duration: "", price: "", original: "", discount: "" };
+
+            if (packageType === 'free') {
+                data = { name: "Gói Miễn phí", duration: "Vĩnh viễn", price: "0đ", original: "0đ", discount: "0%" };
+            } else if (packageType === 'year_special') {
+                data = { name: "Gói Năm (Pro)", duration: "12 Tháng", price: "1.990.000đ", original: "3.000.000đ", discount: "-33%" };
+            } else {
+                data.duration = isYearlyMode ? "12 Tháng" : "1 Tháng";
+                data.discount = isYearlyMode ? "-30%" : "-10%";
+                if (packageType === 'standard') {
+                    data.name = "Gói Standard";
+                    data.price = isYearlyMode ? "1.490.000đ" : "149.000đ";
+                    data.original = isYearlyMode ? "2.000.000đ" : "200.000đ";
+                } else if (packageType === 'premium') {
+                    data.name = "Gói Premium";
+                    data.price = isYearlyMode ? "2.490.000đ" : "249.000đ";
+                    data.original = isYearlyMode ? "3.500.000đ" : "350.000đ";
                 }
+            }
 
-                function nextSlide() {
-                    currentSlide = (currentSlide + 1) % totalSlides;
-                    updateSlider();
-                }
+            els.name.innerText = data.name;
+            els.duration.innerText = `Thời hạn: ${data.duration}`;
+            els.price.innerText = data.price;
+            els.original.innerText = data.original;
+            els.discount.innerText = data.discount;
+        }
 
-                window.prevSlide = function() {
-                    currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-                    updateSlider();
-                }
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
 
-                window.nextSlide = nextSlide;
-                window.goToSlide = function(index) {
-                    currentSlide = index;
-                    updateSlider();
-                }
-
-                setInterval(nextSlide, 4000);
-                updateSlider();
-            });
-        </script>
+        function backToPricing() {
+            document.getElementById('payment-modal').classList.add('hidden');
+            document.getElementById('pricing-modal').classList.remove('hidden');
+        }
+    </script>
 }
