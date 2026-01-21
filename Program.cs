@@ -1,7 +1,10 @@
+using ToanHocHay.WebApp.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient<ExamApiService>();
 
 var app = builder.Build();
 

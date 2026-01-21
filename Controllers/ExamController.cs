@@ -1,63 +1,103 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ToanHocHay.WebApp.Models.DTOs;
+using ToanHocHay.WebApp.Services;
 
 namespace ToanHocHay.WebApp.Controllers
 {
     public class ExamController : Controller
     {
-        // Trang danh sách chung (nếu cần)
+        private readonly ExamApiService _examService;
+
+        public ExamController(ExamApiService examService)
+        {
+            _examService = examService;
+        }
+
+        // 1. Trang danh sách bài thi (Khắc phục lỗi 404)
         public IActionResult Index()
         {
             return View();
         }
 
-        // Trang làm bài mặc định
-        public IActionResult DoExam()
+        // 2. Trang làm bài thi (Dynamic Data)
+        // URL: /Exam/DoExam/1
+        [HttpGet]
+        public async Task<IActionResult> DoExam(int id)
         {
-            ViewData["Title"] = "Đề kiểm tra giữa học kỳ 1 lớp 6";
-            return View();
+            // 1. Gọi API lấy dữ liệu thô để kiểm tra cấu trúc
+            var exam = await _examService.GetExerciseById(id);
+
+            // --- ĐOẠN CODE LOG JSON ĐỂ KIỂM TRA ---
+            if (exam != null)
+            {
+                // In ra cửa sổ Debug Output để bạn xem tên trường thực tế là gì
+                var debugJson = System.Text.Json.JsonSerializer.Serialize(exam, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                System.Diagnostics.Debug.WriteLine("======= DỮ LIỆU JSON NHẬN ĐƯỢC =======");
+                System.Diagnostics.Debug.WriteLine(debugJson);
+                System.Diagnostics.Debug.WriteLine("======================================");
+            }
+            // --------------------------------------
+
+            if (exam == null) return NotFound("Không tìm thấy đề thi hoặc lỗi kết nối.");
+
+            int studentId = 9; //
+            int attemptId = await _examService.StartExercise(id, studentId); //
+
+            if (attemptId == 0) return BadRequest("Không thể bắt đầu bài thi.");
+
+            ViewData["AttemptId"] = attemptId;
+            ViewData["Title"] = exam.Title;
+
+            var duration = exam.DurationMinutes ?? 45;
+            ViewData["Time"] = $"{duration:00}:00";
+
+            return View(exam);
         }
 
-        // --- CÁC ACTION MỚI CHO MENU DROPDOWN ---
+        // 3. Xử lý nộp bài (Gọi từ Ajax bên View)
+        [HttpPost]
+        public async Task<IActionResult> Submit([FromBody] SubmitExamPayload payload)
+        {
+            if (payload == null || payload.AttemptId == 0)
+                return BadRequest("Dữ liệu nộp bài không hợp lệ.");
 
-        // 1. Đề 15 phút
-        public IActionResult Test15Min()
-        {
-            // Tạm thời dùng chung giao diện DoExam để test
-            ViewData["Title"] = "Đề kiểm tra 15 phút - Số học";
-            ViewData["Time"] = "15:00";
-            return View("DoExam");
+            // Bước A: Gửi từng câu trả lời về Backend
+            // Sử dụng Task.WhenAll để gửi song song tất cả đáp án thay vì gửi lần lượt (giúp chạy nhanh hơn)
+            var tasks = payload.Answers.Select(ans => _examService.SubmitSingleAnswer(new SubmitAnswerRequestDto
+            {
+                AttemptId = payload.AttemptId,
+                QuestionId = ans.QuestionId,
+                SelectedOptionId = ans.SelectedOptionId
+            }));
+
+            await Task.WhenAll(tasks); // Đợi tất cả request gửi xong
+
+            // Bước B: Gọi API Complete để chốt điểm và kết thúc bài thi
+            var result = await _examService.CompleteExercise(payload.AttemptId);
+
+            if (result)
+            {
+                return Ok(new { message = "Nộp bài thành công!" });
+            }
+
+            return BadRequest("Lỗi khi hoàn tất bài thi.");
         }
 
-        // 2. Đề 1 tiết (45p)
-        public IActionResult Test45Min()
+        // 4. Trang kết quả
+        // 4. Trang kết quả (Sửa lại để nhận dữ liệu thật)
+        [HttpGet]
+        public async Task<IActionResult> Result(int attemptId)
         {
-            ViewData["Title"] = "Đề kiểm tra 1 tiết - Hình học";
-            ViewData["Time"] = "45:00";
-            return View("DoExam");
-        }
+            // Gọi API lấy kết quả thực tế dựa trên attemptId
+            var result = await _examService.GetExerciseResult(attemptId);
 
-        // 3. Đề Học kỳ
-        public IActionResult TestSemester()
-        {
-            ViewData["Title"] = "Đề thi Học kỳ 1 - Toán 6";
-            ViewData["Time"] = "60:00";
-            return View("DoExam");
-        }
+            if (result == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
 
-        // 4. Đề HSG
-        public IActionResult TestAdvanced()
-        {
-            ViewData["Title"] = "Đề thi chọn Học sinh giỏi cấp Trường";
-            ViewData["Time"] = "90:00";
-            return View("DoExam");
-        }
-        public IActionResult Result()
-        {
-            return View();
-        }
-        public IActionResult Review()
-        {
-            return View();
+            // Truyền dữ liệu thật vào View
+            return View(result);
         }
     }
 }

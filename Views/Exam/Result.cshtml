@@ -1,12 +1,18 @@
-﻿@{
+﻿@using ToanHocHay.WebApp.Models.DTOs
+@model ExerciseResultDto
+@{
     Layout = null;
-    // Giả lập dữ liệu kết quả
-    var score = 8.5;
-    var totalQuestions = 20;
-    var correctCount = 17;
-    var wrongCount = 3;
-    var skippedCount = 0;
-    var timeTaken = "25:30";
+    // Kiểm tra null an toàn để tránh lỗi NullReference
+    if (Model == null) return;
+
+    var score = Model.TotalScore;
+    var totalQs = Model.TotalQuestions;
+    var correctCount = Model.CorrectAnswers;
+    var wrongCount = Model.WrongAnswers;
+    var skippedCount = totalQs - (correctCount + wrongCount);
+
+    // Định dạng thời gian: Duration là TimeSpan trả về từ Backend
+    var timeTaken = $"{(int)Model.Duration.TotalMinutes}:{Model.Duration.Seconds:D2}";
 }
 
 <!DOCTYPE html>
@@ -18,128 +24,158 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <!-- Canvas Confetti cho hiệu ứng pháo hoa -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
-        body { font-family: 'Nunito', sans-serif; }
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
+
         .gradient-text {
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#2563EB',
-                        secondary: '#F97316',
-                        bgSoft: '#F8FAFC',
-                    }
-                }
-            }
+
+        .detail-card {
+            display: none;
         }
-    </script>
+            /* Ẩn chi tiết ban đầu */
+            .detail-card.active {
+                display: block;
+            }
+    </style>
 </head>
-<body class="bg-[#E0E7FF] min-h-screen flex items-center justify-center p-4">
+<body class="bg-[#E0E7FF] min-h-screen py-10 px-4">
 
-    <div class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden relative">
+    <div class="w-full max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden relative">
 
-        <!-- Header Background Pattern -->
         <div class="absolute top-0 left-0 w-full h-40 bg-gradient-to-r from-blue-600 to-indigo-600">
             <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
         </div>
 
         <div class="relative z-10 pt-12 px-8 pb-8 text-center">
 
-            <!-- Score Circle -->
             <div class="w-32 h-32 mx-auto bg-white rounded-full shadow-xl flex items-center justify-center border-4 border-blue-100 mb-6 relative group">
                 <div class="text-center">
                     <span class="block text-4xl font-black text-blue-600 leading-none">@score</span>
-                    <span class="text-xs text-gray-400 font-bold uppercase">Điểm số</span>
+                    <span class="text-xs text-gray-400 font-bold uppercase">/@Model.MaxScore</span>
                 </div>
 
-                <!-- Badge (Absolute) -->
-                <div class="absolute -top-2 -right-2 bg-yellow-400 text-yellow-900 w-10 h-10 rounded-full flex items-center justify-center shadow-md animate-bounce">
-                    <i class="fa-solid fa-star text-lg"></i>
+                <div class="absolute -top-2 -right-2 @(Model.IsPassed ? "bg-green-500" : "bg-red-500") text-white w-10 h-10 rounded-full flex items-center justify-center shadow-md animate-bounce">
+                    <i class="fa-solid @(Model.IsPassed ? "fa-check" : "fa-xmark") text-lg"></i>
                 </div>
             </div>
 
-            <!-- Message -->
-            <h1 class="text-3xl font-extrabold text-gray-800 mb-2">Xuất sắc! Bạn đã làm rất tốt 🎉</h1>
-            <p class="text-gray-500 mb-8">Bạn đã hoàn thành bài kiểm tra <strong>Giữa học kỳ 1 - Toán 6</strong></p>
+            <h1 class="text-3xl font-extrabold text-gray-800 mb-2">
+                @(Model.IsPassed ? "Xuất sắc! Bạn đã vượt qua 🎉" : "Cố gắng lên! Bạn sắp làm được rồi 💪")
+            </h1>
+            <p class="text-gray-500 mb-8">Bài tập: <strong>@Model.ExerciseName</strong></p>
 
-            <!-- Stats Grid -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-                <!-- Card 1 -->
                 <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
                     <i class="fa-solid fa-circle-check text-2xl text-green-500 mb-2"></i>
                     <p class="text-2xl font-bold text-gray-800">@correctCount</p>
-                    <p class="text-xs text-gray-500 uppercase font-bold">Câu đúng</p>
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Câu đúng</p>
                 </div>
-                <!-- Card 2 -->
                 <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
                     <i class="fa-solid fa-circle-xmark text-2xl text-red-500 mb-2"></i>
                     <p class="text-2xl font-bold text-gray-800">@wrongCount</p>
-                    <p class="text-xs text-gray-500 uppercase font-bold">Câu sai</p>
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Câu sai</p>
                 </div>
-                <!-- Card 3 -->
                 <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
                     <i class="fa-solid fa-minus-circle text-2xl text-gray-400 mb-2"></i>
                     <p class="text-2xl font-bold text-gray-800">@skippedCount</p>
-                    <p class="text-xs text-gray-500 uppercase font-bold">Bỏ qua</p>
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Bỏ qua</p>
                 </div>
-                <!-- Card 4 -->
                 <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
                     <i class="fa-solid fa-stopwatch text-2xl text-blue-500 mb-2"></i>
                     <p class="text-2xl font-bold text-gray-800">@timeTaken</p>
-                    <p class="text-xs text-gray-500 uppercase font-bold">Thời gian</p>
+                    <p class="text-[10px] text-gray-500 uppercase font-bold">Thời gian</p>
                 </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex flex-col md:flex-row gap-4 justify-center">
-                <a href="#" class="px-8 py-3 rounded-xl bg-white border-2 border-blue-100 text-blue-600 font-bold hover:bg-blue-50 hover:border-blue-200 transition flex items-center justify-center gap-2">
+            <div class="flex flex-col md:flex-row gap-4 justify-center mb-10">
+                <a href="/Exam/DoExam/@Model.ExerciseId" class="px-8 py-3 rounded-xl bg-white border-2 border-blue-100 text-blue-600 font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-rotate-right"></i> Làm lại đề này
                 </a>
-                <a href="#" class="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                <button onclick="toggleDetails()" class="px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 shadow-lg transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-list-check"></i> Xem chi tiết đáp án
-                </a>
+                </button>
                 <a href="/" class="px-8 py-3 rounded-xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition flex items-center justify-center gap-2">
                     <i class="fa-solid fa-house"></i> Về trang chủ
                 </a>
+            </div>
+
+            <div id="details-section" class="detail-card text-left space-y-4 pt-6 border-t border-gray-100">
+                <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-list text-indigo-500"></i> Chi tiết câu trả lời
+                </h3>
+
+                @foreach (var detail in Model.AnswerDetails)
+                {
+                    <div class="bg-slate-50 rounded-2xl p-5 border-2 @(detail.IsCorrect ? "border-green-100 bg-green-50/20" : "border-red-100 bg-red-50/20")">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="font-bold text-gray-700 leading-tight">Câu hỏi: @detail.QuestionText</span>
+                            <span class="shrink-0 ml-4 text-xs font-black @(detail.IsCorrect ? "text-green-600" : "text-red-600") uppercase">
+                                @detail.PointsEarned/@detail.MaxScores đ
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-3 rounded-xl bg-white border border-gray-100">
+                                <span class="block text-[10px] font-bold text-gray-400 uppercase">Bạn chọn</span>
+                                <span class="font-semibold @(detail.IsCorrect ? "text-green-600" : "text-red-600")">
+                                    @(string.IsNullOrEmpty(detail.StudentAnswer) ? "Bỏ qua" : detail.StudentAnswer)
+                                </span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white border border-green-100">
+                                <span class="block text-[10px] font-bold text-green-400 uppercase">Đáp án đúng</span>
+                                <span class="font-semibold text-green-700">@detail.CorrectAnswer</span>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(detail.Explanation))
+                        {
+                            <div class="mt-4 p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-400">
+                                <p class="text-xs font-bold text-indigo-800 uppercase mb-1 italic">Giải thích:</p>
+                                <p class="text-sm text-indigo-700 italic leading-relaxed">@detail.Explanation</p>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
 
         </div>
     </div>
 
     <script>
-        // Hiệu ứng pháo hoa chúc mừng khi load trang
+        // Hiệu ứng pháo hoa chỉ nổ khi học sinh Đạt (IsPassed = true)
         document.addEventListener('DOMContentLoaded', () => {
-            var duration = 3 * 1000;
-            var animationEnd = Date.now() + duration;
-            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            if ("@Model.IsPassed.ToString().ToLower()" === "true") {
+                var duration = 3 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
 
-            function randomInRange(min, max) {
-                return Math.random() * (max - min) + min;
+                function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+
+                var interval = setInterval(function() {
+                    var timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) return clearInterval(interval);
+                    var particleCount = 50 * (timeLeft / duration);
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                }, 250);
             }
-
-            var interval = setInterval(function() {
-                var timeLeft = animationEnd - Date.now();
-
-                if (timeLeft <= 0) {
-                    return clearInterval(interval);
-                }
-
-                var particleCount = 50 * (timeLeft / duration);
-                // since particles fall down, start a bit higher than random
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-            }, 250);
         });
+
+        function toggleDetails() {
+            const section = document.getElementById('details-section');
+            section.classList.toggle('active');
+            if (section.classList.contains('active')) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
     </script>
 </body>
 </html>
-

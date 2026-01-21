@@ -1,7 +1,6 @@
-﻿@{
+﻿@model ToanHocHay.WebApp.Models.DTOs.ExerciseDetailDto
+@{
     Layout = null;
-    var title = ViewData["Title"] as string ?? "Đề kiểm tra giữa học kỳ 1 lớp 6";
-    var time = ViewData["Time"] as string ?? "29:53";
 }
 
 <!DOCTYPE html>
@@ -13,236 +12,258 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-
     <style>
-        body { font-family: 'Nunito', sans-serif; }
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
 
-        /* Custom scrollbar */
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
 
         /* Hiệu ứng chọn đáp án */
         .option-card.selected {
-            border-color: #2563EB; /* Blue-600 */
-            background-color: #EFF6FF; /* Blue-50 */
+            border-color: #2563EB;
+            background-color: #EFF6FF;
             box-shadow: 0 0 0 1px #2563EB;
         }
+
         .option-label.selected {
             background-color: #2563EB;
             color: white;
             border-color: #2563EB;
         }
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#2563EB', // Blue-600 (Màu thương hiệu)
-                        secondary: '#F97316', // Orange (Cho điểm nhấn nếu cần)
-                        bgSoft: '#F8FAFC', // Slate-50
-                    }
-                }
-            }
+
+        /* NÚT CÂU HỎI ĐÃ LÀM (NAVBAR) - Màu xanh đậm, chữ Vàng cực rõ */
+        .nav-btn.answered {
+            background-color: #1E40AF !important; /* Xanh Navy đậm */
+            color: #FACC15 !important; /* Chữ màu Vàng (Yellow-400) */
+            border-color: #1E3A8A !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
-    </script>
+
+        /* Nút câu hỏi đang xem */
+        .nav-btn.active {
+            border-color: #2563EB;
+            background-color: #F1F5F9;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Logic ẩn hiện trang câu hỏi */
+        .question-page {
+            display: none;
+        }
+
+            .question-page.active {
+                display: block;
+            }
+    </style>
 </head>
 <body class="bg-[#E0E7FF] h-screen flex items-center justify-center p-4 md:p-6 overflow-hidden">
-
-    <!-- Container chính -->
     <div class="w-full max-w-[1400px] h-[90vh] flex gap-6">
 
-        <!-- 1. LEFT SIDEBAR (Navigation) -->
-        <aside class="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden border border-blue-100 shrink-0 hidden lg:flex z-20">
-
+        <aside class="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden border border-blue-100 shrink-0 hidden lg:flex">
             <div class="p-5 border-b border-blue-50 bg-blue-50/50">
                 <h3 class="text-blue-800 font-bold text-lg text-center flex items-center justify-center gap-2">
                     <i class="fa-solid fa-table-cells text-blue-600"></i> Danh sách câu hỏi
                 </h3>
             </div>
-
             <div class="p-6 flex-1 overflow-y-auto custom-scroll">
-
-                <!-- Summary Stats -->
                 <div class="grid grid-cols-2 gap-3 mb-6">
                     <div class="bg-green-50 p-3 rounded-xl border border-green-100 text-center">
                         <span class="block text-green-600 font-bold text-xl" id="answered-count">0</span>
-                        <span class="text-xs text-green-700 font-bold uppercase">Đã làm</span>
+                        <span class="text-xs text-green-700 font-bold uppercase tracking-tighter">Đã làm</span>
                     </div>
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
-                        <span class="block text-slate-500 font-bold text-xl" id="unanswered-count">5</span>
-                        <span class="text-xs text-slate-500 font-bold uppercase">Chưa làm</span>
+                        <span class="block text-slate-500 font-bold text-xl" id="unanswered-count">@Model.Questions.Count</span>
+                        <span class="text-xs text-slate-500 font-bold uppercase tracking-tighter">Chưa làm</span>
                     </div>
                 </div>
-
-                <hr class="border-blue-50 mb-6">
-
-                <!-- Question Grid -->
-                <!-- Đổi grid-cols-4 thành grid-cols-5 để hiển thị 5 nút trên 1 dòng -->
                 <div class="grid grid-cols-5 gap-2">
-                    <!-- Active: Blue -->
-                    <button class="w-10 h-10 rounded-lg bg-blue-600 text-white font-bold text-sm shadow-md hover:bg-blue-700 transition transform hover:scale-105">1</button>
-                    <!-- Normal: Gray/White -->
-                    <button class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-600 font-bold text-sm hover:border-blue-400 hover:text-blue-600 transition">2</button>
-                    <button class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-600 font-bold text-sm hover:border-blue-400 hover:text-blue-600 transition">3</button>
-                    <button class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-600 font-bold text-sm hover:border-blue-400 hover:text-blue-600 transition">4</button>
-                    <button class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-600 font-bold text-sm hover:border-blue-400 hover:text-blue-600 transition">5</button>
-                    <!-- Thêm một vài nút giả lập để thấy rõ hiệu ứng 5 cột -->
-                    <!-- <button class="w-10 h-10 rounded-lg bg-white border border-gray-200 text-gray-600 font-bold text-sm hover:border-blue-400 hover:text-blue-600 transition">6</button> -->
+                    @for (int i = 0; i < Model.Questions.Count; i++)
+                    {
+                        var q = Model.Questions[i];
+                        <button id="nav-btn-@i" onclick="goToQuestion(@i)"
+                                class="nav-btn w-full aspect-square flex items-center justify-center rounded-xl border-2 border-gray-100 text-gray-600 font-bold hover:border-blue-300 hover:bg-blue-50 transition shadow-sm">
+                            @(i + 1)
+                        </button>
+                    }
                 </div>
             </div>
-
-            <!-- Submit Area -->
             <div class="p-6 bg-white border-t border-blue-50">
-                <button onclick="window.history.back()" class="w-full mb-3 py-2 text-gray-400 font-bold text-sm hover:text-blue-600 transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrow-left"></i> Thoát
-                </button>
-                <button class="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-200 transition transform hover:-translate-y-1 flex items-center justify-center gap-2 group">
-                    <span>NỘP BÀI THI</span>
-                    <i class="fa-solid fa-paper-plane group-hover:translate-x-1 transition"></i>
+                <button onclick="submitExam()" class="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> <span>NỘP BÀI THI</span>
                 </button>
             </div>
         </aside>
 
-        <!-- 2. MAIN CONTENT -->
         <main class="flex-1 flex flex-col gap-4 overflow-hidden">
-
-            <!-- Top Bar -->
-            <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-3 px-6 flex justify-between items-center shrink-0">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl border border-blue-100">
-                        <i class="fa-solid fa-file-pen"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-lg font-bold text-gray-800 leading-tight">@title</h1>
-                        <p class="text-xs text-gray-500 font-semibold">Môn Toán • Lớp 6</p>
-                    </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-3 px-6 flex justify-between items-center">
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800">@Model.Title</h1>
+                    <p class="text-xs text-gray-500">Môn Toán • Lớp 9</p>
                 </div>
-
-                <div class="flex items-center gap-3 bg-slate-800 text-white px-5 py-2 rounded-xl shadow-md">
+                <div class="flex items-center gap-3 bg-slate-800 text-white px-5 py-2 rounded-xl">
                     <i class="fa-regular fa-clock text-blue-300 animate-pulse"></i>
-                    <span id="timer" class="font-mono font-bold text-xl tracking-widest">@time</span>
+                    <span id="timer" class="font-mono font-bold text-xl">@ViewData["Time"]</span>
                 </div>
             </div>
 
-            <!-- Question Card Container -->
-            <div class="flex-1 bg-white rounded-3xl shadow-xl border border-blue-50 flex flex-col relative overflow-hidden min-h-0">
-
-                <!-- Scrollable Content -->
-                <div class="flex-1 overflow-y-auto custom-scroll p-6 md:p-8 pb-2">
-
-                    <!-- Progress Bar -->
-                    <div class="flex justify-between items-end mb-1">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Tiến độ làm bài</span>
-                        <span class="text-[10px] font-bold text-blue-600">20%</span>
-                    </div>
-                    <div class="w-full bg-gray-100 rounded-full h-1.5 mb-6"> 
-                        <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-500" style="width: 20%"></div>
-                    </div>
-
-                    <!-- Question Content -->
-                    <div class="mb-6">
-                        <div class="flex justify-between items-start gap-4">
-                            <div class="flex gap-4">
-                                <span class="bg-blue-600 text-white font-black text-lg px-3 py-1 rounded-lg shadow-md shrink-0 h-fit">Q1</span>
-                                <h2 class="text-xl font-bold text-gray-800 leading-relaxed">
-                                    Tập hợp các số tự nhiên lớn hơn 3 và nhỏ hơn 7 là?
-                                </h2>
+            <div class="flex-1 bg-white rounded-3xl shadow-xl border border-blue-50 flex flex-col overflow-hidden relative">
+                <div id="questions-container" class="flex-1 p-6 md:p-12 overflow-y-auto custom-scroll">
+                    @for (int i = 0; i < Model.Questions.Count; i++)
+                    {
+                        var q = Model.Questions[i];
+                        <div id="page-@i" class="question-page @(i == 0 ? "active" : "")">
+                            <div class="flex gap-6 mb-8">
+                                <span class="w-12 h-12 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg shadow-blue-200">@(i + 1)</span>
+                                <h2 class="text-2xl font-bold text-gray-800 leading-tight">@q.Content</h2>
                             </div>
 
-                            <!-- Toolbar -->
-                            <div class="flex items-center gap-3 shrink-0 ml-4">
-                                <button class="text-gray-300 hover:text-red-500 transition text-xl" title="Báo lỗi câu hỏi">
-                                    <i class="fa-regular fa-flag"></i>
-                                </button>
-                                <button class="text-gray-300 hover:text-yellow-500 transition text-xl" title="Lưu câu hỏi">
-                                    <i class="fa-regular fa-bookmark"></i>
-                                </button>
+                            <div class="grid grid-cols-1 gap-4">
+                                @foreach (var opt in q.Options)
+                                {
+                                    <div onclick="selectOption(@i, @q.QuestionId, @opt.OptionId, this)"
+                                         class="option-card group relative p-6 rounded-2xl border-2 border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all duration-200 flex items-center gap-5">
+                                        <div class="option-label w-10 h-10 rounded-xl border-2 border-gray-200 flex items-center justify-center font-bold text-lg text-gray-400 transition-colors">
+                                            @((char)('A' + q.Options.IndexOf(opt)))
+                                        </div>
+                                        <span class="text-lg text-gray-700 font-semibold">@opt.Content</span>
+                                    </div>
+                                }
                             </div>
                         </div>
-                    </div>
-
-                    <!-- Options -->
-                    <div class="space-y-3">
-                        <!-- Option A -->
-                        <div onclick="selectOption(this, 'A')" class="option-card cursor-pointer border-2 border-gray-100 rounded-xl p-4 flex items-center gap-4 bg-white hover:border-blue-200 group transition-all">
-                            <div class="option-label w-9 h-9 rounded-lg border-2 border-gray-200 flex items-center justify-center font-bold text-gray-400 shrink-0 group-hover:border-blue-300 group-hover:text-blue-500 transition text-sm">A</div>
-                            <span class="text-gray-700 font-medium text-lg">{ 4; 5; 6 }</span>
-                        </div>
-
-                        <!-- Option B -->
-                        <div onclick="selectOption(this, 'B')" class="option-card cursor-pointer border-2 border-gray-100 rounded-xl p-4 flex items-center gap-4 bg-white hover:border-blue-200 group transition-all">
-                            <div class="option-label w-9 h-9 rounded-lg border-2 border-gray-200 flex items-center justify-center font-bold text-gray-400 shrink-0 group-hover:border-blue-300 group-hover:text-blue-500 transition text-sm">B</div>
-                            <span class="text-gray-700 font-medium text-lg">{ 3; 4; 5; 6; 7 }</span>
-                        </div>
-
-                        <!-- Option C -->
-                        <div onclick="selectOption(this, 'C')" class="option-card cursor-pointer border-2 border-gray-100 rounded-xl p-4 flex items-center gap-4 bg-white hover:border-blue-200 group transition-all">
-                            <div class="option-label w-9 h-9 rounded-lg border-2 border-gray-200 flex items-center justify-center font-bold text-gray-400 shrink-0 group-hover:border-blue-300 group-hover:text-blue-500 transition text-sm">C</div>
-                            <span class="text-gray-700 font-medium text-lg">{ 4; 5; 6; 7 }</span>
-                        </div>
-
-                        <!-- Option D -->
-                        <div onclick="selectOption(this, 'D')" class="option-card cursor-pointer border-2 border-gray-100 rounded-xl p-4 flex items-center gap-4 bg-white hover:border-blue-200 group transition-all">
-                            <div class="option-label w-9 h-9 rounded-lg border-2 border-gray-200 flex items-center justify-center font-bold text-gray-400 shrink-0 group-hover:border-blue-300 group-hover:text-blue-500 transition text-sm">D</div>
-                            <span class="text-gray-700 font-medium text-lg">{ 3; 4; 5; 6 }</span>
-                        </div>
-                    </div>
-
-                    <div class="h-4"></div>
+                    }
                 </div>
 
-                <!-- Footer Navigation -->
-                <div class="p-4 border-t border-gray-100 bg-white/95 backdrop-blur-sm shrink-0 flex justify-between items-center z-10">
-                    <button class="px-5 py-2.5 rounded-xl text-gray-500 font-bold hover:bg-gray-100 hover:text-gray-800 transition flex items-center gap-2 text-sm">
-                        <i class="fa-solid fa-arrow-left"></i> Câu trước
+                <div class="p-6 border-t bg-gray-50/50 flex justify-between items-center">
+                    <button id="prev-btn" onclick="prevQuestion()" class="px-6 py-3 rounded-xl border-2 border-gray-200 text-gray-600 font-bold hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                        <i class="fa-solid fa-arrow-left mr-2"></i> Câu trước
                     </button>
-                    <button class="px-6 py-2.5 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition transform hover:scale-105 flex items-center gap-2 text-sm">
-                        Câu tiếp theo <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
 
+                    <div class="flex gap-3">
+                        <button id="next-btn" onclick="nextQuestion()" class="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
+                            Câu tiếp theo <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+                        <button id="final-submit-btn" onclick="submitExam()" class="hidden px-8 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition-all">
+                            Nộp bài ngay <i class="fa-solid fa-check-double ml-2"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- JS Logic -->
     <script>
-        // 1. Timer Logic
-        let timeString = "@time"; 
+        let currentIdx = 0;
+        const totalQuestions = @Model.Questions.Count;
+        let userAnswers = {};
+        const attemptId = @ViewData["AttemptId"];
+
+        // Init UI
+        updateNavigationButtons();
+        goToQuestion(0);
+
+        function goToQuestion(index) {
+            document.querySelectorAll('.question-page').forEach(page => page.classList.remove('active'));
+            document.getElementById(`page-${index}`).classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`nav-btn-${index}`).classList.add('active');
+
+            currentIdx = index;
+            updateNavigationButtons();
+        }
+
+        function nextQuestion() {
+            if (currentIdx < totalQuestions - 1) goToQuestion(currentIdx + 1);
+        }
+
+        function prevQuestion() {
+            if (currentIdx > 0) goToQuestion(currentIdx - 1);
+        }
+
+        function updateNavigationButtons() {
+            document.getElementById('prev-btn').disabled = (currentIdx === 0);
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('final-submit-btn');
+
+            if (currentIdx === totalQuestions - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        function selectOption(index, qId, optId, cardElement) {
+            const container = cardElement.parentElement;
+            container.querySelectorAll('.option-card').forEach(el => {
+                el.classList.remove('selected');
+                el.querySelector('.option-label').classList.remove('selected');
+            });
+
+            cardElement.classList.add('selected');
+            cardElement.querySelector('.option-label').classList.add('selected');
+
+            userAnswers[qId] = optId;
+            document.getElementById(`nav-btn-${index}`).classList.add('answered');
+            updateStats();
+        }
+
+        function updateStats() {
+            const answeredCount = Object.keys(userAnswers).length;
+            document.getElementById('answered-count').innerText = answeredCount;
+            document.getElementById('unanswered-count').innerText = totalQuestions - answeredCount;
+        }
+
+        // Timer Logic
+        let timeString = "@ViewData["Time"]";
         let parts = timeString.split(':');
-        let time = parseInt(parts[0]) * 60 + (parts[1] ? parseInt(parts[1]) : 0);
+        let time = parseInt(parts[0]) * 60 + (parseInt(parts[1]) || 0);
         const timerEl = document.getElementById('timer');
 
         const timerInterval = setInterval(() => {
             if(time <= 0) {
                 clearInterval(timerInterval);
-                alert("Hết giờ làm bài!");
+                submitExam(true);
                 return;
             }
-            const minutes = Math.floor(time / 60);
-            const seconds = time % 60;
-            timerEl.innerText = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
-
-            if(time < 300) {
-                timerEl.parentElement.classList.remove('bg-slate-800');
-                timerEl.parentElement.classList.add('bg-red-600', 'animate-pulse');
-            }
+            const mins = Math.floor(time / 60);
+            const secs = time % 60;
+            timerEl.innerText = `${mins}:${secs < 10 ? '0' + secs : secs}`;
             time--;
         }, 1000);
 
-        // 2. Selection Logic
-        function selectOption(card, option) {
-            document.querySelectorAll('.option-card').forEach(el => {
-                el.classList.remove('selected');
+        async function submitExam(force = false) {
+            if (!force && !confirm("Bạn có chắc chắn muốn nộp bài thi?")) return;
+
+            const payload = {
+                attemptId: parseInt(attemptId),
+                answers: Object.keys(userAnswers).map(key => ({
+                    questionId: parseInt(key),
+                    selectedOptionId: userAnswers[key]
+                }))
+            };
+
+            const response = await fetch('/Exam/Submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             });
 
-            card.classList.add('selected');
-
-            document.getElementById('answered-count').innerText = "1";
-            document.getElementById('unanswered-count').innerText = "4";
+            if (response.ok) {
+                // Chuyển sang trang kết quả thật
+                window.location.href = `/Exam/Result?attemptId=${attemptId}`;
+            } else {
+                alert("Nộp bài thất bại, vui lòng kiểm tra kết nối!");
+            }
         }
     </script>
 </body>
