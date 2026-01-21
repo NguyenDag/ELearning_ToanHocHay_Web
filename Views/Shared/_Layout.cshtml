@@ -22,23 +22,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-
-        /* Animation nhấp nháy cho số 2 ở Banner */
-        @@keyframes pulse-custom {
-            0%, 100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: .7;
-                transform: scale(1.1);
-            }
-        }
-
-        .animate-pulse-custom {
-            animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
     </style>
     <script>
         tailwind.config = {
@@ -177,47 +160,63 @@
         @RenderBody()
     </main>
 
-    <footer class="bg-[#1a237e] text-white pt-16 pb-8 mt-auto relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"></div>
-        <div class="container mx-auto px-4 relative z-10">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-                <div>
-                    <div class="flex items-center gap-3 mb-6">
-                        <a asp-controller="Home" asp-action="Index" class="block hover:scale-105 transition duration-300">
-                            <img src="~/images/brand/logo.png"
-                                 asp-append-version="true"
-                                 alt="ToanHocHay Logo"
-                                 class="h-16 w-auto object-contain brightness-0 invert opacity-90" />
-                        </a>
-                    </div>
-                    <p class="text-blue-100 text-sm leading-relaxed max-w-sm">
-                        Nền tảng giáo dục trực tuyến tiên phong ứng dụng AI giúp học sinh cấp 2 học Toán hiệu quả, xóa bỏ nỗi lo mất gốc.
+    <footer class="bg-[#2a4074] text-white pt-14 pb-8 mt-auto">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+                <div class="flex flex-col items-center text-center">
+                    <a href="/" class="mb-4 inline-block">
+                        <img src="~/images/brand/logo.png"
+                             alt="ToanHocHay Mathmate"
+                             class="h-24 w-auto object-contain brightness-0 invert" />
+                    </a>
+                    <p class="text-blue-100 text-sm leading-relaxed max-w-xs">
+                        Nền tảng học Toán Online hiệu quả cho học sinh cấp 2.
                     </p>
                 </div>
-                <div class="md:pl-10">
-                    <h4 class="font-bold text-xl mb-6">Về chúng tôi</h4>
-                    <ul class="space-y-4 text-sm text-blue-100">
-                        <li><a asp-controller="Home" asp-action="About" class="hover:text-white hover:underline transition">Câu chuyện thương hiệu</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline transition">Đội ngũ giáo viên</a></li>
+
+                <div class="flex flex-col items-center">
+                    <h4 class="font-bold text-lg mb-6">Về chúng tôi</h4>
+                    <ul class="space-y-4 text-sm text-blue-100 text-center">
+                        <li><a href="#" class="hover:text-white hover:underline transition">Câu hỏi thường gặp</a></li>
                         <li><a href="#" class="hover:text-white hover:underline transition">Chính sách bảo mật</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline transition">Điều khoản sử dụng</a></li>
                     </ul>
                 </div>
-                <div>
-                    <h4 class="font-bold text-xl mb-6">Liên hệ</h4>
+
+                <div class="flex flex-col md:items-start items-center">
+                    <h4 class="font-bold text-lg mb-6 text-center md:text-left w-full md:w-auto">Liên hệ</h4>
                     <ul class="space-y-4 text-sm text-blue-100 mb-6">
-                        <li class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-800 flex items-center justify-center"><i class="fa-solid fa-phone text-xs"></i></div> 0912 345 678</li>
-                        <li class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-800 flex items-center justify-center"><i class="fa-solid fa-envelope text-xs"></i></div> hotro@toanhochay.vn</li>
-                        <li class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-800 flex items-center justify-center"><i class="fa-solid fa-location-dot text-xs"></i></div> 123 Nguyễn Huệ, TP.HCM</li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-location-dot mt-1 w-4 text-center"></i>
+                            <span>Sơn Tây, Hà Nội, Việt Nam</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-phone w-4 text-center"></i>
+                            <span>0974 114 905</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="fa-solid fa-envelope w-4 text-center"></i>
+                            <span>training@dscons.vn</span>
+                        </li>
                     </ul>
+
+                    <div class="flex gap-4 mt-2">
+                        <a href="#" class="w-9 h-9 border border-blue-300 rounded-full flex items-center justify-center hover:bg-white hover:text-[#2a4074] transition duration-300">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 border border-blue-300 rounded-full flex items-center justify-center hover:bg-white hover:text-[#2a4074] transition duration-300">
+                            <i class="fa-brands fa-youtube"></i>
+                        </a>
+                        <a href="#" class="w-9 h-9 border border-blue-300 rounded-full flex items-center justify-center hover:bg-white hover:text-[#2a4074] transition duration-300">
+                            <i class="fa-brands fa-tiktok"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="border-t border-blue-800 pt-8 text-center text-xs text-blue-300 flex flex-col md:flex-row justify-between items-center gap-4">
-                <span>&copy; 2025 ToanHocHay E-Learning. Tất cả quyền được bảo lưu.</span>
-                <div class="flex gap-4">
-                    <a href="#" class="hover:text-white"><i class="fa-brands fa-facebook"></i></a>
-                    <a href="#" class="hover:text-white"><i class="fa-brands fa-youtube"></i></a>
-                    <a href="#" class="hover:text-white"><i class="fa-brands fa-tiktok"></i></a>
-                </div>
+
+            <div class="border-t border-blue-400/30 mt-12 pt-6 text-center text-xs text-blue-200">
+                <span>&copy; 2025 ToanHocHay E-learning. Tất cả quyền được bảo lưu.</span>
             </div>
         </div>
     </footer>

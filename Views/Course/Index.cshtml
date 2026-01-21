@@ -2,7 +2,6 @@
     ViewData["Title"] = "Bài giảng";
 }
 
-<!-- HERO SECTION -->
 <section class="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white py-16 overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
     <div class="container mx-auto px-4 relative z-10">
@@ -21,30 +20,20 @@
     </div>
 </section>
 
-<!-- FILTER & SEARCH BAR -->
 <section class="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
     <div class="container mx-auto px-4 py-4">
         <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
 
-            <!-- Search Box -->
             <div class="w-full md:w-1/2">
                 <div class="relative">
                     <input type="text" placeholder="Tìm kiếm bài học..."
-                           class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
+                           class="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition text-sm">
                     <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
 
-            <!-- Filter Buttons -->
             <div class="flex gap-2 w-full md:w-auto">
-                <select class="px-4 py-3 rounded-xl border border-gray-200 focus:border-primary outline-none text-sm bg-white">
-                    <option>Tất cả lớp</option>
-                    <option>Lớp 6</option>
-                    <option>Lớp 7</option>
-                    <option>Lớp 8</option>
-                    <option>Lớp 9</option>
-                </select>
-                <select class="px-4 py-3 rounded-xl border border-gray-200 focus:border-primary outline-none text-sm bg-white">
+                <select class="px-4 py-3 rounded-xl border border-gray-200 focus:border-blue-600 outline-none text-sm bg-white cursor-pointer">
                     <option>Sắp xếp</option>
                     <option>Mới nhất</option>
                     <option>Phổ biến nhất</option>
@@ -55,11 +44,9 @@
     </div>
 </section>
 
-<!-- MAIN CONTENT -->
 <section class="container mx-auto px-4 py-8">
     <div class="flex flex-col lg:flex-row gap-8">
 
-        <!-- LEFT SIDEBAR: FILTER -->
         <aside class="w-full lg:w-1/4">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden sticky top-24">
                 <div class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-4">
@@ -70,52 +57,27 @@
                 </div>
 
                 <div class="p-4 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-                    <!-- Lớp học -->
-                    <div>
-                        <h4 class="font-bold text-sm text-gray-700 mb-3 uppercase tracking-wide">Lớp học</h4>
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" checked class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-2 focus:ring-primary">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">Lớp 6 <span class="text-xs text-gray-400">(120)</span></span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-2 focus:ring-primary">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">Lớp 7 <span class="text-xs text-gray-400">(95)</span></span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-2 focus:ring-primary">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">Lớp 8 <span class="text-xs text-gray-400">(88)</span></span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-2 focus:ring-primary">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">Lớp 9 <span class="text-xs text-gray-400">(76)</span></span>
-                            </label>
-                        </div>
-                    </div>
 
-                    <hr class="border-gray-200">
-
-                    <!-- Độ khó -->
                     <div>
                         <h4 class="font-bold text-sm text-gray-700 mb-3 uppercase tracking-wide">Độ khó</h4>
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">
+                                <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                                <span class="text-sm text-gray-600 group-hover:text-blue-600 transition">
                                     <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
                                     Cơ bản
                                 </span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">
+                                <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                                <span class="text-sm text-gray-600 group-hover:text-blue-600 transition">
                                     <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1"></span>
                                     Trung bình
                                 </span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">
+                                <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                                <span class="text-sm text-gray-600 group-hover:text-blue-600 transition">
                                     <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></span>
                                     Nâng cao
                                 </span>
@@ -125,42 +87,39 @@
 
                     <hr class="border-gray-200">
 
-                    <!-- Trạng thái -->
                     <div>
                         <h4 class="font-bold text-sm text-gray-700 mb-3 uppercase tracking-wide">Trạng thái</h4>
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">Đã hoàn thành</span>
+                                <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                                <span class="text-sm text-gray-600 group-hover:text-blue-600 transition">Đã hoàn thành</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">Đang học</span>
+                                <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                                <span class="text-sm text-gray-600 group-hover:text-blue-600 transition">Đang học</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer group">
-                                <input type="checkbox" class="w-4 h-4 text-primary rounded border-gray-300">
-                                <span class="text-sm text-gray-600 group-hover:text-primary transition">Chưa học</span>
+                                <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300">
+                                <span class="text-sm text-gray-600 group-hover:text-blue-600 transition">Chưa học</span>
                             </label>
                         </div>
                     </div>
                 </div>
 
                 <div class="p-4 border-t border-gray-200">
-                    <button class="w-full text-primary hover:bg-blue-50 font-bold py-2 rounded-lg transition text-sm">
+                    <button class="w-full text-blue-600 hover:bg-blue-50 font-bold py-2 rounded-lg transition text-sm">
                         <i class="fa-solid fa-rotate-right mr-1"></i> Đặt lại bộ lọc
                     </button>
                 </div>
             </div>
         </aside>
 
-        <!-- RIGHT CONTENT: COURSE LIST -->
         <main class="flex-1">
 
-            <!-- Stats Bar -->
             <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 mb-6 border border-blue-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">Tìm thấy <strong class="text-primary">120 bài học</strong> cho Lớp 6</p>
+                        <p class="text-sm text-gray-600">Tìm thấy <strong class="text-blue-600">120 bài học</strong> phù hợp</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-xs text-gray-500">Tiến độ:</span>
@@ -172,9 +131,7 @@
                 </div>
             </div>
 
-            <!-- Lớp 6 - Chương 1: Tập hợp số tự nhiên -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
-                <!-- Chapter Header -->
                 <div class="bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-5 cursor-pointer hover:from-blue-600 hover:to-indigo-600 transition" onclick="toggleChapter('chapter1')">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
@@ -198,10 +155,8 @@
                     </div>
                 </div>
 
-                <!-- Lessons List -->
                 <div id="chapter1" class="divide-y divide-gray-100">
 
-                    <!-- Lesson 1 - Completed -->
                     <a href="/Course/Lesson/1" class="block p-5 hover:bg-blue-50 transition group">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -209,7 +164,7 @@
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-start justify-between mb-1">
-                                    <h4 class="font-bold text-gray-800 group-hover:text-primary transition">
+                                    <h4 class="font-bold text-gray-800 group-hover:text-blue-600 transition">
                                         1. Làm quen với số nguyên âm
                                     </h4>
                                     <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded font-bold ml-2">Đã học</span>
@@ -223,7 +178,6 @@
                         </div>
                     </a>
 
-                    <!-- Lesson 2 - In Progress -->
                     <a href="/Course/Lesson/2" class="block p-5 hover:bg-blue-50 transition group bg-blue-50/30">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 relative">
@@ -232,7 +186,7 @@
                             </div>
                             <div class="flex-1">
                                 <div class="flex items-start justify-between mb-1">
-                                    <h4 class="font-bold text-gray-800 group-hover:text-primary transition">
+                                    <h4 class="font-bold text-gray-800 group-hover:text-blue-600 transition">
                                         2. Phép cộng số nguyên
                                     </h4>
                                     <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold ml-2">Đang học</span>
@@ -242,7 +196,6 @@
                                     <span><i class="fa-solid fa-signal mr-1"></i> Cơ bản</span>
                                     <span><i class="fa-regular fa-eye mr-1"></i> 2,456 lượt xem</span>
                                 </div>
-                                <!-- Progress Bar -->
                                 <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                                     <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500" style="width: 65%"></div>
                                 </div>
@@ -251,7 +204,6 @@
                         </div>
                     </a>
 
-                    <!-- Lesson 3 - Locked -->
                     <div class="block p-5 bg-gray-50 opacity-60 cursor-not-allowed">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -272,7 +224,6 @@
                         </div>
                     </div>
 
-                    <!-- Lesson 4 - Locked -->
                     <div class="block p-5 bg-gray-50 opacity-60 cursor-not-allowed">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -296,7 +247,6 @@
                 </div>
             </div>
 
-            <!-- Chương 2: Số nguyên -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
                 <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-5 cursor-pointer hover:from-purple-600 hover:to-pink-600 transition" onclick="toggleChapter('chapter2')">
                     <div class="flex items-center justify-between">
@@ -339,7 +289,6 @@
                 </div>
             </div>
 
-            <!-- Chương 3: Hình học trực quan -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
                 <div class="bg-gradient-to-r from-green-500 to-teal-500 text-white p-5 cursor-pointer hover:from-green-600 hover:to-teal-600 transition" onclick="toggleChapter('chapter3')">
                     <div class="flex items-center justify-between">
