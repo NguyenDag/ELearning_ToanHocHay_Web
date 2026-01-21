@@ -24,33 +24,24 @@ namespace ToanHocHay.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> DoExam(int id)
         {
-            // 1. Gọi API lấy dữ liệu thô để kiểm tra cấu trúc
+            // Nếu id = 0 nghĩa là link từ View truyền sang bị sai
+            if (id <= 0) return BadRequest("Mã đề thi không hợp lệ.");
+
             var exam = await _examService.GetExerciseById(id);
 
-            // --- ĐOẠN CODE LOG JSON ĐỂ KIỂM TRA ---
-            if (exam != null)
+            if (exam == null)
             {
-                // In ra cửa sổ Debug Output để bạn xem tên trường thực tế là gì
-                var debugJson = System.Text.Json.JsonSerializer.Serialize(exam, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-                System.Diagnostics.Debug.WriteLine("======= DỮ LIỆU JSON NHẬN ĐƯỢC =======");
-                System.Diagnostics.Debug.WriteLine(debugJson);
-                System.Diagnostics.Debug.WriteLine("======================================");
+                // Debug xem id nhận được là bao nhiêu
+                System.Diagnostics.Debug.WriteLine($"---> KHÔNG TÌM THẤY EXERCISE VỚI ID: {id}");
+                return NotFound("Không tìm thấy đề thi hoặc lỗi kết nối API.");
             }
-            // --------------------------------------
 
-            if (exam == null) return NotFound("Không tìm thấy đề thi hoặc lỗi kết nối.");
+            int studentId = 9;
+            int attemptId = await _examService.StartExercise(id, studentId);
 
-            int studentId = 9; //
-            int attemptId = await _examService.StartExercise(id, studentId); //
-
-            if (attemptId == 0) return BadRequest("Không thể bắt đầu bài thi.");
+            if (attemptId == 0) return BadRequest("Không thể bắt đầu lượt làm bài mới (Backend từ chối).");
 
             ViewData["AttemptId"] = attemptId;
-            ViewData["Title"] = exam.Title;
-
-            var duration = exam.DurationMinutes ?? 45;
-            ViewData["Time"] = $"{duration:00}:00";
-
             return View(exam);
         }
 
