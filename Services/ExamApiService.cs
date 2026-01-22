@@ -20,7 +20,7 @@ namespace ToanHocHay.WebApp.Services
         public async Task<List<ExerciseListDto>> GetExercisesAsync()
         {
             var response = await _httpClient.GetAsync(
-                $"{ApiConstant.apiBaseUrl}/Exercises");
+                $"{ApiConstant.apiBaseUrl}/api/Exercises");
 
             if (!response.IsSuccessStatusCode)
                 return new List<ExerciseListDto>();
@@ -38,7 +38,7 @@ namespace ToanHocHay.WebApp.Services
         // 1. Lấy đề thi (Giữ nguyên)
         public async Task<ExerciseDetailDto?> GetExerciseById(int id)
         {
-            var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/exercises/{id}");
+            var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/exercises/{id}");
             if (!response.IsSuccessStatusCode) return null;
 
             var json = await response.Content.ReadAsStringAsync();
@@ -68,7 +68,7 @@ namespace ToanHocHay.WebApp.Services
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{ApiConstant.apiBaseUrl}/ExerciseAttempts/start", content);
+            var response = await _httpClient.PostAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/start", content);
             if (!response.IsSuccessStatusCode) return 0;
 
             var resString = await response.Content.ReadAsStringAsync();
@@ -82,7 +82,7 @@ namespace ToanHocHay.WebApp.Services
         {
             var json = JsonSerializer.Serialize(dto);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"{ApiConstant.apiBaseUrl}/ExerciseAttempts/submit-answer", content);
+            var response = await _httpClient.PostAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/submit-answer", content);
             return response.IsSuccessStatusCode;
         }
 
@@ -92,12 +92,12 @@ namespace ToanHocHay.WebApp.Services
             var payload = new CompleteExerciseDto { AttemptId = attemptId };
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync($"{ApiConstant.apiBaseUrl}/ExerciseAttempts/complete", content);
+            var response = await _httpClient.PostAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/complete", content);
             return response.IsSuccessStatusCode;
         }
         public async Task<ExerciseResultDto?> GetExerciseResult(int attemptId)
         {
-            var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/ExerciseAttempts/{attemptId}/result");
+            var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/{attemptId}/result");
             if (!response.IsSuccessStatusCode) return null;
 
             var json = await response.Content.ReadAsStringAsync();

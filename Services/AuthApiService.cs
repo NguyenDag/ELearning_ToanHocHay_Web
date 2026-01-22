@@ -25,7 +25,7 @@ namespace ToanHocHay.WebApp.Services
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync(
-                $"{ApiConstant.apiBaseUrl}/auth/login",
+                $"{ApiConstant.apiBaseUrl}/api/auth/login",
                 content
             );
 
