@@ -11,6 +11,7 @@
     <Folder Include="wwwroot\images\home\" />
     <Folder Include="wwwroot\images\banner\" />
     <Folder Include="wwwroot\images\icons\" />
+    <Folder Include="wwwroot\images\avatar\" />
     <Folder Include="wwwroot\images\placeholders\" />
   </ItemGroup>
 

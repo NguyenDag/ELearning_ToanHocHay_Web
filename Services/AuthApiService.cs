@@ -31,6 +31,8 @@ namespace ToanHocHay.WebApp.Services
 
             var resString = await response.Content.ReadAsStringAsync();
 
+            Console.WriteLine("API RESPONSE: " + resString);
+
             var apiResponse =
                 JsonSerializer.Deserialize<ApiResponse<LoginResponseDto>>(resString, _jsonOptions);
 

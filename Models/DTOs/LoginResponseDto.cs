@@ -1,11 +1,23 @@
 ﻿namespace ToanHocHay.WebApp.Models.DTOs
 {
+    public enum UserType
+    {
+        Student,
+        Parent,
+        ContentEditor,
+        AcademicReviewer,
+        SupportStaff,
+        FinanceManager,
+        SystemAdmin
+    }
     public class LoginResponseDto
     {
         public int UserId { get; set; }
+        public int? StudentId { get; set; }
+        public int? ParentId { get; set; }
         public string Email { get; set; }
         public string FullName { get; set; }
-        public string UserType { get; set; }
+        public UserType UserType { get; set; }
         public string Token { get; set; }
         public DateTime TokenExpiration { get; set; }
         public string AvatarUrl { get; set; }

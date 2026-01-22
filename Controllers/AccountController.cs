@@ -2,6 +2,11 @@
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
+using ToanHocHay.WebApp.Common;
+
 namespace ToanHocHay.WebApp.Controllers
 {
     public class AccountController : Controller
@@ -35,6 +40,12 @@ namespace ToanHocHay.WebApp.Controllers
                 Password = password
             });
 
+            /*_logger.LogInformation("UserType enum value: {Value}, Name: {Name}", 
+                (int)data.UserType,
+                data.UserType.ToString()
+                );*/
+
+
             if (error != null)
             {
                 _logger.LogWarning("Login failed for email: {Email}. Reason: {Reason}", email, error);
@@ -45,12 +56,49 @@ namespace ToanHocHay.WebApp.Controllers
                 return View();
             }
 
-            _logger.LogInformation("Login success. UserId: {UserId}, Email: {Email}, Role: {Role}", data!.UserId, data.Email, data.UserType);
+            //_logger.LogInformation("Login success. UserId: {UserId}, Email: {Email}, Role: {Role}", data!.UserId, data.Email, data.UserType);
 
+            // LƯU SESSION (giữ JWT cho API)
             HttpContext.Session.SetString("JWT", data!.Token);
             HttpContext.Session.SetInt32("UserId", data!.UserId);
             HttpContext.Session.SetString("Email", data.Email);
-            HttpContext.Session.SetString("UserType", data.UserType);
+            HttpContext.Session.SetString("UserType", data.UserType.ToString());
+
+            // COOKIE AUTHENTICATION (QUAN TRỌNG)
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, data.UserId.ToString()),
+                new Claim(ClaimTypes.Name, data.Email),          // dùng hiển thị header
+                new Claim(ClaimTypes.Email, data.Email),
+                new Claim(ClaimTypes.Role, data.UserType.ToString())
+            };
+
+            if (data.StudentId.HasValue)
+            {
+                claims.Add(new Claim(CustomJwtClaims.StudentId, data.StudentId.Value.ToString()));
+            }
+
+            if (data.ParentId.HasValue)
+            {
+                claims.Add(new Claim(CustomJwtClaims.ParentId, data.ParentId.Value.ToString()));
+            }
+
+            var identity = new ClaimsIdentity(
+                claims,
+                CookieAuthenticationDefaults.AuthenticationScheme
+            );
+
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                }
+            );
 
             return RedirectToAction("Index", "Home");
         }
@@ -71,8 +119,14 @@ namespace ToanHocHay.WebApp.Controllers
         }
 
         // 3. Xử lý đường dẫn /Account/Logout
-        public IActionResult Logout()
+        public async Task<IActionResult> LogoutAsync()
         {
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme
+                );
+
+            HttpContext.Session.Clear();
+
             return RedirectToAction("Index", "Home");
         }
     }

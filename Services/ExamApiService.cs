@@ -17,21 +17,21 @@ namespace ToanHocHay.WebApp.Services
         }
 
         // Lấy danh sách bài kiểm tra
-        public async Task<List<ExerciseListDto>> GetExercisesAsync()
+        public async Task<List<ExerciseDto>> GetExercisesAsync()
         {
             var response = await _httpClient.GetAsync(
                 $"{ApiConstant.apiBaseUrl}/api/Exercises");
 
             if (!response.IsSuccessStatusCode)
-                return new List<ExerciseListDto>();
+                return new List<ExerciseDto>();
 
             var json = await response.Content.ReadAsStringAsync();
 
             var apiResponse =
-                JsonSerializer.Deserialize<ApiResponse<List<ExerciseListDto>>>(
+                JsonSerializer.Deserialize<ApiResponse<List<ExerciseDto>>>(
                     json, _jsonOptions);
 
-            return apiResponse?.Data ?? new List<ExerciseListDto>();
+            return apiResponse?.Data ?? new List<ExerciseDto>();
         }
 
 

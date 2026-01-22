@@ -24,6 +24,7 @@
     {
         public int AttemptId { get; set; }
         public int QuestionId { get; set; }
+        public string? AnswerText { get; set; }
         public int? SelectedOptionId { get; set; }
     }
 

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
+using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
 
@@ -31,19 +33,34 @@ namespace ToanHocHay.WebApp.Controllers
             // Nếu id = 0 nghĩa là link từ View truyền sang bị sai
             if (id <= 0) return BadRequest("Mã đề thi không hợp lệ.");
 
+            // 🔐 Bắt buộc đăng nhập
+            if (!User.Identity!.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
             var exam = await _examService.GetExerciseById(id);
 
             if (exam == null)
             {
                 // Debug xem id nhận được là bao nhiêu
                 System.Diagnostics.Debug.WriteLine($"---> KHÔNG TÌM THẤY EXERCISE VỚI ID: {id}");
-                return NotFound("Không tìm thấy đề thi hoặc lỗi kết nối API.");
+                return NotFound("Không tìm thấy đề thi.");
             }
 
-            int studentId = 9;
+            // LẤY STUDENT ID TỪ CLAIM
+            var studentIdClaim = User.FindFirst(CustomJwtClaims.StudentId);
+
+            if (studentIdClaim == null)
+            {
+                return Unauthorized("Tài khoản không phải là học sinh.");
+            }
+
+            int studentId = int.Parse(studentIdClaim.Value);
+
             int attemptId = await _examService.StartExercise(id, studentId);
 
-            if (attemptId == 0) return BadRequest("Không thể bắt đầu lượt làm bài mới (Backend từ chối).");
+            if (attemptId == 0) return BadRequest("Không thể bắt đầu lượt làm bài.");
 
             ViewData["AttemptId"] = attemptId;
             return View(exam);
