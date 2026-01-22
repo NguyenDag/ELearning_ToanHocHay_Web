@@ -14,9 +14,13 @@ namespace ToanHocHay.WebApp.Controllers
         }
 
         // 1. Trang danh sách bài thi (Khắc phục lỗi 404)
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var exams = await _examService.GetExercisesAsync();
+
+            Console.WriteLine(exams.Count);
+
+            return View(exams);
         }
 
         // 2. Trang làm bài thi (Dynamic Data)

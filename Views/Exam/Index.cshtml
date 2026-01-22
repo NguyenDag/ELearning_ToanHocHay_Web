@@ -1,199 +1,184 @@
-﻿@{
-    ViewData["Title"] = "Thư viện đề thi Lớp 6";
+﻿@using ToanHocHay.WebApp.Models.DTOs
+@{
+	ViewData["Title"] = "Thư viện đề thi Lớp 6";
 }
 
+@functions {
+	string GetDurationLabel(int? minutes)
+	{
+		if (!minutes.HasValue)
+			return "Không giới hạn";
+
+		return minutes.Value switch
+		{
+			45 => "1 Tiết (45p)",
+			90 => "Đề kiểm tra cuối kỳ",
+			_ => $"{minutes} phút"
+		};
+	}
+
+	string GetDurationBadgeClass(int? minutes)
+	{
+		return minutes switch
+		{
+			45 => "bg-orange-50 text-orange-700 border-orange-100",
+			90 => "bg-red-50 text-red-700 border-red-100",
+			_ => "bg-blue-50 text-blue-700 border-blue-100"
+		};
+	}
+}
+
+@model List<ExerciseListDto>
+
 <section class="bg-gradient-to-br from-blue-600 to-indigo-700 pt-12 pb-20 relative overflow-hidden">
-    <div class="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-    <div class="absolute bottom-0 left-0 w-64 h-64 bg-yellow-400 opacity-10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+	<div class="absolute top-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+	<div class="absolute bottom-0 left-0 w-64 h-64 bg-yellow-400 opacity-10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
 
-    <div class="container mx-auto px-4 relative z-10 text-center text-white">
-        <h1 class="text-3xl md:text-4xl font-black mb-4">Thư viện Đề thi Lớp 6</h1>
-        <p class="text-blue-100 mb-8 max-w-2xl mx-auto">
-            Hệ thống đề thi trắc nghiệm Toán lớp 6 bám sát chương trình GDPT mới.
-            Có chấm điểm và giải thích chi tiết ngay sau khi làm bài.
-        </p>
+	<div class="container mx-auto px-4 relative z-10 text-center text-white">
+		<h1 class="text-3xl md:text-4xl font-black mb-4">Thư viện Đề thi Lớp 6</h1>
+		<p class="text-blue-100 mb-8 max-w-2xl mx-auto">
+			Hệ thống đề thi trắc nghiệm Toán lớp 6 bám sát chương trình GDPT mới.
+			Có chấm điểm và giải thích chi tiết ngay sau khi làm bài.
+		</p>
 
-        <div class="max-w-2xl mx-auto bg-white p-2 rounded-full shadow-2xl flex items-center">
-            <div class="flex-1 px-4">
-                <input type="text" placeholder="Tìm kiếm đề thi (VD: Số nguyên, Hình học...)" class="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 text-sm h-10">
-            </div>
-            <button class="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-bold py-2.5 px-6 rounded-full transition shadow-md flex items-center gap-2">
-                <i class="fa-solid fa-magnifying-glass"></i> <span class="hidden sm:inline">Tìm kiếm</span>
-            </button>
-        </div>
-    </div>
+		<div class="max-w-2xl mx-auto bg-white p-2 rounded-full shadow-2xl flex items-center">
+			<div class="flex-1 px-4">
+				<input type="text" placeholder="Tìm kiếm đề thi (VD: Số nguyên, Hình học...)" class="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 text-sm h-10">
+			</div>
+			<button class="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-bold py-2.5 px-6 rounded-full transition shadow-md flex items-center gap-2">
+				<i class="fa-solid fa-magnifying-glass"></i> <span class="hidden sm:inline">Tìm kiếm</span>
+			</button>
+		</div>
+	</div>
 </section>
 
 <section class="bg-slate-50 py-12 -mt-10 relative z-20 rounded-t-[2.5rem]">
-    <div class="container mx-auto px-4">
+	<div class="container mx-auto px-4">
 
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-            <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-                <button class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-md whitespace-nowrap transition">Tất cả</button>
-                <button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Số học</button>
-                <button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Hình học</button>
-                <button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Giữa kỳ</button>
-                <button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Cuối kỳ</button>
-            </div>
+		<div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+			<div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+				<button class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-md whitespace-nowrap transition">Tất cả</button>
+				<button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Số học</button>
+				<button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Hình học</button>
+				<button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Giữa kỳ</button>
+				<button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Cuối kỳ</button>
+			</div>
 
-            <div class="flex items-center gap-3">
-                <span class="text-sm text-gray-500 font-medium hidden sm:block">Sắp xếp:</span>
-                <select class="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none cursor-pointer hover:bg-gray-100 transition">
-                    <option>Mới nhất</option>
-                    <option>Nhiều người thi nhất</option>
-                    <option>Dễ nhất</option>
-                    <option>Khó nhất</option>
-                </select>
-            </div>
-        </div>
+			<div class="flex items-center gap-3">
+				<span class="text-sm text-gray-500 font-medium hidden sm:block">Sắp xếp:</span>
+				<select class="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none cursor-pointer hover:bg-gray-100 transition">
+					<option>Mới nhất</option>
+					<option>Nhiều người thi nhất</option>
+					<option>Dễ nhất</option>
+					<option>Khó nhất</option>
+				</select>
+			</div>
+		</div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			@foreach (var exam in Model)
+			{
+				<div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100
+				                        hover:shadow-xl hover:-translate-y-1 transition
+				                        duration-300 flex flex-col h-full relative overflow-hidden">
 
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300 group flex flex-col h-full relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+					@if (!exam.IsFree)
+					{
+						<div class="absolute top-0 right-0 bg-gradient-to-l from-orange-500 to-yellow-500
+								                text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
+							<i class="fa-solid fa-crown text-xs"></i> Premium
+						</div>
+					}
+					<!-- Thanh màu trái -->
+					<div class="absolute top-0 left-0 w-1 h-full
+				                            @(exam.IsFree ? "bg-green-500" : "bg-orange-500")"></div>
 
-                <div class="flex justify-between items-start mb-4 pl-3">
-                    <span class="bg-green-50 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-green-100">15 Phút</span>
-                    <div class="flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
-                        <i class="fa-solid fa-users"></i> 1.2k
-                    </div>
-                </div>
+					<!-- Badge -->
+					<div class="flex justify-between items-start mb-4 pl-3">
+						<span class="@GetDurationBadgeClass(exam.DurationMinutes)
+				             text-[10px] font-bold px-3 py-1 rounded-full uppercase border">
+							@GetDurationLabel(exam.DurationMinutes)
+						</span>
+					</div>
 
-                <div class="pl-3 mb-4 flex-1">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition line-clamp-2">
-                        Kiểm tra 15 phút: Tập hợp các số tự nhiên (Đề 1)
-                    </h3>
-                    <p class="text-xs text-gray-500 line-clamp-2">
-                        Nội dung bao gồm: Phần tử của tập hợp, tập hợp con, các phép toán trên tập hợp...
-                    </p>
-                </div>
 
-                <div class="pl-3 mt-auto">
-                    <div class="flex items-center gap-4 text-xs text-gray-500 mb-4 border-t border-gray-100 pt-3">
-                        <span class="flex items-center gap-1"><i class="fa-regular fa-clock text-green-500"></i> 15 phút</span>
-                        <span class="flex items-center gap-1"><i class="fa-solid fa-list-check text-blue-500"></i> 10 câu</span>
-                        <span class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-purple-500"></i> Dễ</span>
-                    </div>
 
-                    <a asp-controller="Exam" asp-action="DoExam" asp-route-id="1" class="w-full py-2.5 rounded-xl border border-blue-600 text-blue-600 font-bold text-sm hover:bg-blue-600 hover:text-white transition flex items-center justify-center gap-2">
-                        Làm bài ngay <i class="fa-solid fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
+					<!-- Nội dung -->
+					<div class="pl-3 mb-4 flex-1">
+						<h3 class="text-lg font-bold text-gray-800 mb-2">
+							@exam.ExerciseName
+						</h3>
 
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100 hover:shadow-xl hover:-translate-y-1 transition duration-300 group flex flex-col h-full relative overflow-hidden">
-                <div class="absolute top-0 right-0 bg-gradient-to-l from-orange-500 to-yellow-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
-                    <i class="fa-solid fa-crown text-xs"></i> Premium
-                </div>
-                <div class="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
+						<p class="text-xs text-gray-500">
+							📄 @exam.TotalQuestions câu hỏi
+						</p>
+					</div>
 
-                <div class="flex justify-between items-start mb-4 pl-3">
-                    <span class="bg-orange-50 text-orange-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-orange-100">1 Tiết (45')</span>
-                    <div class="flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
-                        <i class="fa-solid fa-users"></i> 856
-                    </div>
-                </div>
+					<!-- Footer -->
+					<div class="pl-3 mt-auto">
+						<div class="flex items-center gap-4 text-xs text-gray-500 mb-4
+				                                border-t border-gray-100 pt-3">
+							<span>⏱ @(exam.DurationMinutes ?? 0) phút</span>
+							<span>
+								@(exam.IsFree ? "🟢 Miễn phí" : "🔒 Premium")
+							</span>
+						</div>
 
-                <div class="pl-3 mb-4 flex-1">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-orange-600 transition line-clamp-2">
-                        Đề kiểm tra 1 tiết Chương 1: Số học
-                    </h3>
-                    <p class="text-xs text-gray-500 line-clamp-2">
-                        Tổng hợp kiến thức chương 1. Đề thi có ma trận bám sát đề thi thật của các trường chuyên.
-                    </p>
-                </div>
+						@if (exam.IsFree)
+						{
+							<!-- Nút FREE -->
+							<a asp-controller="Exam"
+							   asp-action="DoExam"
+							   asp-route-id="@exam.ExerciseId"
+							   class="w-full py-2.5 rounded-xl border border-blue-600
+						              text-blue-600 font-bold text-sm
+						              hover:bg-blue-600 hover:text-white transition
+						              flex items-center justify-center gap-2">
+								Thi ngay <i class="fa-solid fa-play text-xs"></i>
+							</a>
+						}
+						else
+						{
+							<!-- Nút PREMIUM -->
+							<a asp-controller="Exam"
+							   asp-action="DoExam"
+							   asp-route-id="@exam.ExerciseId"
+							   class="w-full py-2.5 rounded-xl
+						              bg-gradient-to-r from-orange-500 to-yellow-500
+						              text-white font-bold text-sm
+						              shadow-lg shadow-orange-500/30
+						              hover:shadow-orange-500/50 transition
+						              flex items-center justify-center gap-2">
+								Thi ngay <i class="fa-solid fa-lock-open text-xs"></i>
+							</a>
+						}
 
-                <div class="pl-3 mt-auto">
-                    <div class="flex items-center gap-4 text-xs text-gray-500 mb-4 border-t border-gray-100 pt-3">
-                        <span class="flex items-center gap-1"><i class="fa-regular fa-clock text-orange-500"></i> 45 phút</span>
-                        <span class="flex items-center gap-1"><i class="fa-solid fa-list-check text-blue-500"></i> 25 câu</span>
-                        <span class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-red-500"></i> Khó</span>
-                    </div>
+					</div>
+				</div>
+			}
+		</div>
 
-                    <a asp-controller="Exam" asp-action="DoExam" asp-route-id="2" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold text-sm shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition flex items-center justify-center gap-2">
-                        Thi ngay <i class="fa-solid fa-lock-open text-xs"></i>
-                    </a>
-                </div>
-            </div>
+		<div class="mt-12 flex justify-center">
+			<nav class="flex items-center gap-2">
+				<button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-50"><i class="fa-solid fa-chevron-left"></i></button>
+				<button class="w-10 h-10 rounded-lg bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center transition">1</button>
+				<button class="w-10 h-10 rounded-lg border border-gray-200 text-gray-600 font-bold hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center transition">2</button>
+				<button class="w-10 h-10 rounded-lg border border-gray-200 text-gray-600 font-bold hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center transition">3</button>
+				<span class="w-10 h-10 flex items-center justify-center text-gray-400">...</span>
+				<button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition"><i class="fa-solid fa-chevron-right"></i></button>
+			</nav>
+		</div>
 
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300 group flex flex-col h-full relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
-
-                <div class="flex justify-between items-start mb-4 pl-3">
-                    <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-blue-100">Học kỳ 1</span>
-                    <div class="flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-lg">
-                        <i class="fa-solid fa-users"></i> 3.4k
-                    </div>
-                </div>
-
-                <div class="pl-3 mb-4 flex-1">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition line-clamp-2">
-                        Đề thi Học kỳ 1 Toán 6 - Năm học 2024-2025
-                    </h3>
-                    <p class="text-xs text-gray-500 line-clamp-2">
-                        Đề tổng hợp kiến thức cả Đại số và Hình học. Giúp học sinh rà soát kiến thức trước kỳ thi.
-                    </p>
-                </div>
-
-                <div class="pl-3 mt-auto">
-                    <div class="flex items-center gap-4 text-xs text-gray-500 mb-4 border-t border-gray-100 pt-3">
-                        <span class="flex items-center gap-1"><i class="fa-regular fa-clock text-blue-600"></i> 90 phút</span>
-                        <span class="flex items-center gap-1"><i class="fa-solid fa-list-check text-blue-500"></i> 50 câu</span>
-                        <span class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-orange-500"></i> TB</span>
-                    </div>
-
-                    <a asp-controller="Exam" asp-action="DoExam" asp-route-id="3" class="w-full py-2.5 rounded-xl border border-blue-600 text-blue-600 font-bold text-sm hover:bg-blue-600 hover:text-white transition flex items-center justify-center gap-2">
-                        Làm bài ngay <i class="fa-solid fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition duration-300 group flex flex-col h-full relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
-                <div class="flex justify-between items-start mb-4 pl-3">
-                    <span class="bg-green-50 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase border border-green-100">15 Phút</span>
-                    <div class="flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-lg"><i class="fa-solid fa-users"></i> 540</div>
-                </div>
-                <div class="pl-3 mb-4 flex-1">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition line-clamp-2">Kiểm tra 15 phút: Phép cộng và phép nhân</h3>
-                    <p class="text-xs text-gray-500 line-clamp-2">Luyện tập tính chất giao hoán, kết hợp, phân phối...</p>
-                </div>
-                <div class="pl-3 mt-auto">
-                    <div class="flex items-center gap-4 text-xs text-gray-500 mb-4 border-t border-gray-100 pt-3">
-                        <span class="flex items-center gap-1"><i class="fa-regular fa-clock text-green-500"></i> 15 phút</span>
-                        <span class="flex items-center gap-1"><i class="fa-solid fa-list-check text-blue-500"></i> 10 câu</span>
-                        <span class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-purple-500"></i> Dễ</span>
-                    </div>
-
-                    <a asp-controller="Exam" asp-action="DoExam" asp-route-id="4" class="w-full py-2.5 rounded-xl border border-blue-600 text-blue-600 font-bold text-sm hover:bg-blue-600 hover:text-white transition flex items-center justify-center gap-2">
-                        Làm bài ngay <i class="fa-solid fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="mt-12 flex justify-center">
-            <nav class="flex items-center gap-2">
-                <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-50"><i class="fa-solid fa-chevron-left"></i></button>
-                <button class="w-10 h-10 rounded-lg bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center transition">1</button>
-                <button class="w-10 h-10 rounded-lg border border-gray-200 text-gray-600 font-bold hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center transition">2</button>
-                <button class="w-10 h-10 rounded-lg border border-gray-200 text-gray-600 font-bold hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center transition">3</button>
-                <span class="w-10 h-10 flex items-center justify-center text-gray-400">...</span>
-                <button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition"><i class="fa-solid fa-chevron-right"></i></button>
-            </nav>
-        </div>
-
-    </div>
+	</div>
 </section>
 
 <style>
-    .hide-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
+	.hide-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
 
-    .hide-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
+	.hide-scrollbar {
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
 </style>

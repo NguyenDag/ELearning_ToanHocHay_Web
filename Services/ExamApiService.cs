@@ -8,10 +8,6 @@ namespace ToanHocHay.WebApp.Services
     public class ExamApiService
     {
         private readonly HttpClient _httpClient;
-
-        // Đảm bảo Port 7290 khớp với Backend của bạn
-        //private readonly string _apiBaseUrl = "https://localhost:7290/api";
-
         private readonly JsonSerializerOptions _jsonOptions;
 
         public ExamApiService(HttpClient httpClient)
@@ -19,6 +15,25 @@ namespace ToanHocHay.WebApp.Services
             _httpClient = httpClient;
             _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
+
+        // Lấy danh sách bài kiểm tra
+        public async Task<List<ExerciseListDto>> GetExercisesAsync()
+        {
+            var response = await _httpClient.GetAsync(
+                $"{ApiConstant.apiBaseUrl}/Exercises");
+
+            if (!response.IsSuccessStatusCode)
+                return new List<ExerciseListDto>();
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var apiResponse =
+                JsonSerializer.Deserialize<ApiResponse<List<ExerciseListDto>>>(
+                    json, _jsonOptions);
+
+            return apiResponse?.Data ?? new List<ExerciseListDto>();
+        }
+
 
         // 1. Lấy đề thi (Giữ nguyên)
         public async Task<ExerciseDetailDto?> GetExerciseById(int id)
