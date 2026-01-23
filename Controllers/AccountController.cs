@@ -213,5 +213,23 @@ namespace ToanHocHay.WebApp.Controllers
             return View("ConfirmEmailSuccess");
 
         }
+        [HttpPost]
+        public async Task<IActionResult> ResendConfirmationEmail(string email)
+        {
+            // WebApp gọi sang Backend
+            var response = await _httpClient.PostAsJsonAsync(
+                $"{ApiConstant.apiBaseUrl}/api/auth/resend-confirmation-email",
+                new { Email = email }
+            );
+
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SuccessMsg"] = "Email xác nhận mới đã được gửi!";
+                return RedirectToAction("Login");
+            }
+
+            ViewBag.Error = "Email không tồn tại hoặc có lỗi xảy ra.";
+            return View("ConfirmEmailFailed");
+        }
     }
 }
