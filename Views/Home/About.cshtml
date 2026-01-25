@@ -72,11 +72,10 @@
                 </div>
                 <div class="flex-1 order-1 lg:order-2">
                     <h2 class="text-4xl font-black text-gray-900 mb-8 leading-tight">Sứ mệnh kiến tạo tri thức</h2>
-                    <p class="text-gray-600 mb-6 text-xl leading-relaxed">
-                        Chúng tôi tin rằng <span class="font-bold text-blue-600">mọi đứa trẻ đều thông minh</span> theo cách riêng. Vấn đề không phải là môn Toán khó, mà là phương pháp chưa phù hợp.
-                    </p>
-                    <p class="text-gray-600 mb-10 leading-relaxed text-lg">
-                        ToanHocHay ra đời để xóa bỏ rào cản đó. Giải pháp toàn diện kết nối Học sinh, Phụ huynh và Giáo viên trên một nền tảng thống nhất.
+                    <p class="text-gray-600 mb-8 text-xl leading-relaxed">
+                        <span class="font-bold text-blue-600">ToanHocHay</span> tin rằng mỗi học sinh đều có thể học tốt Toán nếu được dẫn dắt đúng cách.
+                        Chúng tôi tập trung xây dựng một môi trường học tập giúp học sinh <span class="font-bold text-gray-900">hiểu sâu thay vì học vẹt</span>,
+                        học đúng năng lực cá nhân và nhìn thấy sự tiến bộ của chính mình qua từng chặng học tập – từ đó hình thành sự tự tin và hứng thú lâu dài với môn Toán.
                     </p>
                     <ul class="space-y-5">
                         <li class="flex items-center gap-4 text-gray-700 font-bold text-lg">
@@ -96,36 +95,52 @@
                 <h2 class="text-3xl font-black text-gray-900">Giá trị cốt lõi</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <div class="bg-white p-10 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300">
-                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-3xl mb-8">
+            @* Chỉnh sửa grid-cols-3 thành lg:grid-cols-4 để chứa 4 thẻ *@
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @* 1. Tận tâm *@
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300 flex flex-col">
+                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl mb-6">
                         <i class="fa-solid fa-heart"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-4">Tận tâm</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Học sinh là trung tâm. Mọi tính năng, bài giảng đều được thiết kế để phục vụ lợi ích tốt nhất cho người học.
+                    <h3 class="text-xl font-black text-gray-900 mb-4">Tận tâm</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Mỗi bài học, mỗi bài tập đều được thiết kế dựa trên khó khăn thực tế của học sinh cấp 2. Chúng tôi ưu tiên cách giải dễ hiểu, trình bày rõ ràng, không gây áp lực hay so sánh.
                     </p>
                 </div>
-                <div class="bg-white p-10 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300">
-                    <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-3xl mb-8">
+
+                @* 2. Công nghệ *@
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300 flex flex-col">
+                    <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-2xl mb-6">
                         <i class="fa-solid fa-microchip"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-4">Công nghệ</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Không ngừng đổi mới. Ứng dụng những công nghệ giáo dục (EdTech) tiên tiến nhất thế giới vào Việt Nam.
+                    <h3 class="text-xl font-black text-gray-900 mb-4">Công nghệ</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Toán Học Hay sử dụng công nghệ để hỗ trợ việc học: gợi ý bài học phù hợp, giải thích từng bước khi làm sai và theo sát tiến độ học tập của từng học sinh, không làm phức tạp trải nghiệm.
                     </p>
                 </div>
-                <div class="bg-white p-10 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300">
-                    <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 text-3xl mb-8">
+
+                @* 3. Chất lượng *@
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300 flex flex-col">
+                    <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 text-2xl mb-6">
                         <i class="fa-solid fa-star"></i>
                     </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-4">Chất lượng</h3>
-                    <p class="text-gray-600 leading-relaxed">
-                        Nội dung chuẩn kiến thức Bộ GD&ĐT, được biên soạn và thẩm định bởi các chuyên gia đầu ngành.
+                    <h3 class="text-xl font-black text-gray-900 mb-4">Chất lượng</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Nội dung học tập được xây dựng bám sát chương trình THCS, chọn lọc kỹ lưỡng, ưu tiên hiểu bản chất thay vì học thuộc công thức. Chúng tôi không chạy theo số lượng bài, mà tập trung vào hiệu quả học thật sự.
+                    </p>
+                </div>
+
+                @* 4. ĐỒNG HÀNH (THÊM MỚI VÀO ĐÂY) *@
+                <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300 flex flex-col border-blue-100 bg-gradient-to-b from-white to-blue-50/30">
+                    <div class="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 text-2xl mb-6">
+                        <i class="fa-solid fa-handshake-angle"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-gray-900 mb-4">Đồng hành</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Toán Học Hay kết nối học sinh – phụ huynh – giáo viên trong cùng một hành trình, giúp học sinh học đúng hướng, phụ huynh theo sát tiến độ và giáo viên có thêm công cụ hỗ trợ giảng dạy hiệu quả, từ đó tạo nên kết quả học tập bền vững.
                     </p>
                 </div>
             </div>
-        </div>
     </section>
 
     @* --- ĐỘI NGŨ PHÁT TRIỂN --- *@
@@ -133,17 +148,41 @@
         <div class="container mx-auto px-4">
             <div class="max-w-3xl mx-auto text-center mb-20">
                 <h2 class="text-4xl font-black text-gray-900 mb-6">Đội ngũ phát triển</h2>
-                <p class="text-xl text-gray-500">Sự kết hợp hoàn hảo giữa Sư phạm và Công nghệ</p>
+                <p class="text-xl text-gray-500">Sự kết hợp giữa giáo dục, công nghệ và trải nghiệm người dùng</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                @* Member Card Template *@
-                @foreach (var member in new[] {
-                                new { Role = "Ban Chuyên môn", Title = "Cố vấn Giáo dục", Icon = "fa-chalkboard-user" },
-                                new { Role = "Ban Công nghệ", Title = "Kỹ sư Phần mềm", Icon = "fa-code" },
-                                new { Role = "Ban R&D", Title = "Chuyên gia AI", Icon = "fa-brain" },
-                                new { Role = "Ban Vận hành", Title = "Chăm sóc khách hàng", Icon = "fa-headset" }
-                                })
+                @* Cập nhật dữ liệu mới tại đây *@
+                @{
+                    var teamMembers = new[] {
+                                new {
+                                Role = "Ban Chuyên môn",
+                                Title = "Cố vấn Giáo dục",
+                                Icon = "fa-chalkboard-user",
+                                Desc = "Định hướng nội dung học tập bám sát chương trình, phù hợp tâm lý học sinh lớp 6 và đảm bảo giá trị sư phạm trong từng bài giảng."
+                                },
+                                new {
+                                Role = "Ban Công nghệ",
+                                Title = "Kỹ sư Phần mềm",
+                                Icon = "fa-code",
+                                Desc = "Xây dựng và vận hành nền tảng ổn định, tối ưu giao diện, trải nghiệm học tập trên nhiều thiết bị."
+                                },
+                                new {
+                                Role = "Ban R&D",
+                                Title = "Chuyên gia AI",
+                                Icon = "fa-brain",
+                                Desc = "Phát triển hệ thống theo dõi tiến độ và gợi ý học tập phù hợp với năng lực của từng học sinh."
+                                },
+                                new {
+                                Role = "Ban Vận hành",
+                                Title = "Chăm sóc khách hàng",
+                                Icon = "fa-headset",
+                                Desc = "Lắng nghe, hỗ trợ và đồng hành cùng phụ huynh - học sinh trong suốt quá trình sử dụng nền tảng."
+                                }
+                                };
+                }
+
+                @foreach (var member in teamMembers)
                 {
                     <div class="group relative overflow-hidden rounded-[2rem] shadow-lg">
                         <div class="aspect-[3/4] bg-gray-100 relative">
@@ -155,8 +194,9 @@
                             <div class="absolute bottom-0 left-0 right-0 p-8 z-20 text-white transform translate-y-4 group-hover:translate-y-0 transition duration-300">
                                 <p class="text-xs font-black uppercase tracking-widest mb-2 text-blue-400">@member.Role</p>
                                 <h4 class="text-2xl font-black mb-3">@member.Title</h4>
-                                <p class="text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition duration-500">
-                                    Đội ngũ nòng cốt cam kết mang lại giá trị học thuật cao nhất.
+                                @* Content mới hiển thị khi hover *@
+                                <p class="text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition duration-500 leading-relaxed">
+                                    @member.Desc
                                 </p>
                             </div>
                         </div>

@@ -29,225 +29,414 @@
     </button>
 </section>
 
-<section class="container mx-auto px-4 py-8">
-    <div class="flex flex-col lg:flex-row gap-8">
-        <aside class="w-full lg:w-1/4 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden self-start">
-            <div class="bg-slate-50 p-4 border-b border-gray-200 flex justify-between items-center">
-                <h3 class="font-bold text-slate-800"><i class="fa-solid fa-bars mr-2 text-slate-500"></i> Danh mục bài học</h3>
+<section class="container mx-auto px-4 py-12">
+    <div class="flex flex-col lg:flex-row gap-10">
+
+        @* --- ASIDE: DANH MỤC BÀI HỌC (Bo góc lớn & Hiệu ứng Hover Card) --- *@
+        <aside class="w-full lg:w-1/4 bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-gray-100 overflow-hidden self-start sticky top-24">
+            <div class="bg-gradient-to-r from-slate-50 to-white p-6 border-b border-gray-100">
+                <h3 class="font-black text-slate-800 flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                        <i class="fa-solid fa-bars-staggered text-sm"></i>
+                    </div>
+                    Danh mục bài học
+                </h3>
             </div>
-            <div class="divide-y divide-gray-100 text-sm">
-                <a href="#" class="block p-4 hover:bg-blue-50 transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-gray-700 group-hover:text-primary transition">Chương 1: Số tự nhiên</span>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-300 group-hover:text-primary"></i>
+
+            <div class="divide-y divide-gray-50 text-sm">
+                @* Chương 1 *@
+                <a href="#" class="block p-6 hover:bg-blue-50/50 transition-all group relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-black text-slate-700 group-hover:text-blue-600 transition-colors">Chương 1: Số tự nhiên</span>
+                        <i class="fa-solid fa-arrow-right-long text-xs text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-gray-400">Tập hợp, Lũy thừa, Số nguyên tố...</p>
+                    <p class="text-xs text-slate-400 group-hover:text-slate-500 transition-colors">Tập hợp, Lũy thừa, Số nguyên tố...</p>
                 </a>
-                <a href="#" class="block p-4 hover:bg-blue-50 transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-gray-700 group-hover:text-primary transition">Chương 2: Số nguyên</span>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-300 group-hover:text-primary"></i>
+
+                @* Chương 2 *@
+                <a href="#" class="block p-6 hover:bg-indigo-50/50 transition-all group relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-black text-slate-700 group-hover:text-indigo-600 transition-colors">Chương 2: Số nguyên</span>
+                        <i class="fa-solid fa-arrow-right-long text-xs text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-gray-400">Phép cộng trừ nhân chia số nguyên...</p>
+                    <p class="text-xs text-slate-400 group-hover:text-slate-500 transition-colors">Phép cộng trừ nhân chia số nguyên...</p>
                 </a>
-                <a href="#" class="block p-4 hover:bg-blue-50 transition group">
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="font-bold text-gray-700 group-hover:text-primary transition">Chương 3: Hình học</span>
-                        <i class="fa-solid fa-chevron-right text-xs text-gray-300 group-hover:text-primary"></i>
+
+                @* Chương 3 *@
+                <a href="#" class="block p-6 hover:bg-purple-50/50 transition-all group relative overflow-hidden">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-purple-600 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-black text-slate-700 group-hover:text-purple-600 transition-colors">Chương 3: Hình học</span>
+                        <i class="fa-solid fa-arrow-right-long text-xs text-slate-300 group-hover:text-purple-600 group-hover:translate-x-1 transition-all"></i>
                     </div>
-                    <p class="text-xs text-gray-400">Tam giác đều, Lục giác đều...</p>
+                    <p class="text-xs text-slate-400 group-hover:text-slate-500 transition-colors">Tam giác đều, Lục giác đều...</p>
                 </a>
-                <a href="#" class="block p-3 text-center text-primary font-bold bg-blue-50/50 hover:bg-blue-100 transition text-xs uppercase tracking-wide">
-                    Xem toàn bộ chương trình
+
+                <a href="#" class="block p-5 text-center text-blue-600 font-black bg-blue-50/30 hover:bg-blue-600 hover:text-white transition-all text-[11px] uppercase tracking-widest">
+                    Xem toàn bộ chương trình <i class="fa-solid fa-grid-2 ml-1"></i>
                 </a>
             </div>
         </aside>
 
-        <div class="flex-1 relative rounded-2xl overflow-hidden shadow-xl min-h-[400px] flex items-center group bg-gradient-to-r from-blue-600 to-blue-400">
-            <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-            <div class="relative z-10 p-8 md:p-12 max-w-2xl text-white">
-                <span class="inline-block bg-yellow-400 text-blue-900 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider mb-4 shadow-sm animate-pulse">
-                    Dành cho học sinh cấp 2
+        @* --- MAIN BANNER: HERO (Đồng bộ Gradient & Animation) --- *@
+        <div class="flex-1 relative rounded-[2.5rem] overflow-hidden shadow-2xl shadow-blue-200/50 min-h-[450px] flex items-center group bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-500">
+            @* Decor Layer *@
+            <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-700"></div>
+
+            <div class="relative z-10 p-10 md:p-16 max-w-2xl text-white">
+                <span class="inline-block bg-yellow-400 text-blue-900 text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest mb-6 shadow-xl animate-bounce">
+                    🚀 Dành cho học sinh lớp 6
                 </span>
 
-                <h2 class="text-3xl md:text-5xl font-extrabold mb-6 drop-shadow-md">
-                    <span class="block leading-tight">HỌC TOÁN ONLINE</span>
-                    <span class="block leading-tight">HIỆU QUẢ TRONG</span>
-                    <span class="block leading-tight text-yellow-300 mt-1 animate-fade-pulse inline-block">
+                <h2 class="text-4xl md:text-6xl font-black mb-8 leading-tight tracking-tight drop-shadow-xl">
+                    <span class="block text-white/90">HỌC TOÁN ONLINE</span>
+                    <span class="block">HIỆU QUẢ TRONG</span>
+                    <span class="block text-yellow-300 animate-fade-pulse mt-2">
                         2 THÁNG
                     </span>
                 </h2>
 
-                <div class="grid grid-cols-2 gap-4 text-sm font-medium text-blue-50 mb-8">
-                    <div class="flex items-center gap-2"><i class="fa-solid fa-check text-yellow-400"></i> Lộ trình cá nhân hóa</div>
-                    <div class="flex items-center gap-2"><i class="fa-solid fa-check text-yellow-400"></i> Video bài giảng 4K</div>
-                    <div class="flex items-center gap-2"><i class="fa-solid fa-check text-yellow-400"></i> AI chấm điểm tức thì</div>
-                    <div class="flex items-center gap-2"><i class="fa-solid fa-check text-yellow-400"></i> Phụ huynh theo dõi 24/7</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-base font-bold text-blue-50/90 mb-10">
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-yellow-400 text-lg"></i> Lộ trình cá nhân hóa</div>
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-yellow-400 text-lg"></i> Video bài giảng 4K</div>
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-yellow-400 text-lg"></i> AI chấm điểm tức thì</div>
+                    <div class="flex items-center gap-3"><i class="fa-solid fa-circle-check text-yellow-400 text-lg"></i> Phụ huynh theo dõi 24/7</div>
                 </div>
 
-                <button onclick="togglePricingModal()" class="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-extrabold px-8 py-3 rounded-full shadow-lg shadow-yellow-400/30 transition transform hover:-translate-y-1 flex items-center gap-2">
-                    <span>Khám phá chương trình ngay</span>
-                    <i class="fa-solid fa-arrow-right"></i>
-                </button>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="togglePricingModal()" class="bg-white hover:bg-yellow-400 text-blue-700 hover:text-blue-900 font-black px-10 py-4 rounded-2xl shadow-2xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-lg group/btn">
+                        Bắt đầu ngay
+                        <i class="fa-solid fa-arrow-right group-hover/btn:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+
+            @* Element trang trí bên phải *@
+            <div class="hidden lg:block absolute right-12 top-1/2 -translate-y-1/2 opacity-20 transform rotate-12 group-hover:rotate-0 transition-all duration-1000">
+                <i class="fa-solid fa-calculator text-[200px] text-white"></i>
             </div>
         </div>
     </div>
 </section>
 
-<section class="container mx-auto px-4 py-16">
-    <div class="text-center mb-12">
-        <h2 class="text-3xl font-extrabold text-slate-800">Hệ thống Học & Đánh giá Thông minh</h2>
-        <p class="text-slate-500 mt-2">Công nghệ AI hỗ trợ sát sao - Giúp học sinh hiểu sâu - nhớ lâu.</p>
+<section class="container mx-auto px-4 py-20">
+    @* --- Header Section: Thêm độ rộng tối đa để căn giữa đẹp hơn --- *@
+    <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="inline-block py-1.5 px-4 rounded-full bg-blue-50 text-blue-600 text-xs font-black uppercase tracking-widest mb-4 border border-blue-100">
+            Công nghệ dẫn đầu
+        </span>
+        <h2 class="text-3xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">
+            Hệ thống Học & Đánh giá <span class="text-blue-600">Thông minh</span>
+        </h2>
+        <div class="h-1.5 w-24 bg-blue-600 rounded-full mx-auto mb-6"></div>
+        <p class="text-slate-500 text-lg leading-relaxed">
+            Công cụ học Toán ứng dụng trí tuệ nhân tạo (AI), giúp học sinh hiểu sâu – nhớ lâu – tiến bộ từng ngày, phụ huynh dễ dàng theo dõi và định hướng.
+        </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition transform hover:-translate-y-1">
-            <div class="h-1.5 bg-gradient-to-r from-teal-400 to-teal-600"></div>
-            <div class="p-8 text-center">
-                <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto group-hover:scale-110 transition shadow-sm border border-teal-100">
+    @* --- Grid Section: Tăng Gap và thêm hiệu ứng Layering --- *@
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+
+        @* Card 1: AI Giải thích *@
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-100 group hover:shadow-2xl hover:shadow-teal-200/40 transition-all duration-500 transform hover:-translate-y-2 flex flex-col">
+            <div class="h-2 bg-gradient-to-r from-teal-400 to-teal-600"></div>
+            <div class="p-10 text-center flex-1">
+                <div class="w-20 h-20 bg-teal-50 text-teal-600 rounded-[2rem] flex items-center justify-center text-4xl mb-8 mx-auto group-hover:bg-teal-600 group-hover:text-white group-hover:rotate-6 transition-all duration-500 shadow-inner">
                     <i class="fa-solid fa-robot"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-3">AI Giải thích Từng bước</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">Công nghệ phân tích thông minh giúp học sinh hiểu "tại sao sai", không làm sai lại.</p>
+                <h3 class="text-2xl font-black text-slate-800 mb-4">AI Giải thích Từng bước</h3>
+                <div class="space-y-3">
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        Công nghệ phản hồi thông minh giúp học sinh hiểu <span class="text-teal-600 font-bold">“vì sao sai”</span>, không còn sợ Toán.
+                    </p>
+                    <ul class="text-left text-sm text-gray-500 space-y-2 mt-4">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-teal-500 mt-1"></i> AI phân tích lỗi và hướng dẫn từng bước.</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-teal-500 mt-1"></i> Ngôn ngữ thân thiện, học sinh hiểu bản chất thay vì học vẹt.</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-teal-500 mt-1"></i> Hệ thống học cá nhân hóa phản hồi cho từng học sinh.</li>
+                    </ul>
+                </div>
             </div>
         </div>
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition transform hover:-translate-y-1">
-            <div class="h-1.5 bg-gradient-to-r from-orange-400 to-orange-600"></div>
-            <div class="p-8 text-center">
-                <div class="w-16 h-16 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto group-hover:scale-110 transition shadow-sm border border-orange-100">
+
+        @* Card 2: Dashboard Phụ huynh *@
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-100 group hover:shadow-2xl hover:shadow-orange-200/40 transition-all duration-500 transform hover:-translate-y-2 flex flex-col">
+            <div class="h-2 bg-gradient-to-r from-orange-400 to-orange-600"></div>
+            <div class="p-10 text-center flex-1">
+                <div class="w-20 h-20 bg-orange-50 text-orange-600 rounded-[2rem] flex items-center justify-center text-4xl mb-8 mx-auto group-hover:bg-orange-600 group-hover:text-white group-hover:-rotate-6 transition-all duration-500 shadow-inner">
                     <i class="fa-solid fa-chart-pie"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-3">Dashboard Phụ huynh</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">Phụ huynh an tâm, con tự tin - Theo dõi kết quả học tập mọi lúc mọi nơi.</p>
+                <h3 class="text-2xl font-black text-slate-800 mb-4">Dashboard Phụ huynh</h3>
+                <div class="space-y-3">
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        Phụ huynh an tâm, con tự tin – mọi tiến trình học tập được hiển thị <span class="text-orange-600 font-bold">minh bạch</span>.
+                    </p>
+                    <ul class="text-left text-sm text-gray-500 space-y-2 mt-4">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-orange-500 mt-1"></i> Báo cáo tiến độ theo ngày/tuần/tháng.</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-orange-500 mt-1"></i> Biểu đồ năng lực (heatmap) và gợi ý ôn tập phù hợp từng học sinh.</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-orange-500 mt-1"></i> Cảnh báo thông minh khi học sinh bỏ dở hoặc giảm hiệu suất học.</li>
+                    </ul>
+                </div>
             </div>
         </div>
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group hover:shadow-xl transition transform hover:-translate-y-1">
-            <div class="h-1.5 bg-gradient-to-r from-indigo-400 to-indigo-600"></div>
-            <div class="p-8 text-center">
-                <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl mb-6 mx-auto group-hover:scale-110 transition shadow-sm border border-indigo-100">
+
+        @* Card 3: Lộ trình Thông minh *@
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-100 group hover:shadow-2xl hover:shadow-indigo-200/40 transition-all duration-500 transform hover:-translate-y-2 flex flex-col">
+            <div class="h-2 bg-gradient-to-r from-indigo-400 to-indigo-600"></div>
+            <div class="p-10 text-center flex-1">
+                <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-[2rem] flex items-center justify-center text-4xl mb-8 mx-auto group-hover:bg-indigo-600 group-hover:text-white group-hover:scale-110 transition-all duration-500 shadow-inner">
                     <i class="fa-solid fa-route"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-3">Lộ trình Thông minh</h3>
-                <p class="text-sm text-gray-500 leading-relaxed">Ngắn gọn - Dễ hiểu - Ghi nhớ lâu. Phương pháp học tập hiện đại.</p>
+                <h3 class="text-2xl font-black text-slate-800 mb-4">Lộ trình Thông minh</h3>
+                <div class="space-y-3">
+                    <p class="text-gray-500 text-sm leading-relaxed">
+                        Học ngắn – dễ hiểu – ghi nhớ lâu, thiết kế đặc biệt cho <span class="text-indigo-600 font-bold">học sinh lớp 6</span>.
+                    </p>
+                    <ul class="text-left text-sm text-gray-500 space-y-2 mt-4">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-indigo-500 mt-1"></i> Bài học micro-learning 5–8 phút,  học nhanh, giảm mệt mỏi.</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-indigo-500 mt-1"></i> Ôn tập theo chu kỳ giúp ghi nhớ bền vững.</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check-circle text-indigo-500 mt-1"></i> Biểu đồ tiến bộ cá nhân, giúp học sinh nhận thấy sự cải thiện rõ rệt.</li>
+                    </ul>
+                </div>
             </div>
+        </div>
+
+    </div>
+</section>
+
+<section class="bg-[#F8FAFC] py-24 relative overflow-hidden">
+    @* --- Background Decor: Sử dụng các khối màu mờ ảo để tạo chiều sâu --- *@
+    <div class="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-100/50 rounded-full mix-blend-multiply filter blur-[100px] opacity-70 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-purple-100/50 rounded-full mix-blend-multiply filter blur-[100px] opacity-70 translate-x-1/2 translate-y-1/2"></div>
+
+    <div class="container mx-auto px-4 relative z-10">
+        @* --- Header Section --- *@
+        <div class="text-center max-w-3xl mx-auto mb-16">
+            <span class="inline-block py-1.5 px-4 rounded-full bg-blue-100 text-blue-700 text-xs font-black uppercase tracking-widest mb-6 border border-blue-200">
+                Cộng đồng ToanHocHay
+            </span>
+            <h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-6 leading-tight">
+                Cùng nhau kiến tạo <br /> <span class="text-blue-600">hành trình tri thức</span>
+            </h2>
+            <p class="text-slate-500 text-lg leading-relaxed">
+                Giải pháp Toán học AI cá nhân hóa, hiện đại và hiệu quả cho học sinh, phụ huynh và giáo viên.
+            </p>
+        </div>
+
+        @* --- Grid Section: Thẻ bo góc lớn và hiệu ứng Hover đổ bóng màu --- *@
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+            @* Thẻ Học sinh *@
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 hover:shadow-blue-200/50 transition-all duration-500 border border-white hover:border-blue-100 group">
+                <div class="w-20 h-20 mx-auto mb-8 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center text-3xl group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-6 transition-all duration-500">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <h4 class="font-black text-xl text-slate-800 mb-3">Học sinh (Lớp 6–9)</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">Hiểu bài dễ hơn – học vui hơn – tự tin tiến bộ mỗi ngày.</p>
+            </div>
+
+            @* Thẻ Giáo viên *@
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 hover:shadow-purple-200/50 transition-all duration-500 border border-white hover:border-purple-100 group">
+                <div class="w-20 h-20 mx-auto mb-8 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center text-3xl group-hover:bg-purple-600 group-hover:text-white group-hover:-rotate-6 transition-all duration-500">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <h4 class="font-black text-xl text-slate-800 mb-3">Giáo viên</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">Công cụ hỗ trợ giảng dạy – hiểu học sinh sâu hơn, dạy hiệu quả hơn.</p>
+            </div>
+
+            @* Thẻ Phụ huynh *@
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 hover:shadow-orange-200/50 transition-all duration-500 border border-white hover:border-orange-100 group">
+                <div class="w-20 h-20 mx-auto mb-8 bg-orange-50 text-orange-600 rounded-3xl flex items-center justify-center text-3xl group-hover:bg-orange-600 group-hover:text-white group-hover:rotate-6 transition-all duration-500">
+                    <i class="fa-solid fa-user-group"></i>
+                </div>
+                <h4 class="font-black text-xl text-slate-800 mb-3">Phụ huynh</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">An tâm đồng hành – con học hiệu quả, cha mẹ dễ theo dõi.</p>
+            </div>
+
+            @* Thẻ Cộng đồng *@
+            <div class="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 hover:shadow-green-200/50 transition-all duration-500 border border-white hover:border-green-100 group">
+                <div class="w-20 h-20 mx-auto mb-8 bg-green-50 text-green-600 rounded-3xl flex items-center justify-center text-3xl group-hover:bg-green-600 group-hover:text-white group-hover:-rotate-6 transition-all duration-500">
+                    <i class="fa-solid fa-earth-asia"></i>
+                </div>
+                <h4 class="font-black text-xl text-slate-800 mb-3 text-center lg:text-left">Cộng đồng</h4>
+                <p class="text-sm text-slate-500 leading-relaxed">Dữ liệu học tập minh bạch – định hướng phát triển giáo dục số.</p>
+            </div>
+        </div>
+
+        @* --- CTA Button: Nút bấm lớn và hiệu ứng Glow --- *@
+        <div class="text-center mt-16">
+            <button onclick="togglePricingModal()" class="bg-[#2563EB] hover:bg-blue-700 text-white font-black px-12 py-5 rounded-full shadow-2xl shadow-blue-500/40 transition-all duration-300 transform hover:-translate-y-2 active:scale-95 text-lg">
+                Bắt đầu hành trình ngay <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
         </div>
     </div>
 </section>
 
-<section class="bg-blue-50 py-16 relative overflow-hidden">
-    <div class="absolute top-0 left-0 w-64 h-64 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-x-1/2 -translate-y-1/2"></div>
-    <div class="absolute bottom-0 right-0 w-64 h-64 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-x-1/2 translate-y-1/2"></div>
+<section class="container mx-auto px-4 py-20">
+    @* --- Header Section --- *@
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div class="max-w-2xl">
+            <span class="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest mb-4 border border-blue-100">
+                Tin tức & Sự kiện
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight">
+                Bản Tin <span class="text-blue-600">ToanHocHay</span>
+            </h2>
+            <p class="text-slate-500 mt-4 text-lg">Thông báo mới nhất và mẹo học toán thú vị từ đội ngũ chuyên gia.</p>
+        </div>
+        <a href="#" class="group inline-flex items-center gap-2 text-blue-600 font-black hover:text-blue-700 transition-all text-sm pb-2 border-b-2 border-blue-100 hover:border-blue-600">
+            Xem tất cả tin tức
+            <i class="fa-solid fa-arrow-right transform group-hover:translate-x-1 transition-transform"></i>
+        </a>
+    </div>
 
-    <div class="container mx-auto px-4 text-center relative z-10">
-        <h2 class="text-3xl font-extrabold text-slate-800 mb-3">Cùng nhau kiến tạo hành trình tri thức</h2>
-        <p class="text-slate-500 mb-12 max-w-2xl mx-auto">Giải pháp toàn diện kết nối Học sinh, Phụ huynh và Giáo viên trên một nền tảng thống nhất.</p>
+    @* --- News Grid --- *@
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
-                <div class="w-20 h-20 mx-auto mb-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl"><i class="fa-solid fa-user-graduate"></i></div>
-                <h4 class="font-bold text-lg text-gray-800 mb-2">Học sinh</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Học chủ động, không áp lực.</p>
+        @* Bài viết 1: Ưu đãi *@
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 group flex flex-col">
+            <div class="h-52 bg-emerald-50 relative flex items-center justify-center overflow-hidden">
+                @* Họa tiết trang trí *@
+                <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                <i class="fa-solid fa-gift text-7xl text-emerald-500/30 transform group-hover:scale-110 group-hover:rotate-12 transition-all duration-700"></i>
+
+                <span class="absolute top-5 right-5 bg-red-500 text-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+                    -20% ƯU ĐÃI
+                </span>
             </div>
-            <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
-                <div class="w-20 h-20 mx-auto mb-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-3xl"><i class="fa-solid fa-chalkboard-user"></i></div>
-                <h4 class="font-bold text-lg text-gray-800 mb-2">Giáo viên</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Công cụ hỗ trợ giảng dạy hiện đại.</p>
-            </div>
-            <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
-                <div class="w-20 h-20 mx-auto mb-6 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-3xl"><i class="fa-solid fa-user-group"></i></div>
-                <h4 class="font-bold text-lg text-gray-800 mb-2">Phụ huynh</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Đồng hành cùng con mọi lúc.</p>
-            </div>
-            <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-lg transition border border-white hover:border-blue-200">
-                <div class="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-3xl"><i class="fa-solid fa-earth-asia"></i></div>
-                <h4 class="font-bold text-lg text-gray-800 mb-2">Cộng đồng</h4>
-                <p class="text-xs text-gray-500 leading-relaxed">Môi trường thi đua lành mạnh.</p>
+            <div class="p-8 flex-1 flex flex-col">
+                <p class="text-[11px] text-blue-600 mb-3 font-black uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-day"></i> 20/11/2025
+                </p>
+                <h4 class="font-black text-slate-800 text-xl line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug mb-4">
+                    Hướng dẫn nhận ưu đãi 100K khi đăng ký khóa học Toán tại ToanHocHay
+                </h4>
+                <div class="mt-auto">
+                    <span class="text-sm font-bold text-slate-400 group-hover:text-blue-600 transition-colors">Đọc thêm...</span>
+                </div>
             </div>
         </div>
 
-        <button onclick="togglePricingModal()" class="mt-12 bg-primary hover:bg-blue-700 text-white font-bold px-10 py-3.5 rounded-full shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-1">
-            Tham gia ngay
-        </button>
+        @* Bài viết 2: Coming Soon *@
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 group flex flex-col">
+            <div class="h-52 bg-amber-50 relative flex items-center justify-center overflow-hidden">
+                <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                <div class="text-center relative z-10">
+                    <div class="bg-white/80 backdrop-blur-sm px-6 py-3 rounded-2xl border border-amber-200 shadow-sm transform -rotate-2 group-hover:rotate-0 transition-transform duration-500">
+                        <h4 class="text-xl font-black text-amber-600 uppercase tracking-tighter">Sắp ra mắt</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="p-8 flex-1 flex flex-col">
+                <p class="text-[11px] text-blue-600 mb-3 font-black uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-day"></i> 25/11/2025
+                </p>
+                <h4 class="font-black text-slate-800 text-xl line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug mb-4">
+                    [Ra mắt] Khóa học “Toán Học Hay – 50 chủ đề luyện tập vững vàng nền tảng”
+                </h4>
+                <div class="mt-auto">
+                    <span class="text-sm font-bold text-slate-400 group-hover:text-blue-600 transition-colors">Đọc thêm...</span>
+                </div>
+            </div>
+        </div>
+
+        @* Bài viết 3: Thông báo *@
+        <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 group flex flex-col">
+            <div class="h-52 bg-gradient-to-br from-blue-700 to-indigo-800 relative flex items-center justify-center text-white overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                <div class="relative">
+                    <i class="fa-solid fa-bell text-6xl text-yellow-400 animate-pulse"></i>
+                    <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="p-8 flex-1 flex flex-col">
+                <p class="text-[11px] text-blue-600 mb-3 font-black uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-day"></i> 18/11/2025
+                </p>
+                <h4 class="font-black text-slate-800 text-xl line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug mb-4">
+                    [Thông báo] Cập nhật các tính năng hỗ trợ đến phụ huynh học sinh từ ToanHocHay.
+                </h4>
+                <div class="mt-auto">
+                    <span class="text-sm font-bold text-slate-400 group-hover:text-blue-600 transition-colors">Đọc thêm...</span>
+                </div>
+            </div>
+        </div>
+
     </div>
 </section>
 
-<section class="container mx-auto px-4 py-16">
-    <div class="text-center mb-12">
-        <h2 class="text-3xl font-extrabold text-gray-800">Bản Tin ToanHocHay</h2>
-        <p class="text-gray-500 mt-2 text-sm">Thông báo mới nhất và mẹo học toán thú vị.</p>
-        <a href="#" class="inline-block mt-3 text-primary font-bold hover:underline text-sm">Xem tất cả tin tức <i class="fa-solid fa-arrow-right ml-1"></i></a>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group">
-            <div class="h-44 bg-emerald-100 relative flex items-center justify-center group-hover:bg-emerald-200 transition">
-                <i class="fa-solid fa-gift text-6xl text-emerald-500 opacity-50"></i>
-                <span class="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">-20% Ưu đãi</span>
-            </div>
-            <div class="p-5">
-                <p class="text-[10px] text-gray-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-regular fa-calendar mr-1"></i> 20/11/2025</p>
-                <h4 class="font-bold text-gray-800 text-base line-clamp-2 group-hover:text-primary transition leading-snug">
-                    Hướng dẫn nhận voucher ưu đãi 100% khi đăng ký khóa học Toán 6
-                </h4>
-            </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group">
-            <div class="h-44 bg-amber-100 relative flex items-center justify-center group-hover:bg-amber-200 transition">
-                <div class="text-center">
-                    <h4 class="text-2xl font-black text-amber-600 uppercase tracking-widest">Coming Soon</h4>
-                </div>
-            </div>
-            <div class="p-5">
-                <p class="text-[10px] text-gray-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-regular fa-calendar mr-1"></i> 25/11/2025</p>
-                <h4 class="font-bold text-gray-800 text-base line-clamp-2 group-hover:text-primary transition leading-snug">
-                    [Ra mắt] Khóa học "Toán Học Hay - 90 chủ đề luyện tập nâng cao"
-                </h4>
-            </div>
-        </div>
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition group">
-            <div class="h-44 bg-blue-900 relative flex items-center justify-center text-white group-hover:bg-blue-800 transition">
-                <i class="fa-solid fa-bell text-5xl text-yellow-400 mb-3 animate-bounce"></i>
-            </div>
-            <div class="p-5">
-                <p class="text-[10px] text-gray-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-regular fa-calendar mr-1"></i> 18/11/2025</p>
-                <h4 class="font-bold text-gray-800 text-base line-clamp-2 group-hover:text-primary transition leading-snug">
-                    [Quan trọng] Cập nhật tính năng Báo cáo realtime cho Phụ huynh
-                </h4>
-            </div>
-        </div>
-    </div>
-</section>
+<section class="bg-[#F8FAFC] py-24 border-t border-slate-200 relative overflow-hidden">
+    @* Họa tiết trang trí nền *@
+    <div class="absolute top-0 right-0 w-96 h-96 bg-blue-50/50 rounded-full blur-3xl opacity-60"></div>
 
-<section class="bg-slate-50 py-16 border-t border-slate-200">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-extrabold text-slate-800">Khóa học nổi bật</h2>
-            <p class="text-slate-500 mt-2 text-sm">Các chương trình được quan tâm nhất tháng này.</p>
+    <div class="container mx-auto px-4 relative z-10">
+        @* --- Header Section --- *@
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <span class="inline-block py-1.5 px-4 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-widest mb-4 border border-blue-200">
+                Chương trình tiêu biểu
+            </span>
+            <h2 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight">
+                Khóa học <span class="text-blue-600">Nổi bật</span>
+            </h2>
+            <p class="text-slate-500 mt-4 text-lg">Các chương trình được quan tâm nhất tháng này.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-1 flex items-center relative overflow-hidden group hover:shadow-lg transition">
-                <div class="flex-1 p-8 z-10 relative">
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded uppercase tracking-wide border border-blue-100">Cơ bản</span>
-                    <h3 class="text-2xl font-black text-gray-800 mt-3 mb-2 group-hover:text-primary transition">TOÁN LỚP 6 <br> KẾT NỐI TRI THỨC</h3>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2 max-w-[200px]">Bám sát chương trình SGK mới.</p>
-                    <button onclick="openPaymentModal('standard')" class="text-white bg-primary text-xs font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-blue-700 transition">Đăng ký học</button>
+        @* --- Course Grid --- *@
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+            @* Khóa học 1: Toán lớp 6 *@
+            <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col sm:flex-row items-stretch relative overflow-hidden group hover:shadow-2xl hover:shadow-blue-200/40 transition-all duration-500 transform hover:-translate-y-2">
+                <div class="flex-1 p-10 z-10 relative">
+                    <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg uppercase tracking-widest border border-blue-100">
+                        Cơ bản
+                    </span>
+                    <h3 class="text-3xl font-black text-slate-800 mt-6 mb-4 group-hover:text-blue-600 transition-colors leading-tight">
+                        TOÁN LỚP 6 <br> KẾT NỐI TRI THỨC
+                    </h3>
+                    <p class="text-sm text-slate-500 mb-8 max-w-[240px] leading-relaxed">
+                        Bám sát chương trình SGK mới nhất, học đúng trọng tâm.
+                    </p>
+                    <button onclick="openPaymentModal('standard')" class="text-white bg-[#2563EB] text-sm font-black px-8 py-3.5 rounded-2xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-all transform hover:scale-105 active:scale-95">
+                        Đăng ký học ngay
+                    </button>
                 </div>
-                <div class="w-1/2 h-full absolute right-0 top-0 bottom-0 bg-gradient-to-br from-blue-100 to-white flex items-center justify-center">
-                    <i class="fa-solid fa-book-open text-9xl text-blue-200 opacity-50 transform rotate-12"></i>
+
+                @* Thumbnail Side *@
+                <div class="sm:w-1/3 min-h-[200px] bg-gradient-to-br from-blue-100/50 to-blue-50 flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                    <i class="fa-solid fa-book-open text-8xl text-blue-300 opacity-60 transform group-hover:rotate-12 group-hover:scale-125 transition-all duration-700"></i>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-1 flex items-center relative overflow-hidden group hover:shadow-lg transition">
-                <div class="flex-1 p-8 z-10 relative">
-                    <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded uppercase tracking-wide border border-purple-100">Luyện thi</span>
-                    <h3 class="text-2xl font-black text-gray-800 mt-3 mb-2 group-hover:text-purple-600 transition">LUYỆN ĐỀ <br> GIỮA KỲ 1</h3>
-                    <p class="text-xs text-gray-500 mb-6 line-clamp-2 max-w-[200px]">Tổng hợp 50 đề thi thử từ các trường chuyên.</p>
-                    <button onclick="togglePricingModal()" class="text-white bg-purple-600 text-xs font-bold px-6 py-2.5 rounded-full shadow-md hover:bg-purple-700 transition">Thử sức ngay</button>
+            @* Khóa học 2: Luyện đề *@
+            <div class="bg-white rounded-[2.5rem] shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col sm:flex-row items-stretch relative overflow-hidden group hover:shadow-2xl hover:shadow-purple-200/40 transition-all duration-500 transform hover:-translate-y-2">
+                <div class="flex-1 p-10 z-10 relative">
+                    <span class="text-[10px] font-black text-purple-600 bg-purple-50 px-3 py-1.5 rounded-lg uppercase tracking-widest border border-purple-100">
+                        Luyện thi
+                    </span>
+                    <h3 class="text-3xl font-black text-slate-800 mt-6 mb-4 group-hover:text-purple-600 transition-colors leading-tight">
+                        LUYỆN ĐỀ <br> GIỮA KỲ 1
+                    </h3>
+                    <p class="text-sm text-slate-500 mb-8 max-w-[240px] leading-relaxed">
+                        Tổng hợp 50 đề thi thử chất lượng cao từ các trường chuyên danh tiếng.
+                    </p>
+                    <button onclick="togglePricingModal()" class="text-white bg-purple-600 text-sm font-black px-8 py-3.5 rounded-2xl shadow-lg shadow-purple-500/30 hover:bg-purple-700 transition-all transform hover:scale-105 active:scale-95">
+                        Thử sức ngay
+                    </button>
                 </div>
-                <div class="w-1/2 h-full absolute right-0 top-0 bottom-0 bg-gradient-to-br from-purple-100 to-white flex items-center justify-center">
-                    <i class="fa-solid fa-pen-nib text-9xl text-purple-200 opacity-50 transform -rotate-12"></i>
+
+                @* Thumbnail Side *@
+                <div class="sm:w-1/3 min-h-[200px] bg-gradient-to-br from-purple-100/50 to-purple-50 flex items-center justify-center relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                    <i class="fa-solid fa-pen-nib text-8xl text-purple-300 opacity-60 transform group-hover:-rotate-12 group-hover:scale-125 transition-all duration-700"></i>
                 </div>
             </div>
+
         </div>
     </div>
 </section>
