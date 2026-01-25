@@ -6,7 +6,7 @@
         public string FullName { get; set; }
         public string Email { get; set; }
         public string? Phone { get; set; }
-        public string? UserType { get; set; }
+        public UserType UserType { get; set; }
         public string? SchoolName { get; set; }
         public int? GradeLevel { get; set; }
     }

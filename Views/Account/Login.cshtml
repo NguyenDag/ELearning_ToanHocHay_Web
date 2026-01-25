@@ -1,216 +1,659 @@
-﻿@{
-	Layout = null;
-	var initialMode = ViewBag.Mode as string ?? "login";
+﻿@using ToanHocHay.WebApp.Models.DTOs
+@{
+    Layout = null;
+    var initialMode = ViewBag.Mode as string ?? "login";
 }
 
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Đăng nhập - ToanHocHay</title>
-	<script src="https://cdn.tailwindcss.com"></script>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-	<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - ToanHocHay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-	<style>
-		body {
-			font-family: 'Nunito', sans-serif;
-		}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-		/* Animation cho nền - Đã sửa lỗi @@keyframes */
-		@@keyframes blob {
-			0% {
-				transform: translate(0px, 0px) scale(1);
-			}
+        body {
+            font-family: 'Nunito', sans-serif;
+        }
 
-			33% {
-				transform: translate(30px, -50px) scale(1.1);
-			}
+        /* Animated Background Blobs */
+        @@keyframes blob {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
 
-			66% {
-				transform: translate(-20px, 20px) scale(0.9);
-			}
+            25% {
+                transform: translate(20px, -30px) scale(1.1);
+            }
 
-			100% {
-				transform: translate(0px, 0px) scale(1);
-			}
-		}
+            50% {
+                transform: translate(-20px, 20px) scale(0.95);
+            }
 
-		.animate-blob {
-			animation: blob 7s infinite;
-		}
+            75% {
+                transform: translate(30px, 10px) scale(1.05);
+            }
+        }
 
-		.animation-delay-2000 {
-			animation-delay: 2s;
-		}
+        @@keyframes blobRotate {
+            0%, 100% {
+                border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+            }
 
-		.animation-delay-4000 {
-			animation-delay: 4s;
-		}
+            50% {
+                border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+            }
+        }
 
-		.fade-in {
-			animation: fadeIn 0.3s ease-in-out;
-		}
+        .animate-blob {
+            animation: blob 15s ease-in-out infinite, blobRotate 10s ease-in-out infinite;
+        }
 
-		@@keyframes fadeIn { /* Sửa cả ở đây nữa */
-			from {
-				opacity: 0;
-				transform: translateY(10px);
-			}
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
 
-			to {
-				opacity: 1;
-				transform: translateY(0);
-			}
-		}
-	</style>
-	<script>
-		tailwind.config = {
-			theme: {
-				extend: { colors: { primary: '#3B82F6', secondary: '#F97316' } }
-			}
-		}
-	</script>
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+
+        /* Smooth Transitions */
+        .fade-in {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Glass Effect */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+        }
+
+        /* Custom Input Focus */
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+
+            .input-focus:focus {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            }
+
+        /* Hover Scale */
+        .hover-scale {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .hover-scale:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            }
+
+        /* Button Ripple Effect */
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+            .btn-ripple::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.3);
+                transform: translate(-50%, -50%);
+                transition: width 0.6s, height 0.6s;
+            }
+
+            .btn-ripple:hover::before {
+                width: 300px;
+                height: 300px;
+            }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Password Toggle */
+        .password-toggle {
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#F97316',
+                        'primary-dark': '#2563EB',
+                        'secondary-dark': '#EA580C'
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body class="bg-blue-50 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
-	<!-- Background Shapes -->
-	<div class="absolute top-0 left-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-	<div class="absolute top-0 right-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-	<div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+    <!-- Animated Background Blobs -->
+    <div class="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-400 to-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob"></div>
+    <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-yellow-400 to-orange-300 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-2000"></div>
+    <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-gradient-to-br from-blue-400 to-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-blob animation-delay-4000"></div>
 
-	<div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex overflow-hidden z-10 min-h-[600px] fade-in">
+    <!-- Main Card -->
+    <div class="glass-effect rounded-3xl shadow-2xl w-full max-w-4xl flex overflow-hidden z-10 max-h-[90vh] fade-in border border-white/20">
 
-		<!-- Left Side -->
-		<div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 text-white p-12 flex-col justify-between">
-			<div>
-				<a href="/" class="flex items-center gap-2 mb-2 hover:text-yellow-300 transition">
-					<i class="fa-solid fa-arrow-left"></i> Về trang chủ
-				</a>
-				<div class="flex items-center gap-2 mt-4">
-					<i class="fa-solid fa-shapes text-3xl text-yellow-400"></i>
-					<h1 class="text-3xl font-extrabold tracking-wide">ToanHocHay</h1>
-				</div>
-			</div>
-			<div class="text-center">
-				<img src="https://img.freepik.com/free-vector/mathematics-concept-illustration_114360-3972.jpg" class="w-3/4 mx-auto mb-6 rounded-lg shadow-lg opacity-90 mix-blend-hard-light border-4 border-white/20">
-				<p class="italic text-sm text-blue-200">"Học mà chơi, chơi mà học"</p>
-			</div>
-		</div>
+        <!-- Left Panel - Branding -->
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white p-8 flex-col justify-between relative overflow-hidden">
 
-		<!-- Right Side: Forms Area -->
-		<div class="w-full md:w-1/2 p-8 md:p-12 relative flex flex-col justify-center" id="form-area">
-			<!-- Nội dung sẽ được JS điền vào đây -->
-		</div>
-	</div>
+            <!-- Decorative Elements -->
+            <div class="absolute top-20 -left-16 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-20 -right-16 w-48 h-48 bg-blue-400/20 rounded-full blur-3xl"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-white/10 rounded-full"></div>
 
-	<!-- JAVASCRIPT LOGIC -->
-	<script>
-		// --- TEMPLATES ---
+            <div class="relative z-10">
+                <a href="/" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-300 text-xs font-semibold mb-4 hover:scale-105">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Về trang chủ</span>
+                </a>
 
-		// 1. Template Đăng Nhập
-		const loginTemplate = `
-			<div class="fade-in w-full max-w-sm mx-auto">
-				<h2 class="text-3xl font-bold text-gray-800 mb-2">Xin chào! 👋</h2>
-				<p class="text-gray-500 mb-8">Đăng nhập để tiếp tục học tập.</p>
-						@if (ViewBag.Error != null)
-						{
-					<div class="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
-						<i class="fa-solid fa-circle-exclamation mr-1"></i>
-						@ViewBag.Error
-					</div>
-						}
-				<form action="/Account/Login" method="POST">
-					<div class="mb-4">
-						<label class="block text-gray-700 text-sm font-bold mb-2">Email</label>
-						<input name="email" value="@ViewBag.Email" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-1" type="text" placeholder="email@example.com" required>
-					</div>
-					<div class="mb-6">
-						<label class="block text-gray-700 text-sm font-bold mb-2">Mật khẩu</label>
-						<input name="password" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-primary focus:ring-1" type="password" placeholder="••••••••" required>
-					</div>
-					<button type="submit" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition transform hover:-translate-y-1">
-						Đăng nhập
-					</button>
-				</form>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="bg-white rounded-xl p-2 shadow-xl hover:scale-110 transition-transform duration-300">
+                        <img src="/logo_header.ico" alt="Logo ToanHocHay" class="w-10 h-10 object-contain" />
+                    </div>
+                    <h1 class="text-3xl font-black tracking-tight">ToanHocHay</h1>
+                </div>
 
-				<div class="mt-6 text-center">
-					<p class="text-gray-600">Chưa có tài khoản? <a href="javascript:void(0)" onclick="renderRoleSelection()" class="text-primary font-bold hover:underline">Đăng ký ngay</a></p>
-				</div>
-			</div>
-		`;
+                <p class="text-blue-100 text-base font-semibold leading-relaxed max-w-md">
+                    Nền tảng học Toán thông minh <span class="text-yellow-300">tích hợp AI</span> dành cho học sinh THCS
+                </p>
 
-		// 2. Template Chọn Vai Trò
-		const roleSelectionTemplate = `
-			<div class="fade-in w-full text-center">
-				<button onclick="renderLogin()" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
-				<h2 class="text-2xl font-bold text-gray-800 mb-2 mt-8">Chọn vai trò</h2>
-				<div class="space-y-4 mt-6">
-					<div onclick="renderRegister('student')" class="cursor-pointer border-2 border-gray-100 rounded-xl p-4 hover:border-primary hover:bg-blue-50 flex items-center shadow-sm">
-						<div class="bg-blue-100 text-primary w-12 h-12 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-graduation-cap"></i></div>
-						<div class="ml-4 text-left"><h3 class="font-bold text-gray-800">Tôi là Học sinh</h3><p class="text-xs text-gray-500">Lớp 6-9, muốn học Toán hiệu quả.</p></div>
-					</div>
-					<div onclick="renderRegister('parent')" class="cursor-pointer border-2 border-gray-100 rounded-xl p-4 hover:border-secondary hover:bg-orange-50 flex items-center shadow-sm">
-						<div class="bg-orange-100 text-secondary w-12 h-12 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-user-tie"></i></div>
-						<div class="ml-4 text-left"><h3 class="font-bold text-gray-800">Tôi là Phụ huynh</h3><p class="text-xs text-gray-500">Giám sát và đồng hành cùng con.</p></div>
-					</div>
-				</div>
-				<p class="text-center text-gray-600 mt-8">Đã có tài khoản? <a href="javascript:void(0)" onclick="renderLogin()" class="text-primary font-bold hover:underline">Đăng nhập</a></p>
-			</div>
-		`;
+                
+            </div>
 
-		// 3. Template Form Đăng Ký (Đã thêm name="" và action="")
-		function getRegisterTemplate(role) {
-			const isStudent = role === 'student';
-			const roleName = isStudent ? 'Học sinh' : 'Phụ huynh';
-			const btnClass = isStudent ? 'bg-primary hover:bg-blue-700' : 'bg-secondary hover:bg-orange-600';
+            <!-- Illustration -->
+            <div class="text-center relative z-10">
+                <div class="relative inline-block">
+                    <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-pink-400 rounded-2xl blur-lg opacity-50"></div>
+                    <img src="https://img.freepik.com/free-vector/mathematics-concept-illustration_114360-3972.jpg"
+                         class="relative w-full max-w-xs mx-auto rounded-2xl shadow-xl border-4 border-white/30 hover:scale-105 transition-transform duration-500">
+                </div>
+                <p class="mt-4 text-base font-bold text-yellow-300 tracking-wide">
+                    <i class="fa-solid fa-quote-left text-xs mr-1"></i>
+                    Học mà chơi, chơi mà học
+                    <i class="fa-solid fa-quote-right text-xs ml-1"></i>
+                </p>
+            </div>
+        </div>
 
-			return `
-				<div class="fade-in w-full max-w-sm mx-auto">
-					<button onclick="renderRoleSelection()" class="absolute top-4 left-4 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-arrow-left mr-1"></i> Quay lại</button>
-					<div class="text-center mb-6 mt-6">
-						<h2 class="text-2xl font-bold text-gray-800">Đăng ký ${roleName}</h2>
-					</div>
+        <!-- Right Panel - Forms -->
+        <div class="w-full lg:w-1/2 p-6 md:p-8 relative flex items-center justify-center overflow-y-auto" id="form-area">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
 
-					<form action="/Account/Register" method="POST">
-						<input type="hidden" name="role" value="${role}">
+    <script>
+        // Backend Data
+        const serverError = "@Html.Raw(ViewBag.Error)";
+        const serverEmail = "@Html.Raw(ViewBag.Email)";
+        const serverFullName = "@Html.Raw(ViewBag.FullName)";
+        const successMsg = "@Html.Raw(TempData["SuccessMsg"])";
+        const initialMode = "@initialMode";
 
-						<div class="mb-3">
-							<label class="block text-gray-700 text-sm font-bold mb-1">Họ và tên</label>
-							<input name="fullName" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary" type="text" required>
-						</div>
+        // === TEMPLATES ===
 
-						<div class="mb-3">
-							<label class="block text-gray-700 text-sm font-bold mb-1">Email</label>
-							<input name="email" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary" type="email" required>
-						</div>
+        // 1. Login Template
+        const loginTemplate = `
+            <div class="fade-in w-full max-w-md mx-auto">
+                <!-- Header -->
+                <div class="text-center mb-6">
+                    <div class="inline-block p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg mb-3">
+                        <i class="fa-solid fa-user text-white text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-gray-800 mb-1">Chào mừng trở lại! 👋</h2>
+                    <p class="text-sm text-gray-500">Đăng nhập để tiếp tục hành trình học tập</p>
+                </div>
 
-						<div class="mb-4">
-							<label class="block text-gray-700 text-sm font-bold mb-1">Mật khẩu</label>
-							<input name="password" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:border-primary" type="password" required>
-						</div>
+                <!-- Success Message -->
+                ${successMsg ? `
+                    <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-lg shadow-sm">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-circle-check text-green-600 text-xl mr-3"></i>
+                            <span class="text-green-700 font-semibold">${successMsg}</span>
+                        </div>
+                    </div>
+                ` : ''}
 
-						<button type="submit" class="w-full text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 ${btnClass}">
-							Tạo tài khoản
-						</button>
-					</form>
-				</div>
-			`;
-		}
+                <!-- Error Message -->
+                ${serverError && "@ViewBag.Mode" === "login" ? `
+                    <div class="mb-6 p-4 bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 rounded-lg shadow-sm">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-circle-exclamation text-red-600 text-xl mr-3"></i>
+                            <span class="text-red-700 font-semibold">${serverError}</span>
+                        </div>
+                    </div>
+                ` : ''}
 
-		// --- CONTROLLER ---
-		const formArea = document.getElementById('form-area');
-		const initialMode = "@initialMode";
+                <!-- Login Form -->
+                <form action="/Account/LoginAsync" method="POST" class="space-y-4">
+                    <!-- Email Field -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            <i class="fa-solid fa-envelope text-blue-500 mr-1"></i>
+                            Email
+                        </label>
+                        <div class="relative">
+                            <input name="email"
+                                   value="${serverEmail}"
+                                   class="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none input-focus text-gray-700 font-medium"
+                                   type="email"
+                                   placeholder="email@example.com"
+                                   required>
+                            <i class="fa-solid fa-at absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
 
-		function renderLogin() { formArea.innerHTML = loginTemplate; }
-		function renderRoleSelection() { formArea.innerHTML = roleSelectionTemplate; }
-		function renderRegister(role) { formArea.innerHTML = getRegisterTemplate(role); }
+                    <!-- Password Field -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            <i class="fa-solid fa-lock text-blue-500 mr-1"></i>
+                            Mật khẩu
+                        </label>
+                        <div class="relative">
+                            <input name="password"
+                                   id="login-password"
+                                   class="w-full pl-12 pr-12 py-3.5 rounded-xl border-2 border-gray-200 focus:border-blue-500 focus:outline-none input-focus text-gray-700 font-medium"
+                                   type="password"
+                                   placeholder="••••••••"
+                                   required>
+                            <i class="fa-solid fa-key absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            <i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                               onclick="togglePassword('login-password', this)"></i>
+                        </div>
+                    </div>
 
-		// Init
-		if (initialMode === 'register') renderRoleSelection();
-		else renderLogin();
+                    <!-- Remember & Forgot -->
+                    <div class="flex items-center justify-between text-sm">
+                        <label class="flex items-center cursor-pointer group">
+                            <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500">
+                            <span class="ml-2 text-gray-600 group-hover:text-gray-800">Ghi nhớ đăng nhập</span>
+                        </label>
+                        <a href="#" class="text-blue-600 font-semibold hover:text-blue-700 hover:underline">Quên mật khẩu?</a>
+                    </div>
 
-	</script>
+                    <!-- Submit Button -->
+                    <button type="submit"
+                            class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg hover-scale btn-ripple transition-all duration-300">
+                        <i class="fa-solid fa-right-to-bracket mr-2"></i>
+                        Đăng nhập ngay
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="relative my-6">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs">
+                        <span class="px-3 bg-white text-gray-500 font-medium">Hoặc</span>
+                    </div>
+                </div>
+
+                <!-- Register Link -->
+                <div class="text-center">
+                    <p class="text-gray-600">
+                        Chưa có tài khoản?
+                        <a href="javascript:void(0)"
+                           onclick="renderRoleSelection()"
+                           class="text-blue-600 font-bold hover:text-blue-700 hover:underline ml-1">
+                            Đăng ký ngay
+                            <i class="fa-solid fa-arrow-right ml-1 text-sm"></i>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        `;
+
+        // 2. Role Selection Template
+        const roleSelectionTemplate = `
+            <div class="fade-in w-full max-w-md mx-auto">
+                <!-- Back Button -->
+                <button onclick="renderLogin()"
+                        class="mb-4 flex items-center gap-2 text-gray-500 hover:text-gray-700 font-semibold transition-colors text-sm">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Quay lại</span>
+                </button>
+
+                <!-- Header -->
+                <div class="text-center mb-6">
+                    <div class="inline-block p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl shadow-lg mb-3">
+                        <i class="fa-solid fa-users text-white text-2xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-gray-800 mb-1">Bạn là ai?</h2>
+                    <p class="text-sm text-gray-500">Chọn vai trò phù hợp để bắt đầu</p>
+                </div>
+
+                <!-- Role Cards -->
+                <div class="space-y-4">
+                    <!-- Student Card -->
+                    <div onclick="renderRegister('student')"
+                         class="cursor-pointer border-2 border-gray-100 rounded-2xl p-5 hover:border-blue-500 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 hover-scale group">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center text-xl shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-black text-base text-gray-800 mb-0.5">Tôi là Học sinh</h3>
+                                <p class="text-xs text-gray-500">Học toán lớp 6-9 hiệu quả và thú vị</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all"></i>
+                        </div>
+                    </div>
+
+                    <!-- Parent Card -->
+                    <div onclick="renderRegister('parent')"
+                         class="cursor-pointer border-2 border-gray-100 rounded-2xl p-5 hover:border-orange-500 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 transition-all duration-300 hover-scale group">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center text-xl shadow-lg group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-user-tie"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-black text-base text-gray-800 mb-0.5">Tôi là Phụ huynh</h3>
+                                <p class="text-xs text-gray-500">Đồng hành cùng con trên con đường học tập</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-orange-500 group-hover:translate-x-1 transition-all"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Link -->
+                <div class="text-center mt-6">
+                    <p class="text-sm text-gray-600">
+                        Đã có tài khoản?
+                        <a href="javascript:void(0)"
+                           onclick="renderLogin()"
+                           class="text-blue-600 font-bold hover:text-blue-700 hover:underline ml-1">
+                            Đăng nhập
+                            <i class="fa-solid fa-arrow-right ml-1 text-xs"></i>
+                        </a>
+                    </p>
+                </div>
+            </div>
+        `;
+
+        // 3. Register Template
+        function getRegisterTemplate(role) {
+            const isStudent = role === 'student';
+            const config = {
+                student: {
+                    title: 'Học sinh',
+                    icon: 'fa-graduation-cap',
+                    gradient: 'from-blue-600 to-blue-700',
+                    hoverGradient: 'hover:from-blue-700 hover:to-blue-800',
+                    bgGradient: 'from-blue-500 to-blue-600'
+                },
+                parent: {
+                    title: 'Phụ huynh',
+                    icon: 'fa-user-tie',
+                    gradient: 'from-orange-600 to-orange-700',
+                    hoverGradient: 'hover:from-orange-700 hover:to-orange-800',
+                    bgGradient: 'from-orange-500 to-orange-600'
+                }
+            };
+
+            const cfg = config[role];
+
+            return `
+                <div class="fade-in w-full max-w-md mx-auto">
+                    <!-- Back Button -->
+                    <button onclick="renderRoleSelection()"
+                            class="mb-4 flex items-center gap-2 text-gray-500 hover:text-gray-700 font-semibold transition-colors text-sm">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Quay lại</span>
+                    </button>
+
+                    <!-- Header -->
+                    <div class="text-center mb-6">
+                        <div class="inline-block p-3 bg-gradient-to-br ${cfg.bgGradient} rounded-2xl shadow-lg mb-3">
+                            <i class="fa-solid ${cfg.icon} text-white text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-black text-gray-800 mb-1">Đăng ký ${cfg.title}</h2>
+                        <p class="text-sm text-gray-500">Tạo tài khoản để bắt đầu hành trình</p>
+                    </div>
+
+                    <!-- Error Message -->
+                    ${serverError && "@ViewBag.Mode" === "register" ? `
+                        <div class="mb-6 p-4 bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 rounded-lg shadow-sm">
+                            <div class="flex items-center">
+                                <i class="fa-solid fa-circle-exclamation text-red-600 text-xl mr-3"></i>
+                                <span class="text-red-700 font-semibold">${serverError}</span>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Register Form -->
+                    <form action="/Account/Register" method="POST" onsubmit="return validateForm(this)" class="space-y-4">
+                        <input type="hidden" name="role" value="${role}">
+
+                        <!-- Full Name -->
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                <i class="fa-solid fa-user text-${isStudent ? 'blue' : 'orange'}-500 mr-1"></i>
+                                Họ và tên
+                            </label>
+                            <div class="relative">
+                                <input name="fullName"
+                                       value="${serverFullName}"
+                                       class="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-${isStudent ? 'blue' : 'orange'}-500 focus:outline-none input-focus text-gray-700 font-medium text-sm"
+                                       type="text"
+                                       placeholder="Nguyễn Văn A"
+                                       required>
+                                <i class="fa-solid fa-id-card absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                <i class="fa-solid fa-envelope text-${isStudent ? 'blue' : 'orange'}-500 mr-1"></i>
+                                Email
+                            </label>
+                            <div class="relative">
+                                <input name="email"
+                                       value="${serverEmail}"
+                                       class="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-${isStudent ? 'blue' : 'orange'}-500 focus:outline-none input-focus text-gray-700 font-medium text-sm"
+                                       type="email"
+                                       placeholder="email@example.com"
+                                       required>
+                                <i class="fa-solid fa-at absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                <i class="fa-solid fa-lock text-${isStudent ? 'blue' : 'orange'}-500 mr-1"></i>
+                                Mật khẩu
+                            </label>
+                            <div class="relative">
+                                <input name="password"
+                                       id="reg-password"
+                                       class="w-full pl-11 pr-11 py-3 rounded-xl border-2 border-gray-200 focus:border-${isStudent ? 'blue' : 'orange'}-500 focus:outline-none input-focus text-gray-700 font-medium text-sm"
+                                       type="password"
+                                       placeholder="Tối thiểu 6 ký tự"
+                                       required>
+                                <i class="fa-solid fa-key absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                                <i class="fa-solid fa-eye password-toggle absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
+                                   onclick="togglePassword('reg-password', this)"></i>
+                            </div>
+                            <p id="pw-error" class="text-red-500 text-xs mt-2 font-bold italic hidden flex items-center">
+                                <i class="fa-solid fa-exclamation-triangle mr-1"></i>
+                                Mật khẩu phải từ 6 ký tự trở lên!
+                            </p>
+                        </div>
+
+                        <!-- Terms -->
+                        <div class="flex items-start">
+                            <input type="checkbox"
+                                   id="terms"
+                                   class="w-4 h-4 mt-1 text-${isStudent ? 'blue' : 'orange'}-600 rounded border-gray-300 focus:ring-2 focus:ring-${isStudent ? 'blue' : 'orange'}-500"
+                                   required>
+                            <label for="terms" class="ml-2 text-sm text-gray-600">
+                                Tôi đồng ý với
+                                <a href="#" class="text-${isStudent ? 'blue' : 'orange'}-600 font-semibold hover:underline">Điều khoản dịch vụ</a>
+                                và
+                                <a href="#" class="text-${isStudent ? 'blue' : 'orange'}-600 font-semibold hover:underline">Chính sách bảo mật</a>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit"
+                                class="w-full bg-gradient-to-r ${cfg.gradient} ${cfg.hoverGradient} text-white font-bold py-3.5 px-6 rounded-xl shadow-lg hover-scale btn-ripple transition-all duration-300">
+                            <i class="fa-solid fa-user-plus mr-2"></i>
+                            Tạo tài khoản ngay
+                        </button>
+                    </form>
+
+                    <!-- Divider -->
+                    <div class="relative my-6">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div class="relative flex justify-center text-xs">
+                            <span class="px-3 bg-white text-gray-500 font-medium">Hoặc</span>
+                        </div>
+                    </div>
+
+                    <!-- Login Link -->
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600">
+                            Đã có tài khoản?
+                            <a href="javascript:void(0)"
+                               onclick="renderLogin()"
+                               class="text-${isStudent ? 'blue' : 'orange'}-600 font-bold hover:text-${isStudent ? 'blue' : 'orange'}-700 hover:underline ml-1">
+                                Đăng nhập
+                                <i class="fa-solid fa-arrow-right ml-1 text-xs"></i>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // === UTILITY FUNCTIONS ===
+
+        // Toggle Password Visibility
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            const isPassword = input.type === 'password';
+
+            input.type = isPassword ? 'text' : 'password';
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        }
+
+        // Validate Form
+        function validateForm(form) {
+            const pw = form.password.value;
+            const errEl = document.getElementById('pw-error');
+            const pwInput = form.password;
+
+            if (pw.length < 6) {
+                errEl.classList.remove('hidden');
+                pwInput.classList.remove('border-gray-200');
+                pwInput.classList.add('border-red-500');
+                pwInput.focus();
+                return false;
+            }
+
+            errEl.classList.add('hidden');
+            pwInput.classList.remove('border-red-500');
+            pwInput.classList.add('border-gray-200');
+            return true;
+        }
+
+        // === RENDER FUNCTIONS ===
+
+        const formArea = document.getElementById('form-area');
+
+        function renderLogin() {
+            formArea.innerHTML = loginTemplate;
+        }
+
+        function renderRoleSelection() {
+            formArea.innerHTML = roleSelectionTemplate;
+        }
+
+        function renderRegister(role) {
+            formArea.innerHTML = getRegisterTemplate(role);
+        }
+
+        // === INITIALIZATION ===
+
+        // Initialize based on server mode
+        if (initialMode === 'register') {
+            @if (ViewBag.Mode == "register" && ViewBag.Error != null)
+            {
+                    <text>
+                    // If there's an error, render register form with student as default
+                    renderRegister('student');
+                    </text>
+            }
+            else
+            {
+                    <text>
+                    renderRoleSelection();
+                    </text>
+            }
+        } else {
+            renderLogin();
+        }
+
+        // Add input animation on focus
+        document.addEventListener('DOMContentLoaded', function() {
+            // This will run after content is loaded
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('input[type="email"], input[type="password"], input[type="text"]');
+                inputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        this.parentElement.classList.add('scale-[1.02]');
+                    });
+                    input.addEventListener('blur', function() {
+                        this.parentElement.classList.remove('scale-[1.02]');
+                    });
+                });
+            }, 100);
+        });
+    </script>
 </body>
 </html>

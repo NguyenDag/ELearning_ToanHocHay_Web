@@ -23,7 +23,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public string? Phone { get; set; }
 
         // UserType: 0 là Student, 1 là Parent
-        public int UserType { get; set; }
+        public UserType UserType { get; set; }
 
         public int? GradeLevel { get; set; }
 

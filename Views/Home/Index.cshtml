@@ -73,7 +73,7 @@
                 <h2 class="text-3xl md:text-5xl font-extrabold mb-6 drop-shadow-md">
                     <span class="block leading-tight">HỌC TOÁN ONLINE</span>
                     <span class="block leading-tight">HIỆU QUẢ TRONG</span>
-                    <span class="block leading-tight text-yellow-300 mt-1 animate-pulse-custom inline-block">
+                    <span class="block leading-tight text-yellow-300 mt-1 animate-fade-pulse inline-block">
                         2 THÁNG
                     </span>
                 </h2>
@@ -265,8 +265,8 @@
 
                 <div class="text-center mb-10">
                     <div class="flex items-center justify-center gap-2 mb-2">
-                        <span class="text-yellow-400 text-2xl"><i class="fa-solid fa-shapes"></i></span>
-                        <span class="font-bold text-slate-700 text-xl">ToanHocHay</span>
+                        <img src="/logo_header.ico" alt="ToanHocHay Logo" class="w-10 h-10 object-contain" />
+                        <span class="font-black text-slate-800 text-2xl">ToanHocHay</span>
                     </div>
                     <h2 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">Đầu tư cho tương lai Toán học của con</h2>
                     <p class="text-slate-500 mb-8">Chọn gói học tập phù hợp để mở khóa sức mạnh của <span class="text-blue-600 font-bold">AI Tutor</span> và lộ trình cá nhân hóa.</p>
@@ -415,6 +415,23 @@
     .animate-fade-in-up {
         animation: fadeInUp 0.4s ease-out forwards;
     }
+    /* Hiệu ứng mờ dần rồi hiện lên mượt mà */
+    .animate-fade-pulse {
+        animation: fade-pulse-animation 2s ease-in-out infinite;
+    }
+
+    /* Sử dụng @@ để thoát lỗi Razor CS0103 */
+    @@keyframes fade-pulse-animation {
+        0%, 100% {
+            opacity: 1; /* Hiện rõ */
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.3; /* Mờ dần */
+            transform: scale(0.95); /* Thu nhỏ nhẹ tạo cảm giác nhịp thở */
+        }
+    }
 </style>
 
 @section Scripts {
@@ -472,6 +489,22 @@
         }
 
         function openPaymentModal(packageType) {
+            // Xử lý đặc biệt cho gói FREE
+            if (packageType === 'free') {
+                // Kiểm tra trạng thái đăng nhập từ backend
+                const isLoggedIn = @(User.Identity.IsAuthenticated ? "true" : "false");
+
+                if (isLoggedIn) {
+                    // Đã đăng nhập -> Chuyển về trang Home
+                    window.location.href = '/';
+                } else {
+                    // Chưa đăng nhập -> Chuyển sang trang Login
+                    window.location.href = '/Account/Login';
+                }
+                return; // Dừng không mở modal
+            }
+
+            // Xử lý các gói trả phí khác (Standard, Premium, Year Special)
             document.getElementById('pricing-modal').classList.add('hidden');
             document.getElementById('payment-modal').classList.remove('hidden');
 
@@ -485,9 +518,7 @@
 
             let data = { name: "", duration: "", price: "", original: "", discount: "" };
 
-            if (packageType === 'free') {
-                data = { name: "Gói Miễn phí", duration: "Vĩnh viễn", price: "0đ", original: "0đ", discount: "0%" };
-            } else if (packageType === 'year_special') {
+            if (packageType === 'year_special') {
                 data = { name: "Gói Năm (Pro)", duration: "12 Tháng", price: "1.990.000đ", original: "3.000.000đ", discount: "-33%" };
             } else {
                 data.duration = isYearlyMode ? "12 Tháng" : "1 Tháng";
@@ -520,4 +551,5 @@
             document.getElementById('pricing-modal').classList.remove('hidden');
         }
     </script>
+}
 }

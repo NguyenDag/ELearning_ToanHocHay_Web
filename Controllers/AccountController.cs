@@ -1,18 +1,11 @@
-﻿using System.Net.Http;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
-
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
-using ToanHocHay.WebApp.Common;
 
 namespace ToanHocHay.WebApp.Controllers
 {
@@ -33,7 +26,7 @@ namespace ToanHocHay.WebApp.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            if (User.Identity.IsAuthenticated) return RedirectToAction("Index", "Home");
+            if (User.Identity?.IsAuthenticated == true) return RedirectToAction("Index", "Home");
             ViewBag.Mode = "login";
             return View();
         }
@@ -64,6 +57,7 @@ namespace ToanHocHay.WebApp.Controllers
                 new Claim(ClaimTypes.Role, data.UserType.ToString())
             };
 
+            // Lưu StudentId/ParentId vào Claims để dùng cho chức năng làm bài thi
             if (data.StudentId.HasValue) claims.Add(new Claim(CustomJwtClaims.StudentId, data.StudentId.Value.ToString()));
             if (data.ParentId.HasValue) claims.Add(new Claim(CustomJwtClaims.ParentId, data.ParentId.Value.ToString()));
 
@@ -88,7 +82,18 @@ namespace ToanHocHay.WebApp.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(string fullName, string email, string password, string role)
         {
-            int userTypeInt = (role.ToLower() == "student") ? 0 : 1;
+            // Kiểm tra mật khẩu tối thiểu 6 ký tự tại Frontend
+            if (string.IsNullOrEmpty(password) || password.Length < 6)
+            {
+                ViewBag.Error = "Mật khẩu phải có ít nhất 6 ký tự.";
+                ViewBag.Mode = "register";
+                ViewBag.FullName = fullName;
+                ViewBag.Email = email;
+                return View("Login");
+            }
+
+            // Chuyển đổi role string sang Enum UserType của Backend
+            UserType userType = (role.ToLower() == "student") ? UserType.Student : UserType.Parent;
 
             var request = new RegisterRequestDto
             {
@@ -96,15 +101,17 @@ namespace ToanHocHay.WebApp.Controllers
                 Email = email,
                 Password = password,
                 ConfirmPassword = password,
-                UserType = userTypeInt,
-                GradeLevel = (userTypeInt == 0) ? 6 : null
+                UserType = userType,
+                GradeLevel = (userType == UserType.Student) ? 6 : null
             };
 
             var (success, error) = await _authService.Register(request);
             if (!success)
             {
-                ViewBag.Error = error;
+                ViewBag.Error = error; // Hiển thị lỗi từ Backend (ví dụ: "Email đã tồn tại")
                 ViewBag.Mode = "register";
+                ViewBag.FullName = fullName;
+                ViewBag.Email = email;
                 return View("Login");
             }
 
@@ -119,7 +126,6 @@ namespace ToanHocHay.WebApp.Controllers
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login");
 
-            // Lấy thông tin mới nhất từ API (Giải pháp C)
             var userProfile = await _authService.GetProfileAsync(int.Parse(userIdStr));
             if (userProfile == null) return RedirectToAction("Login");
 
@@ -136,8 +142,8 @@ namespace ToanHocHay.WebApp.Controllers
 
             if (response.Success)
             {
-                // CẬP NHẬT IDENTITY NGAY LẬP TỨC (Giải pháp B)
-                var identity = (ClaimsIdentity)User.Identity;
+                // Cập nhật Identity để phản ánh tên mới ngay lập tức
+                var identity = (ClaimsIdentity)User.Identity!;
                 var nameClaim = identity.FindFirst(ClaimTypes.Name);
                 if (nameClaim != null) identity.RemoveClaim(nameClaim);
                 identity.AddClaim(new Claim(ClaimTypes.Name, model.FullName));
@@ -172,7 +178,6 @@ namespace ToanHocHay.WebApp.Controllers
             }
 
             ViewBag.Error = response.Message;
-            // Load lại profile để hiển thị view
             var userProfile = await _authService.GetProfileAsync(int.Parse(userIdStr));
             return View("Profile", userProfile);
         }
@@ -181,42 +186,29 @@ namespace ToanHocHay.WebApp.Controllers
         public async Task<IActionResult> LogoutAsync()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            HttpContext.Session.Clear();
+            HttpContext.Session.Clear(); // Xóa Session khi đăng xuất
             return RedirectToAction("Index", "Home");
         }
 
+        // ================= EMAIL CONFIRMATION =================
+        [HttpGet]
         public async Task<IActionResult> ConfirmEmail(string token)
         {
-            if (string.IsNullOrWhiteSpace(token))
-            {
-                return View("ConfirmEmailFailed");
-            }
+            if (string.IsNullOrWhiteSpace(token)) return View("ConfirmEmailFailed");
 
-            // Gọi API backend
-            var response = await _httpClient.GetAsync(
-                $"{ApiConstant.apiBaseUrl}/api/auth/confirm-email?token={token}"
-            );
+            var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/auth/confirm-email?token={token}");
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return View("ConfirmEmailFailed");
-            }
+            if (!response.IsSuccessStatusCode) return View("ConfirmEmailFailed");
 
-            var result = await response.Content
-                .ReadFromJsonAsync<ApiResponse<bool>>();
-
-            if (result == null || !result.Success)
-            {
-                return View("ConfirmEmailFailed");
-            }
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+            if (result == null || !result.Success) return View("ConfirmEmailFailed");
 
             return View("ConfirmEmailSuccess");
-
         }
+
         [HttpPost]
         public async Task<IActionResult> ResendConfirmationEmail(string email)
         {
-            // WebApp gọi sang Backend
             var response = await _httpClient.PostAsJsonAsync(
                 $"{ApiConstant.apiBaseUrl}/api/auth/resend-confirmation-email",
                 new { Email = email }

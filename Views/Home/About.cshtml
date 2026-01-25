@@ -4,52 +4,66 @@
 
 <div class="font-sans text-gray-900">
 
-    <section class="relative bg-white overflow-hidden pt-20 pb-24 lg:pt-32 lg:pb-40">
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
+    @* --- HERO SECTION ĐỒNG BỘ --- *@
+    <section class="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white py-20 overflow-hidden">
+        @* Họa tiết khối vuông chìm *@
+        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+
+        @* Hiệu ứng mờ ảo (Blobs) *@
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-blue-400 opacity-20 rounded-full blur-3xl"></div>
 
         <div class="container mx-auto px-4 relative z-10 text-center">
-            <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight tracking-tight">
-                Khơi nguồn cảm hứng <br />
-                <span class="text-blue-600">Toán học công nghệ</span>
-            </h1>
-            <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-10">
-                Không chỉ là giải toán, chúng tôi xây dựng tư duy. Kết hợp giáo dục chuẩn mực và công nghệ AI để cá nhân hóa lộ trình cho từng học sinh.
-            </p>
+            <div class="max-w-4xl mx-auto">
+                <span class="inline-block bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full mb-6 border border-white/30 tracking-widest uppercase">
+                    <i class="fa-solid fa-shapes mr-1"></i> Về ToanHocHay
+                </span>
 
-            <div class="inline-flex flex-wrap justify-center gap-8 md:gap-24 border-t border-gray-200 pt-10">
-                <div class="text-center">
-                    <div class="text-3xl font-black text-gray-900">50.000+</div>
-                    <div class="text-sm font-semibold text-gray-500 mt-1">Câu hỏi luyện tập</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-black text-gray-900">10TB+</div>
-                    <div class="text-sm font-semibold text-gray-500 mt-1">Dữ liệu học tập</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-black text-gray-900">Top 10</div>
-                    <div class="text-sm font-semibold text-gray-500 mt-1">Công nghệ EdTech</div>
-                </div>
+                @* Cỡ chữ md:text-6xl đồng bộ với yêu cầu của bạn *@
+                <h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight tracking-tight">
+                    Khơi nguồn cảm hứng <br />
+                    <span class="text-yellow-300">Toán học công nghệ</span>
+                </h1>
+
+                <p class="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto leading-relaxed mb-12">
+                    Không chỉ là giải toán, chúng tôi xây dựng tư duy. Kết hợp giáo dục chuẩn mực và công nghệ AI để cá nhân hóa lộ trình cho từng học sinh.
+                </p>
+
+                @* Thống kê nhanh
+                <div class="inline-flex flex-wrap justify-center gap-8 md:gap-24 border-t border-white/20 pt-10">
+                    <div class="text-center">
+                        <div class="text-3xl font-black text-white">50.000+</div>
+                        <div class="text-sm font-semibold text-blue-200 mt-1">Câu hỏi luyện tập</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-black text-white">10TB+</div>
+                        <div class="text-sm font-semibold text-blue-200 mt-1">Dữ liệu học tập</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-black text-white">Top 10</div>
+                        <div class="text-sm font-semibold text-blue-200 mt-1">Công nghệ EdTech</div>
+                    </div>
+                </div> *@
             </div>
         </div>
     </section>
 
-    <section class="py-20 bg-gray-50">
+    @* --- PHẦN SỨ MỆNH --- *@
+    <section class="py-24 bg-gray-50">
         <div class="container mx-auto px-4">
-
-            <div class="flex flex-col lg:flex-row items-center gap-12 mb-24">
+            <div class="flex flex-col lg:flex-row items-center gap-16 mb-24">
                 <div class="flex-1 order-2 lg:order-1">
-                    <div class="relative rounded-3xl overflow-hidden shadow-xl border-4 border-white">
-                        <div class="bg-gradient-to-br from-blue-600 to-blue-800 h-[400px] flex items-center justify-center relative overflow-hidden group">
+                    <div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-8 border-white">
+                        <div class="bg-gradient-to-br from-blue-600 to-blue-800 h-[450px] flex items-center justify-center relative overflow-hidden group">
                             <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
                             <i class="fa-solid fa-rocket text-9xl text-white/10 transform group-hover:scale-110 transition duration-700"></i>
 
-                            <div class="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-lg">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl font-bold"><i class="fa-solid fa-check"></i></div>
+                            <div class="absolute bottom-8 left-8 right-8 bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-xl">
+                                <div class="flex items-center gap-5">
+                                    <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 text-2xl font-bold"><i class="fa-solid fa-check"></i></div>
                                     <div>
-                                        <p class="text-sm text-gray-500">Mục tiêu</p>
-                                        <p class="font-bold text-gray-900">Cá nhân hóa 100%</p>
+                                        <p class="text-sm text-gray-500 font-bold uppercase tracking-wider">Mục tiêu</p>
+                                        <p class="text-xl font-black text-gray-900">Cá nhân hóa 100%</p>
                                     </div>
                                 </div>
                             </div>
@@ -57,161 +71,118 @@
                     </div>
                 </div>
                 <div class="flex-1 order-1 lg:order-2">
-                    <h2 class="text-3xl font-black text-gray-900 mb-6">Sứ mệnh kiến tạo tri thức</h2>
-
-                    <p class="text-gray-600 mb-6 text-lg">
-                        Chúng tôi tin rằng <span class="font-bold text-gray-900">mọi đứa trẻ đều thông minh</span> theo cách riêng. Vấn đề không phải là môn Toán khó, mà là phương pháp chưa phù hợp.
+                    <h2 class="text-4xl font-black text-gray-900 mb-8 leading-tight">Sứ mệnh kiến tạo tri thức</h2>
+                    <p class="text-gray-600 mb-6 text-xl leading-relaxed">
+                        Chúng tôi tin rằng <span class="font-bold text-blue-600">mọi đứa trẻ đều thông minh</span> theo cách riêng. Vấn đề không phải là môn Toán khó, mà là phương pháp chưa phù hợp.
                     </p>
-
-                    <p class="text-gray-600 mb-8 leading-relaxed">
+                    <p class="text-gray-600 mb-10 leading-relaxed text-lg">
                         ToanHocHay ra đời để xóa bỏ rào cản đó. Giải pháp toàn diện kết nối Học sinh, Phụ huynh và Giáo viên trên một nền tảng thống nhất.
                     </p>
-
-                    <ul class="space-y-4 font-semibold">
-                        <li class="flex items-start gap-3 text-blue-600">
-                            <i class="fa-solid fa-circle-check mt-1"></i>
+                    <ul class="space-y-5">
+                        <li class="flex items-center gap-4 text-gray-700 font-bold text-lg">
+                            <i class="fa-solid fa-circle-check text-blue-600 text-2xl"></i>
                             <span>Phương pháp giảng dạy hiện đại, trực quan.</span>
                         </li>
-                        <li class="flex items-start gap-3 text-blue-600">
-                            <i class="fa-solid fa-circle-check mt-1"></i>
+                        <li class="flex items-center gap-4 text-gray-700 font-bold text-lg">
+                            <i class="fa-solid fa-circle-check text-blue-600 text-2xl"></i>
                             <span>Công nghệ AI theo sát tiến độ từng ngày.</span>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <div class="text-center mb-12">
+            @* --- GIÁ TRỊ CỐT LÕI --- *@
+            <div class="text-center mb-16">
                 <h2 class="text-3xl font-black text-gray-900">Giá trị cốt lõi</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition duration-300">
-                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="bg-white p-10 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300">
+                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-3xl mb-8">
                         <i class="fa-solid fa-heart"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Tận tâm</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed">
+                    <h3 class="text-2xl font-black text-gray-900 mb-4">Tận tâm</h3>
+                    <p class="text-gray-600 leading-relaxed">
                         Học sinh là trung tâm. Mọi tính năng, bài giảng đều được thiết kế để phục vụ lợi ích tốt nhất cho người học.
                     </p>
                 </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition duration-300">
-                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl mb-6">
+                <div class="bg-white p-10 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300">
+                    <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 text-3xl mb-8">
                         <i class="fa-solid fa-microchip"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Công nghệ</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed">
+                    <h3 class="text-2xl font-black text-gray-900 mb-4">Công nghệ</h3>
+                    <p class="text-gray-600 leading-relaxed">
                         Không ngừng đổi mới. Ứng dụng những công nghệ giáo dục (EdTech) tiên tiến nhất thế giới vào Việt Nam.
                     </p>
                 </div>
-                <div class="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-lg hover:-translate-y-1 transition duration-300">
-                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 text-2xl mb-6">
+                <div class="bg-white p-10 rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition duration-300">
+                    <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 text-3xl mb-8">
                         <i class="fa-solid fa-star"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3">Chất lượng</h3>
-                    <p class="text-gray-600 text-sm leading-relaxed">
+                    <h3 class="text-2xl font-black text-gray-900 mb-4">Chất lượng</h3>
+                    <p class="text-gray-600 leading-relaxed">
                         Nội dung chuẩn kiến thức Bộ GD&ĐT, được biên soạn và thẩm định bởi các chuyên gia đầu ngành.
                     </p>
                 </div>
             </div>
-
         </div>
     </section>
 
-    <section class="py-20 bg-white">
+    @* --- ĐỘI NGŨ PHÁT TRIỂN --- *@
+    <section class="py-24 bg-white">
         <div class="container mx-auto px-4">
-            <div class="max-w-3xl mx-auto text-center mb-16">
-                <h2 class="text-3xl font-black text-gray-900 mb-4">Đội ngũ phát triển</h2>
-                <p class="text-gray-500">Sự kết hợp hoàn hảo giữa Sư phạm và Công nghệ</p>
+            <div class="max-w-3xl mx-auto text-center mb-20">
+                <h2 class="text-4xl font-black text-gray-900 mb-6">Đội ngũ phát triển</h2>
+                <p class="text-xl text-gray-500">Sự kết hợp hoàn hảo giữa Sư phạm và Công nghệ</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="group relative overflow-hidden rounded-2xl">
-                    <div class="aspect-[3/4] bg-gray-100 relative">
-                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10"></div>
-                        <div class="absolute inset-0 flex items-center justify-center bg-gray-200">
-                            <i class="fa-solid fa-chalkboard-user text-6xl text-gray-400"></i>
-                        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                @* Member Card Template *@
+                @foreach (var member in new[] {
+                                new { Role = "Ban Chuyên môn", Title = "Cố vấn Giáo dục", Icon = "fa-chalkboard-user" },
+                                new { Role = "Ban Công nghệ", Title = "Kỹ sư Phần mềm", Icon = "fa-code" },
+                                new { Role = "Ban R&D", Title = "Chuyên gia AI", Icon = "fa-brain" },
+                                new { Role = "Ban Vận hành", Title = "Chăm sóc khách hàng", Icon = "fa-headset" }
+                                })
+                {
+                    <div class="group relative overflow-hidden rounded-[2rem] shadow-lg">
+                        <div class="aspect-[3/4] bg-gray-100 relative">
+                            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/20 to-transparent z-10"></div>
+                            <div class="absolute inset-0 flex items-center justify-center bg-slate-200">
+                                <i class="fa-solid @member.Icon text-7xl text-slate-400 group-hover:scale-110 transition duration-500"></i>
+                            </div>
 
-                        <div class="absolute bottom-0 left-0 right-0 p-6 z-20 text-white transform translate-y-2 group-hover:translate-y-0 transition">
-                            <p class="text-xs font-bold uppercase tracking-wider mb-1 opacity-80 text-blue-300">Ban Chuyên môn</p>
-                            <h4 class="text-xl font-bold">Cố vấn Giáo dục</h4>
-                            <p class="text-xs text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition delay-100">
-                                Định hướng lộ trình học tập chuẩn mực và hiệu quả.
-                            </p>
+                            <div class="absolute bottom-0 left-0 right-0 p-8 z-20 text-white transform translate-y-4 group-hover:translate-y-0 transition duration-300">
+                                <p class="text-xs font-black uppercase tracking-widest mb-2 text-blue-400">@member.Role</p>
+                                <h4 class="text-2xl font-black mb-3">@member.Title</h4>
+                                <p class="text-sm text-gray-300 opacity-0 group-hover:opacity-100 transition duration-500">
+                                    Đội ngũ nòng cốt cam kết mang lại giá trị học thuật cao nhất.
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="group relative overflow-hidden rounded-2xl">
-                    <div class="aspect-[3/4] bg-gray-100 relative">
-                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10"></div>
-                        <div class="absolute inset-0 flex items-center justify-center bg-gray-200">
-                            <i class="fa-solid fa-code text-6xl text-gray-400"></i>
-                        </div>
-
-                        <div class="absolute bottom-0 left-0 right-0 p-6 z-20 text-white transform translate-y-2 group-hover:translate-y-0 transition">
-                            <p class="text-xs font-bold uppercase tracking-wider mb-1 opacity-80 text-blue-300">Ban Công nghệ</p>
-                            <h4 class="text-xl font-bold">Kỹ sư Phần mềm</h4>
-                            <p class="text-xs text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition delay-100">
-                                Xây dựng nền tảng mượt mà, ổn định và bảo mật.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="group relative overflow-hidden rounded-2xl">
-                    <div class="aspect-[3/4] bg-gray-100 relative">
-                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10"></div>
-                        <div class="absolute inset-0 flex items-center justify-center bg-gray-200">
-                            <i class="fa-solid fa-brain text-6xl text-gray-400"></i>
-                        </div>
-
-                        <div class="absolute bottom-0 left-0 right-0 p-6 z-20 text-white transform translate-y-2 group-hover:translate-y-0 transition">
-                            <p class="text-xs font-bold uppercase tracking-wider mb-1 opacity-80 text-blue-300">Ban R&D</p>
-                            <h4 class="text-xl font-bold">Chuyên gia AI</h4>
-                            <p class="text-xs text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition delay-100">
-                                Phát triển các thuật toán gợi ý bài học thông minh.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="group relative overflow-hidden rounded-2xl">
-                    <div class="aspect-[3/4] bg-gray-100 relative">
-                        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10"></div>
-                        <div class="absolute inset-0 flex items-center justify-center bg-gray-200">
-                            <i class="fa-solid fa-headset text-6xl text-gray-400"></i>
-                        </div>
-
-                        <div class="absolute bottom-0 left-0 right-0 p-6 z-20 text-white transform translate-y-2 group-hover:translate-y-0 transition">
-                            <p class="text-xs font-bold uppercase tracking-wider mb-1 opacity-80 text-blue-300">Ban Vận hành</p>
-                            <h4 class="text-xl font-bold">Chăm sóc khách hàng</h4>
-                            <p class="text-xs text-gray-300 mt-2 opacity-0 group-hover:opacity-100 transition delay-100">
-                                Luôn lắng nghe và hỗ trợ người dùng 24/7.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                }
             </div>
         </div>
     </section>
 
-    <section class="py-20">
+    @* --- CTA SECTION --- *@
+    <section class="py-24">
         <div class="container mx-auto px-4">
-            <div class="bg-[#2563EB] rounded-[2.5rem] p-12 md:p-20 text-center text-white relative overflow-hidden shadow-2xl">
-                <div class="absolute top-0 left-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-                <div class="absolute bottom-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+            <div class="bg-[#2563EB] rounded-[3rem] p-12 md:p-24 text-center text-white relative overflow-hidden shadow-2xl">
+                <div class="absolute top-0 left-0 w-80 h-80 bg-white opacity-10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+                <div class="absolute bottom-0 right-0 w-80 h-80 bg-purple-400 opacity-20 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
 
                 <div class="relative z-10 max-w-3xl mx-auto">
-                    <h2 class="text-3xl md:text-5xl font-black mb-6">Đừng để môn Toán cản bước tương lai</h2>
-                    <p class="text-lg text-blue-100 mb-10 opacity-90">
+                    <h2 class="text-4xl md:text-6xl font-black mb-8 leading-tight">Đừng để môn Toán cản bước tương lai</h2>
+                    <p class="text-xl text-blue-100 mb-12 opacity-90 leading-relaxed">
                         Hãy cùng con bắt đầu hành trình chinh phục những con số một cách đầy cảm hứng ngay hôm nay.
                     </p>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="/Account/Register" class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-blue-700 bg-white rounded-full hover:bg-gray-100 transition transform hover:-translate-y-1 shadow-lg">
+                    <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                        <a href="/Account/Register" class="inline-flex items-center justify-center px-10 py-5 text-lg font-black text-blue-700 bg-white rounded-full hover:bg-gray-100 transition transform hover:-translate-y-1 shadow-xl">
                             Đăng ký học thử miễn phí
                         </a>
-                        <a href="/Course" class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white border-2 border-white/30 rounded-full hover:bg-white/10 transition">
+                        <a href="/Course" class="inline-flex items-center justify-center px-10 py-5 text-lg font-black text-white border-2 border-white/30 rounded-full hover:bg-white/10 transition">
                             Xem lộ trình mẫu
                         </a>
                     </div>
