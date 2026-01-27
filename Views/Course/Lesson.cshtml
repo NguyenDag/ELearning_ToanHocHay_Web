@@ -3,7 +3,6 @@
 
 @{
     Layout = null;
-    // Lấy danh sách bài học cùng chủ đề từ ViewBag để đổ vào Sidebar
     var relatedLessons = ViewBag.RelatedLessons as IEnumerable<LessonDto> ?? new List<LessonDto>();
 }
 
@@ -16,7 +15,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
@@ -26,10 +24,6 @@
 
         .custom-scroll::-webkit-scrollbar {
             width: 6px;
-        }
-
-        .custom-scroll::-webkit-scrollbar-track {
-            background: #f1f5f9;
         }
 
         .custom-scroll::-webkit-scrollbar-thumb {
@@ -59,143 +53,97 @@
             }
         }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3B82F6',
-                        secondary: '#F97316',
-                        dark: '#1e293b',
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 <body class="bg-gray-50 h-screen flex flex-col overflow-hidden">
 
-    <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-6 shrink-0 z-20 border-b border-gray-200">
+    <header class="h-16 bg-white shadow-sm flex items-center justify-between px-6 shrink-0 z-20 border-b border-gray-200">
         <div class="flex items-center gap-4">
-            <a href="/" class="flex items-center gap-2 border-r border-gray-300 pr-4 hover:opacity-80 transition cursor-pointer text-decoration-none">
+            <a href="/Course/Index" class="flex items-center gap-2 hover:opacity-80 transition pr-4 border-r border-gray-200">
                 <i class="fa-solid fa-shapes text-2xl text-yellow-400"></i>
-                <span class="text-xl font-bold text-primary hidden md:block">ToanHocHay</span>
+                <span class="text-xl font-bold text-blue-600 hidden md:block">ToanHocHay</span>
             </a>
-
-            <h1 class="text-sm md:text-base font-bold text-gray-700 truncate max-w-[400px]">
-                @Model.LessonName @* Đổ tên bài từ Model *@
-            </h1>
+            <h1 class="text-base font-bold text-gray-700 truncate max-w-[400px]">@Model.LessonName</h1>
         </div>
-
         <div class="flex items-center gap-4">
-            <div class="hidden md:flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
-                <i class="fa-solid fa-trophy text-yellow-500"></i>
-                <span class="font-bold">Đang học</span>
+            <div class="hidden md:flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full font-bold">
+                <i class="fa-solid fa-trophy text-yellow-500"></i> Đang học
             </div>
-            <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix" alt="User" class="w-9 h-9 rounded-full border border-gray-200 bg-blue-50">
+            <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Felix" class="w-9 h-9 rounded-full border bg-blue-50">
         </div>
     </header>
 
     <main class="flex-1 flex overflow-hidden">
-
-        <div class="flex-1 flex flex-col overflow-y-auto custom-scroll relative bg-white">
-            <div class="sticky top-0 bg-white border-b border-gray-200 px-6 pt-4 z-10 shadow-sm">
-                <div class="flex gap-8">
-                    <button onclick="switchTab('theory')" id="tab-btn-theory" class="tab-btn tab-active pb-3 text-gray-600 hover:text-primary transition font-medium">
-                        <i class="fa-solid fa-book-open mr-2"></i>Lý thuyết
-                    </button>
-                    <button onclick="switchTab('notes')" id="tab-btn-notes" class="tab-btn pb-3 text-gray-600 hover:text-primary transition font-medium border-b-3 border-transparent">
-                        <i class="fa-solid fa-note-sticky mr-2"></i>Ghi chú
-                    </button>
-                </div>
+        <!-- Khu vực nội dung bài giảng -->
+        <div class="flex-1 flex flex-col overflow-y-auto custom-scroll bg-white relative">
+            <div class="sticky top-0 bg-white border-b px-6 pt-4 z-10 shadow-sm flex gap-8">
+                <button onclick="switchTab('theory')" id="tab-btn-theory" class="tab-btn tab-active pb-3 text-sm">
+                    <i class="fa-solid fa-book-open mr-2"></i>Lý thuyết
+                </button>
+                <button onclick="switchTab('notes')" id="tab-btn-notes" class="tab-btn pb-3 text-sm text-gray-400">
+                    <i class="fa-solid fa-note-sticky mr-2"></i>Ghi chú
+                </button>
             </div>
 
-            <div class="p-8 max-w-4xl mx-auto w-full pb-20">
-                <div id="content-theory" class="tab-content block animate-fade-in">
-
-                    @* Lặp qua từng khối nội dung được cấu hình ở Backend *@
-                    @foreach (var block in Model.Contents.OrderBy(c => c.OrderIndex))
+            <div class="p-8 max-w-4xl mx-auto w-full pb-32">
+                <div id="content-theory" class="tab-content animate-fade-in">
+                    @if (Model.Contents != null)
                     {
-                        @switch (block.BlockType)
+                        @foreach (var block in Model.Contents.OrderBy(c => c.OrderIndex))
                         {
-                            case LessonBlockType.Video:
-                                <div class="aspect-video mb-8 rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-100">
+                            @if (block.BlockType == LessonBlockType.Video)
+                            {
+                                <div class="aspect-video mb-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-gray-50">
                                     <iframe class="w-full h-full" src="@block.ContentUrl" allowfullscreen></iframe>
                                 </div>
-                                break;
-
-                            case LessonBlockType.Heading:
-                                <h2 class="text-2xl font-bold text-gray-800 mb-4 mt-8">@block.ContentText</h2>
-                                break;
-
-                            case LessonBlockType.Text:
-                                <p class="text-gray-700 leading-relaxed mb-6">@block.ContentText</p>
-                                break;
-
-                            case LessonBlockType.Definition:
-                                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-r-lg shadow-sm">
-                                    <h3 class="font-bold text-blue-800 mb-2 flex items-center">
-                                        <i class="fa-solid fa-lightbulb mr-2 text-yellow-500"></i> Định nghĩa:
-                                    </h3>
-                                    <p class="text-gray-700">@block.ContentText</p>
+                            }
+                            else if (block.BlockType == LessonBlockType.Heading)
+                            {
+                                <h2 class="text-2xl font-black text-gray-800 mb-6 mt-10">@block.ContentText</h2>
+                            }
+                            else if (block.BlockType == LessonBlockType.Text)
+                            {
+                                <div class="text-gray-700 leading-relaxed mb-6 text-lg">@Html.Raw(block.ContentText)</div>
+                            }
+                            else if (block.BlockType == LessonBlockType.Formula)
+                            {
+                                <div class="bg-slate-50 p-6 rounded-2xl border border-blue-100 text-center my-8 shadow-inner">
+                                    <div class="text-blue-700 text-xl font-mono">\[ @block.ContentText \]</div>
                                 </div>
-                                break;
-
-                            case LessonBlockType.Formula:
-                                <div class="font-mono bg-white p-4 rounded border border-blue-200 inline-block text-blue-700 font-bold my-4">
-                                    @* Tự động Render LaTeX *@
-                                    $$ @block.ContentText $$
-                                </div>
-                                break;
-
-                            case LessonBlockType.Example:
-                                <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-4 rounded-r-lg">
-                                    <strong class="text-green-700">Ví dụ:</strong>
-                                    <p class="text-gray-700 mt-1">@block.ContentText</p>
-                                </div>
-                                break;
+                            }
                         }
                     }
                 </div>
-
-                <div id="content-notes" class="tab-content hidden">
-                    <p class="text-gray-500 italic">Ghi chú của bạn cho bài học này sẽ xuất hiện ở đây.</p>
+                <div id="content-notes" class="tab-content hidden p-10 text-center text-gray-400 italic">
+                    Chưa có ghi chú nào cho bài học này.
                 </div>
             </div>
 
-            <div class="p-4 border-t border-gray-200 bg-white mt-auto sticky bottom-0 flex justify-between items-center shadow-lg">
-                <button class="text-gray-400 cursor-not-allowed font-bold px-4 py-2"><i class="fa-solid fa-chevron-left mr-2"></i> Bài trước</button>
-
-                @* Chuyển hướng đến bài tập của Topic này *@
+            <!-- Nút điều hướng cố định bên dưới -->
+            <div class="p-4 border-t bg-white sticky bottom-0 flex justify-between items-center shadow-[0_-4px_20px_rgba(0,0,0,0.05)] px-10">
+                <button class="text-gray-400 font-bold px-4 py-2 opacity-50"><i class="fa-solid fa-chevron-left mr-2"></i> Bài trước</button>
                 <a href="/Exercise/DoExercise?topicId=@Model.TopicId"
-                   class="bg-secondary hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-full shadow-lg flex items-center gap-2 transition transform hover:-translate-y-1">
-                    <span>Làm bài tập vận dụng</span>
-                    <i class="fa-solid fa-arrow-right"></i>
+                   class="bg-orange-500 hover:bg-orange-600 text-white font-black px-10 py-3.5 rounded-2xl shadow-lg shadow-orange-100 flex items-center gap-3 transition-all hover:-translate-y-1">
+                    LÀM BÀI TẬP VẬN DỤNG <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
         </div>
 
-        <aside class="w-80 md:w-96 bg-gray-50 border-l border-gray-200 flex flex-col shrink-0" id="sidebar">
-            <div class="p-4 border-b border-gray-200 bg-white flex justify-between items-center shadow-sm">
-                <h3 class="font-bold text-gray-800">Danh sách bài học</h3>
+        <!-- Sidebar Danh sách bài học -->
+        <aside class="w-80 md:w-96 bg-gray-50 border-l flex flex-col shrink-0">
+            <div class="p-5 border-b bg-white font-black text-gray-800 shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-blue-500"></i> Danh sách bài học
             </div>
-
-            <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-4">
-                <div class="bg-white rounded-xl border border-blue-200 overflow-hidden shadow-sm">
-                    <div class="p-3 bg-blue-50 border-b border-blue-100 font-bold text-primary text-sm flex justify-between">
-                        <span>Chương hiện tại</span>
-                        <i class="fa-solid fa-chevron-up"></i>
-                    </div>
-
+            <div class="flex-1 overflow-y-auto custom-scroll p-4 space-y-3">
+                <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
                     <div class="divide-y divide-gray-100">
                         @foreach (var lesson in relatedLessons)
                         {
                             <a href="/Lesson/Detail/@lesson.LessonId"
-                               class="flex p-3 gap-3 hover:bg-gray-50 @(lesson.LessonId == Model.LessonId ? "bg-blue-50 border-l-4 border-primary" : "")">
-                                <i class="fa-solid @(lesson.LessonId == Model.LessonId ? "fa-circle-play text-primary animate-pulse" : "fa-circle-check text-gray-300") mt-1"></i>
+                               class="flex p-4 gap-4 transition-all @(lesson.LessonId == Model.LessonId ? "bg-blue-50 border-l-4 border-blue-600" : "hover:bg-gray-50")">
+                                <i class="fa-solid @(lesson.LessonId == Model.LessonId ? "fa-circle-play text-blue-600 animate-pulse" : "fa-circle-check text-gray-200") mt-1"></i>
                                 <div>
-                                    <h4 class="text-sm font-bold @(lesson.LessonId == Model.LessonId ? "text-primary" : "text-gray-700")">@lesson.LessonName</h4>
-                                    <span class="text-xs text-gray-400">@lesson.DurationMinutes phút</span>
+                                    <h4 class="text-sm font-bold @(lesson.LessonId == Model.LessonId ? "text-blue-700" : "text-gray-700")">@lesson.LessonName</h4>
+                                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">@lesson.DurationMinutes phút học</span>
                                 </div>
                             </a>
                         }
@@ -207,7 +155,7 @@
 
     <script>
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active', 'text-blue-600'));
             document.getElementById(`tab-btn-${tabId}`).classList.add('tab-active');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
             document.getElementById(`content-${tabId}`).classList.remove('hidden');

@@ -1,8 +1,12 @@
-﻿@{
+﻿@using ToanHocHay.WebApp.Models.DTOs
+@model ToanHocHay.WebApp.Models.DTOs.CurriculumDto
+
+@{
     ViewData["Title"] = "Hệ thống Bài giảng";
 }
 
 @* --- 1. HERO SECTION --- *@
+
 <section class="relative bg-gradient-to-br from-blue-700 via-indigo-700 to-purple-800 text-white py-16 overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
     <div class="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px] animate-pulse"></div>
@@ -10,24 +14,24 @@
     <div class="container mx-auto px-4 relative z-10">
         <div class="max-w-4xl">
             <span class="inline-block bg-white/20 backdrop-blur-sm text-white text-xs font-black px-4 py-2 rounded-full mb-6 border border-white/30 tracking-widest uppercase">
-                <i class="fa-solid fa-graduation-cap mr-2"></i> Hệ sinh thái ToanHocHay
+                <i class="fa-solid fa-graduation-cap mr-2"></i> @(Model?.CurriculumName ?? "Hệ sinh thái ToanHocHay")
             </span>
             <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">
                 Chinh phục Toán học <br />
                 <span class="text-yellow-300">Theo lộ trình riêng</span>
             </h1>
             <p class="text-lg md:text-xl text-blue-100 max-w-2xl leading-relaxed font-medium">
-                Hệ thống bài giảng AI cá nhân hóa giúp bạn lấp đầy lỗ hổng kiến thức
-                và tối ưu hóa thời gian học tập chỉ trong 2 tháng.
+                @(Model?.Description ?? "Hệ thống bài giảng AI cá nhân hóa giúp bạn lấp đầy lỗ hổng kiến thức và tối ưu hóa thời gian học tập.")
             </p>
         </div>
     </div>
+
+
 </section>
 
 @* --- 2. THANH ĐIỀU KHIỂN (Search & Sort) --- *@
-@* FIX: Tăng top lên để không bị Header chính che mất. 
-   Nếu vẫn bị che, bro hãy tăng số 72px lên thành 80px hoặc 90px *@
-<section class="bg-white border-b border-gray-100 sticky top-[125px] z-40 shadow-sm transition-all duration-300">
+
+<section class="bg-white border-b border-gray-100 sticky top-[64px] z-40 shadow-sm transition-all duration-300">
     <div class="container mx-auto px-4 py-4">
         <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div class="w-full md:w-1/2 relative group">
@@ -44,6 +48,8 @@
             </div>
         </div>
     </div>
+
+
 </section>
 
 <section class="container mx-auto px-4 py-12">
@@ -51,8 +57,7 @@
 
         @* --- 3. BỘ LỌC SIDEBAR --- *@
         <aside class="w-full lg:w-1/4">
-            @* FIX: Tăng top lên [170px] để nó nằm dưới thanh Search *@
-            <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-gray-100 overflow-hidden sticky top-[170px] z-30">
+            <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-gray-100 overflow-hidden sticky top-[150px] z-30">
                 <div class="bg-slate-900 text-white p-6">
                     <h3 class="font-black flex items-center gap-3 uppercase text-[10px] tracking-[0.2em]">
                         <i class="fa-solid fa-sliders text-blue-400"></i> Lọc thông minh
@@ -65,23 +70,24 @@
                             Độ khó <i class="fa-solid fa-chevron-down"></i>
                         </h4>
                         <div class="space-y-4" id="difficultyFilters">
-                            @{
-                                var difficulties = new[] {
-                                                        new { id = "Easy", label = "Cơ bản", color = "bg-green-500" },
-                                                        new { id = "Medium", label = "Trung bình", color = "bg-yellow-500" },
-                                                        new { id = "Hard", label = "Nâng cao", color = "bg-red-500" }
-                                                        };
-                            }
-                            @foreach (var item in difficulties)
-                            {
-                                <label class="flex items-center gap-3 cursor-pointer group">
-                                    <input type="checkbox" value="@item.id" onchange="filterLessons()"
-                                           class="difficulty-checkbox w-6 h-6 text-blue-600 rounded-lg border-gray-200">
-                                    <span class="text-sm font-black text-slate-600 group-hover:text-blue-600 flex items-center transition">
-                                        <span class="w-2 h-2 rounded-full @item.color mr-2"></span> @item.label
-                                    </span>
-                                </label>
-                            }
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" value="Easy" onchange="filterLessons()" class="difficulty-checkbox w-6 h-6 text-blue-600 rounded-lg border-gray-200">
+                                <span class="text-sm font-black text-slate-600 group-hover:text-blue-600 flex items-center transition">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Cơ bản
+                                </span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" value="Medium" onchange="filterLessons()" class="difficulty-checkbox w-6 h-6 text-blue-600 rounded-lg border-gray-200">
+                                <span class="text-sm font-black text-slate-600 group-hover:text-blue-600 flex items-center transition">
+                                    <span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span> Trung bình
+                                </span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="checkbox" value="Hard" onchange="filterLessons()" class="difficulty-checkbox w-6 h-6 text-blue-600 rounded-lg border-gray-200">
+                                <span class="text-sm font-black text-slate-600 group-hover:text-blue-600 flex items-center transition">
+                                    <span class="w-2 h-2 rounded-full bg-red-500 mr-2"></span> Nâng cao
+                                </span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -94,7 +100,7 @@
             </div>
         </aside>
 
-        @* --- 4. DANH SÁCH BÀI HỌC --- *@
+        @* --- 4. DANH SÁCH BÀI HỌC (LOAD TỪ DATABASE) --- *@
         <main class="flex-1">
             <div class="bg-blue-50 rounded-[2rem] p-6 mb-10 border border-blue-100 flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-4">
@@ -102,90 +108,129 @@
                         <i class="fa-solid fa-bullseye text-xl"></i>
                     </div>
                     <div>
-                        <p class="text-[10px] font-black text-blue-600 uppercase tracking-[0.1em]">Mục tiêu hôm nay</p>
+                        <p class="text-[10px] font-black text-blue-600 uppercase tracking-[0.1em]">Kết quả tìm kiếm</p>
                         <p class="text-sm text-slate-700 font-bold">Tìm thấy <span id="found-count" class="text-blue-600">0</span> bài học phù hợp</p>
                     </div>
                 </div>
             </div>
 
             <div id="chapter-container">
-                @* Chapter 1 (Mẫu) *@
-                <div class="chapter-block bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-gray-100 mb-10 overflow-hidden group">
-                    <div class="bg-white p-8 cursor-pointer border-b border-gray-50 hover:bg-slate-50 transition" onclick="toggleChapter('chapter1')">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-6">
-                                <div class="w-16 h-16 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-2xl shadow-lg shadow-blue-200">
-                                    <i class="fa-solid fa-layer-group"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">Chương 1: Tập hợp số tự nhiên</h3>
-                                    <p class="text-sm text-slate-400 font-bold mt-1">12 bài học • Hoàn thành 4/12</p>
+                @if (Model != null && Model.Chapters != null && Model.Chapters.Any())
+                {
+                    @foreach (var chapter in Model.Chapters.OrderBy(c => c.OrderIndex))
+                    {
+                        var chapterId = $"chapter-{chapter.ChapterId}";
+                        <div class="chapter-block bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-gray-100 mb-10 overflow-hidden group">
+                            <div class="bg-white p-8 cursor-pointer border-b border-gray-50 hover:bg-slate-50 transition" onclick="toggleChapter('@chapterId')">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-6">
+                                        <div class="w-16 h-16 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-2xl shadow-lg shadow-blue-200">
+                                            <i class="fa-solid fa-layer-group"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-2xl font-black text-slate-900 tracking-tight">@chapter.ChapterName</h3>
+                                            <p class="text-sm text-slate-400 font-bold mt-1">
+                                                @(chapter.Topics?.SelectMany(t => t.Lessons).Count() ?? 0) bài học
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-down text-xl text-slate-300 transition-transform duration-500" id="@(chapterId)-icon"></i>
                                 </div>
                             </div>
-                            <i class="fa-solid fa-chevron-down text-xl text-slate-300 transition-transform duration-500" id="chapter1-icon"></i>
-                        </div>
-                    </div>
 
-                    <div id="chapter1" class="divide-y divide-gray-50 lesson-list">
-                        <div class="lesson-card p-6 flex items-center gap-6 group/lesson hover:bg-blue-50/30 transition-all" data-difficulty="Easy" data-name="Bài 1">
-                            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center">
-                                <i class="fa-solid fa-check-double"></i>
+                            <div id="@chapterId" class="divide-y divide-gray-50 lesson-list">
+                                @if (chapter.Topics != null)
+                                {
+                                    @foreach (var topic in chapter.Topics.OrderBy(t => t.OrderIndex))
+                                    {
+                                        @if (topic.Lessons != null)
+                                        {
+                                            @foreach (var lesson in topic.Lessons.OrderBy(l => l.OrderIndex))
+                                            {
+                                                <div class="lesson-card p-6 flex items-center gap-6 group/lesson hover:bg-blue-50/30 transition-all"
+                                                     data-difficulty="Easy"
+                                                     data-name="@lesson.LessonName">
+                                                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center">
+                                                        <i class="fa-solid fa-play"></i>
+                                                    </div>
+                                                    <div class="flex-1">
+                                                        <h4 class="font-black text-slate-800 text-lg group-hover/lesson:text-blue-600 transition">@lesson.LessonName</h4>
+                                                        <p class="text-[11px] font-black text-slate-400 uppercase">@lesson.DurationMinutes phút học</p>
+                                                    </div>
+                                                    <a href="/Lesson/Detail/@lesson.LessonId" class="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase opacity-0 group-hover/lesson:opacity-100 transition-all shadow-lg shadow-slate-200 text-decoration-none">Học ngay</a>
+                                                </div>
+                                            }
+                                        }
+                                    }
+                                }
                             </div>
-                            <div class="flex-1">
-                                <h4 class="font-black text-slate-800 text-lg group-hover/lesson:text-blue-600 transition">1. Làm quen với số nguyên âm</h4>
-                                <p class="text-[11px] font-black text-slate-400 uppercase">Cơ bản • 08:30</p>
-                            </div>
-                            <a href="/Course/Learning/1" class="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase opacity-0 group-hover/lesson:opacity-100 transition-all">Xem lại</a>
                         </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-20 bg-white rounded-[2.5rem] border border-dashed border-gray-300">
+                        <i class="fa-solid fa-box-open text-5xl text-gray-200 mb-4"></i>
+                        <p class="text-slate-400 font-bold">Chưa có bài học nào trong khóa học này.</p>
                     </div>
-                </div>
+                }
             </div>
         </main>
     </div>
+
+
 </section>
 
 @section Scripts {
+
     <script>
         function toggleChapter(chapterId) {
-            const element = document.getElementById(chapterId);
-            const icon = document.getElementById(chapterId + '-icon');
-            if (element.classList.contains('hidden')) {
-                element.classList.remove('hidden');
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                element.classList.add('hidden');
-                icon.style.transform = 'rotate(0deg)';
-            }
+        const element = document.getElementById(chapterId);
+        const icon = document.getElementById(chapterId + '-icon');
+        if (element.classList.contains('hidden')) {
+        element.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+        } else {
+        element.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+        }
         }
 
         function filterLessons() {
-            const searchQuery = document.getElementById('lessonSearch').value.toLowerCase();
-            const selectedDifficulties = Array.from(document.querySelectorAll('.difficulty-checkbox:checked')).map(cb => cb.value);
-            const lessons = document.querySelectorAll('.lesson-card');
+            const searchQuery = document.getElementById(&#39;lessonSearch&#39;).value.toLowerCase();
+            const selectedDifficulties = Array.from(document.querySelectorAll(&#39;.difficulty-checkbox:checked&#39;)).map(cb =&gt; cb.value);
+            const lessons = document.querySelectorAll(&#39;.lesson-card&#39;);
             let foundCount = 0;
 
-            lessons.forEach(lesson => {
-                const difficulty = lesson.getAttribute('data-difficulty');
-                const name = lesson.getAttribute('data-name').toLowerCase();
+            lessons.forEach(lesson =&gt; {
+                const difficulty = lesson.getAttribute(&#39;data-difficulty&#39;);
+                const name = lesson.getAttribute(&#39;data-name&#39;).toLowerCase();
                 const matchSearch = name.includes(searchQuery);
                 const matchDifficulty = selectedDifficulties.length === 0 || selectedDifficulties.includes(difficulty);
 
-                if (matchSearch && matchDifficulty) {
-                    lesson.style.display = 'flex';
+                if (matchSearch &amp;&amp; matchDifficulty) {
+                    lesson.style.display = &#39;flex&#39;;
                     foundCount++;
                 } else {
-                    lesson.style.display = 'none';
+                    lesson.style.display = &#39;none&#39;;
                 }
             });
-            document.getElementById('found-count').innerText = foundCount;
+            document.getElementById(&#39;found-count&#39;).innerText = foundCount;
         }
 
         function resetFilters() {
-            document.getElementById('lessonSearch').value = '';
-            document.querySelectorAll('.difficulty-checkbox').forEach(cb => cb.checked = false);
+            const searchInput = document.getElementById(&#39;lessonSearch&#39;);
+            if (searchInput) searchInput.value = &#39;&#39;;
+            document.querySelectorAll(&#39;.difficulty-checkbox&#39;).forEach(cb =&gt; cb.checked = false);
             filterLessons();
         }
 
-        window.onload = filterLessons;
+        // Khởi chạy khi trang load
+        window.onload = function() {
+            filterLessons();
+        };
+
+
     </script>
+
 }
