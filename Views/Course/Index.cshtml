@@ -71,7 +71,7 @@
                         </h4>
                         <div class="space-y-4" id="difficultyFilters">
                             <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" value="Easy" onchange="filterLessons()" class="difficulty-checkbox w-6 h-6 text-blue-600 rounded-lg border-gray-200">
+                                <input type="checkbox" value="Easy" onchange="filterLessons()" class="difficulty-checkbox w-6 h-6 text-blue-600 rounded-lg border-gray-200" checked>
                                 <span class="text-sm font-black text-slate-600 group-hover:text-blue-600 flex items-center transition">
                                     <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span> Cơ bản
                                 </span>
@@ -100,7 +100,7 @@
             </div>
         </aside>
 
-        @* --- 4. DANH SÁCH BÀI HỌC (LOAD TỪ DATABASE) --- *@
+        @* --- 4. DANH SÁCH BÀI HỌC --- *@
         <main class="flex-1">
             <div class="bg-blue-50 rounded-[2rem] p-6 mb-10 border border-blue-100 flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-4">
@@ -182,7 +182,6 @@
 </section>
 
 @section Scripts {
-
     <script>
         function toggleChapter(chapterId) {
         const element = document.getElementById(chapterId);
@@ -196,41 +195,71 @@
         }
         }
 
-        function filterLessons() {
-            const searchQuery = document.getElementById(&#39;lessonSearch&#39;).value.toLowerCase();
-            const selectedDifficulties = Array.from(document.querySelectorAll(&#39;.difficulty-checkbox:checked&#39;)).map(cb =&gt; cb.value);
-            const lessons = document.querySelectorAll(&#39;.lesson-card&#39;);
-            let foundCount = 0;
+            function filterLessons() {
+                const searchQuery = document.getElementById('lessonSearch').value.toLowerCase();
+                const selectedDifficulties = Array.from(document.querySelectorAll('.difficulty-checkbox:checked')).map(cb => cb.value);
+                const chapters = document.querySelectorAll('.chapter-block');
+                let totalFound = 0;
 
-            lessons.forEach(lesson =&gt; {
-                const difficulty = lesson.getAttribute(&#39;data-difficulty&#39;);
-                const name = lesson.getAttribute(&#39;data-name&#39;).toLowerCase();
-                const matchSearch = name.includes(searchQuery);
-                const matchDifficulty = selectedDifficulties.length === 0 || selectedDifficulties.includes(difficulty);
+                chapters.forEach(chapter => {
+                    const lessons = chapter.querySelectorAll('.lesson-card');
+                    let chapterVisibleLessons = 0;
 
-                if (matchSearch &amp;&amp; matchDifficulty) {
-                    lesson.style.display = &#39;flex&#39;;
-                    foundCount++;
-                } else {
-                    lesson.style.display = &#39;none&#39;;
-                }
-            });
-            document.getElementById(&#39;found-count&#39;).innerText = foundCount;
-        }
+                    lessons.forEach(lesson => {
+                        const difficulty = lesson.getAttribute('data-difficulty');
+                        const name = lesson.getAttribute('data-name').toLowerCase();
+                        const matchSearch = name.includes(searchQuery);
+                        const matchDifficulty = selectedDifficulties.length === 0 || selectedDifficulties.includes(difficulty);
 
-        function resetFilters() {
-            const searchInput = document.getElementById(&#39;lessonSearch&#39;);
-            if (searchInput) searchInput.value = &#39;&#39;;
-            document.querySelectorAll(&#39;.difficulty-checkbox&#39;).forEach(cb =&gt; cb.checked = false);
-            filterLessons();
-        }
+                        if (matchSearch && matchDifficulty) {
+                            lesson.style.display = 'flex';
+                            chapterVisibleLessons++;
+                            totalFound++;
+                        } else {
+                            lesson.style.display = 'none';
+                        }
+                    });
 
-        // Khởi chạy khi trang load
-        window.onload = function() {
-            filterLessons();
-        };
+                    // Nếu chương không có bài học nào thỏa mãn, ẩn luôn cả chương
+                    chapter.style.display = chapterVisibleLessons > 0 ? 'block' : 'none';
+                });
 
+                document.getElementById('found-count').innerText = totalFound;
+            }
 
+            function sortLessons() {
+                const sortVal = document.getElementById('sortOrder').value;
+                const chapterLists = document.querySelectorAll('.lesson-list');
+
+                chapterLists.forEach(list => {
+                    const cards = Array.from(list.querySelectorAll('.lesson-card'));
+
+                    if (sortVal === 'az') {
+                        cards.sort((a, b) => {
+                            return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
+                        });
+                    } else {
+                        // Mặc định (có thể dùng order ban đầu nếu lưu trữ, ở đây tạm thời giữ nguyên)
+                        return;
+                    }
+
+                    cards.forEach(card => list.appendChild(card));
+                });
+            }
+
+            function resetFilters() {
+                const searchInput = document.getElementById('lessonSearch');
+                if (searchInput) searchInput.value = '';
+                document.querySelectorAll('.difficulty-checkbox').forEach((cb, index) => {
+                    cb.checked = (index === 0); // Mặc định chọn cái đầu tiên
+                });
+                filterLessons();
+            }
+
+            window.onload = function() {
+                filterLessons();
+            };
     </script>
+
 
 }
