@@ -261,7 +261,8 @@
                 ` : ''}
 
                 <!-- Login Form -->
-                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <form action="/Account/Login" method="POST" class="space-y-4">
+        @Html.AntiForgeryToken()
                     <!-- Email Field -->
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2">
@@ -458,7 +459,8 @@
                     ` : ''}
 
                     <!-- Register Form -->
-                    <form action="/Account/Register" method="POST" onsubmit="return validateForm(this)" class="space-y-4">
+                            <form action="/Account/Register" method="POST" onsubmit="return validateForm(this)" class="space-y-4">
+        <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name=__RequestVerificationToken]').value}">
                         <input type="hidden" name="role" value="${role}">
 
                         <!-- Full Name -->
@@ -650,54 +652,7 @@
                 });
             }, 100);
         });
-                async function handleLogin(event) {
-            event.preventDefault(); // Chặn hành động nộp form mặc định để tránh lỗi 405
-
-            // Lấy dữ liệu từ các ô input
-            const form = event.target;
-            const email = form.email.value;
-            const password = form.password.value;
-            const loginBtn = form.querySelector('button[type="submit"]');
-
-            // Hiệu ứng loading cho nút bấm
-            const originalContent = loginBtn.innerHTML;
-            loginBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-2"></i> Đang xác thực...';
-            loginBtn.disabled = true;
-
-            try {
-                // Gửi yêu cầu POST đến đúng địa chỉ API của AuthController
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password
-                    })
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    // 1. Lưu JWT Token vào máy người dùng để dùng cho các trang sau
-                    localStorage.setItem('token', result.data.token);
-
-                    // 2. Thông báo thành công và chuyển hướng
-                    window.location.href = '/Course/Index';
-                } else {
-                    // Hiển thị lỗi từ Backend nếu đăng nhập sai
-                    alert("Đăng nhập thất bại: " + (result.message || "Email hoặc mật khẩu không đúng"));
-                }
-            } catch (error) {
-                console.error("Lỗi kết nối:", error);
-                alert("Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng hoặc Backend.");
-            } finally {
-                // Trả lại trạng thái nút bấm
-                loginBtn.innerHTML = originalContent;
-                loginBtn.disabled = false;
-            }
-        }
     </script>
+    <div id="antiforgery-container" style="display:none">@Html.AntiForgeryToken()</div>
 </body>
 </html>
