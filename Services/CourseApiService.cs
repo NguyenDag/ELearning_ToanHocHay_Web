@@ -132,6 +132,9 @@ namespace ToanHocHay.WebApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var resString = await response.Content.ReadAsStringAsync();
+                    // THÊM DÒNG NÀY:
+                    Console.WriteLine("DỮ LIỆU THÔ TỪ API: " + resString);
+
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse<CurriculumDto>>(resString, _jsonOptions);
                     return apiResponse?.Data;
                 }

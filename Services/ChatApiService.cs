@@ -43,14 +43,30 @@ namespace ToanHocHay.WebApp.Services
             try
             {
                 var payload = new { user_id = userId, reply = reply };
-                var response = await _httpClient.PostAsJsonAsync($"{_chatbotUrl}/quick-reply", payload);
+
+                // Làm sạch URL: Đảm bảo không bị thừa dấu "/"
+                string baseUrl = _chatbotUrl.TrimEnd('/');
+                string requestUrl = $"{baseUrl}/quick-reply";
+
+                // Log ra cửa sổ Output của Visual Studio để bạn kiểm tra URL thực tế
+                Console.WriteLine($"[DEBUG] Calling AI API: {requestUrl}");
+
+                var response = await _httpClient.PostAsJsonAsync(requestUrl, payload);
+
+                // Nếu Python báo lỗi (500), ta lấy nội dung lỗi đó ra xem
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"[ERROR] Python Logic Error: {errorContent}");
+                }
 
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<JsonElement>();
             }
             catch (Exception ex)
             {
-                return JsonDocument.Parse("{\"success\": false, \"response\": {\"message\": \"Không thể kết nối tới server AI.\"}}").RootElement;
+                Console.WriteLine($"[CRITICAL] Connection Failed: {ex.Message}");
+                return JsonDocument.Parse("{\"response\": {\"message\": \"Lỗi kết nối AI. Kiểm tra Terminal Python ngay!\"}}").RootElement;
             }
         }
     }

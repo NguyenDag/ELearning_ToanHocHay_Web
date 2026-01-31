@@ -1,20 +1,21 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+Ôªøusing Microsoft.AspNetCore.Authentication.Cookies;
 using ToanHocHay.WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. ??ng k˝ c·c Controller v‡ View
+// 1. ??ng k√Ω c√°c Controller v√† View
 builder.Services.AddControllersWithViews();
 
-// 2. ??NG K› C¡C D?CH V? G?I API (QUAN TR?NG)
-// ThÍm dÚng HttpClient cho CourseApiService ?? WebApp cÛ th? l?y d? li?u b‡i gi?ng
+// 2. ??NG K√ù C√ÅC D?CH V? G?I API (QUAN TR?NG)
+// Th√™m d√≤ng HttpClient cho CourseApiService ?? WebApp c√≥ th? l?y d? li?u b√†i gi?ng
 builder.Services.AddHttpClient<CourseApiService>();
 builder.Services.AddHttpClient<ExamApiService>();
 builder.Services.AddHttpClient<AuthApiService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<ChatApiService>();
 
-// 3. C?u hÏnh X·c th?c b?ng Cookie
+
+// 3. C?u h√¨nh X√°c th?c b?ng Cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -24,7 +25,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
-// 4. C?u hÏnh Session (?? l?u Token ho?c tr?ng th·i t?m th?i)
+// 4. C?u h√¨nh Session (?? l?u Token ho?c tr?ng th√°i t?m th?i)
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -43,14 +44,14 @@ if (!app.Environment.IsDevelopment())
 
 app.UseSession();
 app.UseHttpsRedirection();
-app.UseStaticFiles(); // ??m b?o c·c file css/js/img trong wwwroot ho?t ??ng
+app.UseStaticFiles(); // ??m b?o c√°c file css/js/img trong wwwroot ho?t ??ng
 
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map c·c file static t? bundle m?i c?a .NET 9 (n?u cÛ)
+// Map c√°c file static t? bundle m?i c?a .NET 9 (n?u c√≥)
 app.MapStaticAssets();
 
 app.MapControllerRoute(

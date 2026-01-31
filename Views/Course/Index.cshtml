@@ -21,7 +21,7 @@
                 <span class="text-yellow-300">Theo lộ trình riêng</span>
             </h1>
             <p class="text-lg md:text-xl text-blue-100 max-w-2xl leading-relaxed font-medium mx-auto">
-                @(Model?.Description ?? "Hệ thống bài giảng AI cá nhân hóa giúp bạn lấp đầy lỗ hổng kiến thức và tối ưu hóa thời gian học tập.")
+                <span class="text-300">Hệ thống bài giảng AI cá nhân hóa giúp bạn lấp đầy lỗ hổng kiến thức và tối ưu hóa thời gian học tập.</span>
             </p>
         </div>
     </div>
@@ -100,6 +100,7 @@
 
         @* --- 4. DANH SÁCH BÀI HỌC --- *@
         <main class="flex-1">
+            <p class="text-red-500">Số lượng chương: @Model.Chapters.Count</p>
             <div class="bg-blue-50 rounded-[2rem] p-6 mb-10 border border-blue-100 flex items-center justify-between shadow-sm">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
