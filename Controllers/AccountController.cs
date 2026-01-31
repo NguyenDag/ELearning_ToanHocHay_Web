@@ -6,6 +6,7 @@ using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
+using System.Threading.Tasks;
 
 namespace ToanHocHay.WebApp.Controllers
 {
@@ -41,47 +42,57 @@ namespace ToanHocHay.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // 1. Gọi Service để xác thực với Backend API thông qua HttpClient
-            var (data, error) = await _authService.Login(new LoginRequestDto { Email = email, Password = password });
+            // Fix CS8130: Khai báo kiểu tường minh cho Tuple để tránh lỗi suy luận kiểu
+            (LoginResponseDto? data, string? error) result = await _authService.Login(new LoginRequestDto { Email = email, Password = password });
 
-            if (error != null)
+            var data = result.data;
+            var error = result.error;
+
+            if (data != null)
             {
-                ViewBag.Error = error;
-                ViewBag.Mode = "login";
-                ViewBag.Email = email;
-                return View("Login"); // Trả về lại trang Login kèm thông báo lỗi
+                // 1. Lưu Session (Yêu cầu using Microsoft.AspNetCore.Http)
+                // Fix CS1503: Đảm bảo sử dụng phương thức mở rộng SetString chuẩn
+                HttpContext.Session.SetString("Token", data.Token ?? "");
+                HttpContext.Session.SetInt32("UserId", data.UserId);
+
+                // 2. Thiết lập danh sách thẻ bài (Claims)
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.NameIdentifier, data.UserId.ToString()),
+                    new Claim(ClaimTypes.Name, data.FullName ?? ""),
+                    new Claim(ClaimTypes.Email, data.Email ?? ""),
+                    new Claim(ClaimTypes.Role, data.UserType.ToString())
+                };
+
+                // Ghi mã định danh học sinh/phụ huynh vào Cookie
+                if (data.StudentId.HasValue)
+                {
+                    claims.Add(new Claim("StudentId", data.StudentId.Value.ToString()));
+                }
+
+                if (data.ParentId.HasValue)
+                {
+                    claims.Add(new Claim("ParentId", data.ParentId.Value.ToString()));
+                }
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // Đăng nhập Identity
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity), new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = data.TokenExpiration > DateTime.UtcNow ? data.TokenExpiration : DateTimeOffset.UtcNow.AddDays(7)
+                });
+
+                return RedirectToAction("Index", "Course");
             }
 
-            // 2. LƯU SESSION (Quan trọng để CourseApiService lấy Token gọi các hàm khác)
-            // Lưu ý dùng đúng key "Token"
-            HttpContext.Session.SetString("Token", data!.Token);
-            HttpContext.Session.SetInt32("UserId", data.UserId);
-            HttpContext.Session.SetString("UserFullName", data.FullName ?? "");
-
-            // 3. THIẾT LẬP COOKIE IDENTITY (Giữ trạng thái đăng nhập trên trình duyệt)
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, data.UserId.ToString()),
-                new Claim(ClaimTypes.Name, data.FullName ?? ""),
-                new Claim(ClaimTypes.Email, data.Email ?? ""),
-                new Claim(ClaimTypes.Role, data.UserType.ToString())
-            };
-
-            if (data.StudentId.HasValue) claims.Add(new Claim("StudentId", data.StudentId.Value.ToString()));
-            if (data.ParentId.HasValue) claims.Add(new Claim("ParentId", data.ParentId.Value.ToString()));
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity), new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
-            });
-
-            _logger.LogInformation("User {Email} đăng nhập thành công.", email);
-
-            // Chuyển hướng về trang hệ thống bài giảng
-            return RedirectToAction("Index", "Course");
+            // Xử lý khi đăng nhập thất bại
+            ViewBag.Error = error ?? "Đăng nhập thất bại.";
+            ViewBag.Mode = "login";
+            return View();
         }
+
 
         // ================= REGISTER (GET) =================
         [HttpGet]

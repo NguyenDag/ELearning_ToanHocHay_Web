@@ -30,37 +30,30 @@ namespace ToanHocHay.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> DoExam(int id)
         {
-            // Nếu id = 0 nghĩa là link từ View truyền sang bị sai
             if (id <= 0) return BadRequest("Mã đề thi không hợp lệ.");
 
-            // 🔐 Bắt buộc đăng nhập
             if (!User.Identity!.IsAuthenticated)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var exam = await _examService.GetExerciseById(id);
-
-            if (exam == null)
-            {
-                // Debug xem id nhận được là bao nhiêu
-                System.Diagnostics.Debug.WriteLine($"---> KHÔNG TÌM THẤY EXERCISE VỚI ID: {id}");
-                return NotFound("Không tìm thấy đề thi.");
-            }
-
-            // LẤY STUDENT ID TỪ CLAIM
-            var studentIdClaim = User.FindFirst(CustomJwtClaims.StudentId);
+            // FIX QUAN TRỌNG: Tìm đúng chuỗi "StudentId" khớp với AccountController
+            var studentIdClaim = User.FindFirst("StudentId");
 
             if (studentIdClaim == null)
             {
+                // Nếu vào đây, nghĩa là Cookie của bro không có mã học sinh
+                // Nguyên nhân: Do API trả về StudentId null HOẶC bro chưa đăng nhập lại sau khi sửa code
                 return Unauthorized("Tài khoản không phải là học sinh.");
             }
 
-            int studentId = int.Parse(studentIdClaim.Value);
+            var exam = await _examService.GetExerciseById(id);
+            if (exam == null) return NotFound("Không tìm thấy đề thi.");
 
+            int studentId = int.Parse(studentIdClaim.Value);
             int attemptId = await _examService.StartExercise(id, studentId);
 
-            if (attemptId == 0) return BadRequest("Không thể bắt đầu lượt làm bài.");
+            if (attemptId == 0) return BadRequest("Không thể bắt đầu lượt làm bài. Kiểm tra log API để biết chi tiết.");
 
             ViewData["AttemptId"] = attemptId;
             return View(exam);

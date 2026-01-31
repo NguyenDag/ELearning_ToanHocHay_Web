@@ -136,7 +136,7 @@
                     <h3 class="text-xl font-bold text-gray-800 mb-1">Thông tin cá nhân</h3>
                     <p class="text-sm text-gray-500 mb-6">Cập nhật thông tin để hệ thống gợi ý bài học phù hợp.</p>
 
-                    <form onsubmit="handleSave(event)">
+                    <form id="form-update-profile">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2">Họ và tên</label>
@@ -179,7 +179,7 @@
                     <h3 class="text-xl font-bold text-gray-800 mb-1">Đổi mật khẩu</h3>
                     <p class="text-sm text-gray-500 mb-6">Hãy sử dụng mật khẩu mạnh để bảo vệ tài khoản.</p>
 
-                    <form onsubmit="handleSave(event)" class="max-w-md">
+                    <form id="form-change-password">
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Mật khẩu hiện tại</label>
                             <div class="relative">
@@ -196,7 +196,7 @@
                         <div class="mb-6">
                             <label class="block text-gray-700 text-sm font-bold mb-2">Nhập lại mật khẩu mới</label>
                             <div class="relative">
-                                <input type="password" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-primary outline-none transition">
+                                <input type="password" name="ConfirmPassword" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-primary outline-none transition">
                             </div>
                         </div>
 
@@ -259,71 +259,109 @@
 
     <!-- JS Logic -->
     <script>
+        // 1. Logic chuyển đổi giữa các Tab
         function switchTab(tabName) {
-            // Update Sidebar
             document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active', 'bg-blue-50', 'text-blue-600', 'border-l-4', 'border-blue-600', 'font-bold');
+                item.classList.remove('active');
                 item.classList.add('text-gray-600');
             });
-
             const activeNav = document.getElementById(`nav-${tabName}`);
-            activeNav.classList.add('active'); // CSS class handles the rest
+            if(activeNav) activeNav.classList.add('active');
 
-            // Show Content
             document.getElementById('tab-general').classList.add('hidden');
             document.getElementById('tab-security').classList.add('hidden');
             document.getElementById('tab-parent').classList.add('hidden');
 
             const activeContent = document.getElementById(`tab-${tabName}`);
-            activeContent.classList.remove('hidden');
-            activeContent.classList.add('fade-in');
+            if(activeContent) {
+                activeContent.classList.remove('hidden');
+                activeContent.classList.add('fade-in');
+            }
         }
 
-        function handleSave(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const originalText = btn.innerText;
-            btn.innerText = "Đang lưu...";
-            btn.disabled = true;
+        // 2. Xử lý CẬP NHẬT THÔNG TIN CHUNG
+        const formUpdate = document.getElementById('form-update-profile');
+        if(formUpdate) {
+            formUpdate.onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button[type="submit"]');
+                const formData = new FormData(e.target);
 
-            setTimeout(() => {
-                btn.innerText = "Đã lưu thành công!";
-                btn.classList.add('bg-green-600');
+                // Đóng gói dữ liệu theo UpdateProfileDto
+                const data = {
+                    fullName: formData.get("FullName"),
+                    schoolName: formData.get("SchoolName"),
+                    grade: parseInt(formData.get("Grade"))
+                };
 
-                setTimeout(() => {
-                    btn.innerText = originalText;
+                const originalText = btn.innerText;
+                btn.disabled = true;
+                btn.innerText = "Đang lưu...";
+
+                try {
+                    const response = await fetch('/Student/UpdateProfile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        alert("Cập nhật thông tin thành công!");
+                        location.reload();
+                    } else {
+                        const result = await response.json();
+                        alert(result.message || "Lỗi cập nhật thông tin.");
+                    }
+                } catch (err) {
+                    alert("Không thể kết nối đến máy chủ.");
+                } finally {
                     btn.disabled = false;
-                    btn.classList.remove('bg-green-600');
-                }, 2000);
-            }, 800);
+                    btn.innerText = originalText;
+                }
+            };
         }
 
-        // Demo logic for Parent Connection
-        function simulateConnect() {
-            const input = document.getElementById('parent-code-input');
-            if(input.value.trim() === "") {
-                alert("Vui lòng nhập mã liên kết!");
-                return;
-            }
+        // 3. Xử lý ĐỔI MẬT KHẨU
+        const formPassword = document.getElementById('form-change-password');
+        if(formPassword) {
+            formPassword.onsubmit = async (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button[type="submit"]');
+                const formData = new FormData(e.target);
 
-            // Fake processing
-            input.disabled = true;
-            document.getElementById('parent-unlinked').classList.add('opacity-50');
+                const oldPassword = formData.get("OldPassword");
+                const newPassword = formData.get("NewPassword");
+                const confirmPassword = formData.get("ConfirmPassword"); // Nhớ đặt name="ConfirmPassword" cho input cuối
 
-            setTimeout(() => {
-                document.getElementById('parent-unlinked').classList.add('hidden');
-                document.getElementById('parent-linked').classList.remove('hidden');
-                document.getElementById('parent-linked').classList.add('fade-in');
-            }, 1000);
-        }
+                if (newPassword !== confirmPassword) {
+                    alert("Mật khẩu nhập lại không khớp!");
+                    return;
+                }
 
-        function disconnectParent() {
-            if(confirm("Bạn có chắc chắn muốn hủy liên kết?")) {
-                document.getElementById('parent-linked').classList.add('hidden');
-                document.getElementById('parent-unlinked').classList.remove('hidden', 'opacity-50');
-                document.getElementById('parent-code-input').disabled = false;
-                document.getElementById('parent-code-input').value = "";
-            }
+                btn.disabled = true;
+                btn.innerText = "Đang xử lý...";
+
+                try {
+                    const response = await fetch('/Student/ChangePassword', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ oldPassword, newPassword })
+                    });
+
+                    const result = await response.json();
+                    if (response.ok && result.success) {
+                        alert("Đổi mật khẩu thành công!");
+                        e.target.reset();
+                    } else {
+                        alert(result.message || "Mật khẩu cũ không chính xác.");
+                    }
+                } catch (err) {
+                    alert("Lỗi hệ thống, vui lòng thử lại sau.");
+                } finally {
+                    btn.disabled = false;
+                    btn.innerText = "Cập nhật mật khẩu";
+                }
+            };
         }
     </script>
 </body>

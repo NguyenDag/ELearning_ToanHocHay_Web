@@ -26,7 +26,6 @@
             border-radius: 3px;
         }
 
-        /* Hiệu ứng chọn đáp án */
         .option-card.selected {
             border-color: #2563EB;
             background-color: #EFF6FF;
@@ -39,22 +38,19 @@
             border-color: #2563EB;
         }
 
-        /* NÚT CÂU HỎI ĐÃ LÀM (NAVBAR) - Màu xanh đậm, chữ Vàng cực rõ */
         .nav-btn.answered {
-            background-color: #1E40AF !important; /* Xanh Navy đậm */
-            color: #FACC15 !important; /* Chữ màu Vàng (Yellow-400) */
+            background-color: #1E40AF !important;
+            color: #FACC15 !important;
             border-color: #1E3A8A !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        /* Nút câu hỏi đang xem */
         .nav-btn.active {
             border-color: #2563EB;
             background-color: #F1F5F9;
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
         }
 
-        /* Logic ẩn hiện trang câu hỏi */
         .question-page {
             display: none;
         }
@@ -67,6 +63,7 @@
 <body class="bg-[#E0E7FF] h-screen flex items-center justify-center p-4 md:p-6 overflow-hidden">
     <div class="w-full max-w-[1400px] h-[90vh] flex gap-6">
 
+        <!-- Sidebar Navigation -->
         <aside class="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden border border-blue-100 shrink-0 hidden lg:flex">
             <div class="p-5 border-b border-blue-50 bg-blue-50/50">
                 <h3 class="text-blue-800 font-bold text-lg text-center flex items-center justify-center gap-2">
@@ -87,7 +84,6 @@
                 <div class="grid grid-cols-5 gap-2">
                     @for (int i = 0; i < Model.Questions.Count; i++)
                     {
-                        var q = Model.Questions[i];
                         <button id="nav-btn-@i" onclick="goToQuestion(@i)"
                                 class="nav-btn w-full aspect-square flex items-center justify-center rounded-xl border-2 border-gray-100 text-gray-600 font-bold hover:border-blue-300 hover:bg-blue-50 transition shadow-sm">
                             @(i + 1)
@@ -103,6 +99,7 @@
         </aside>
 
         <main class="flex-1 flex flex-col gap-4 overflow-hidden">
+            <!-- Header Info -->
             <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-3 px-6 flex justify-between items-center">
                 <div>
                     <h1 class="text-lg font-bold text-gray-800">@Model.Title</h1>
@@ -110,10 +107,11 @@
                 </div>
                 <div class="flex items-center gap-3 bg-slate-800 text-white px-5 py-2 rounded-xl">
                     <i class="fa-regular fa-clock text-blue-300 animate-pulse"></i>
-                    <span id="timer" class="font-mono font-bold text-xl">@ViewData["Time"]</span>
+                    <span id="timer" class="font-mono font-bold text-xl">00:00</span>
                 </div>
             </div>
 
+            <!-- Question Area -->
             <div class="flex-1 bg-white rounded-3xl shadow-xl border border-blue-50 flex flex-col overflow-hidden relative">
                 <div id="questions-container" class="flex-1 p-6 md:p-12 overflow-y-auto custom-scroll">
                     @for (int i = 0; i < Model.Questions.Count; i++)
@@ -122,25 +120,31 @@
                         <div id="page-@i" class="question-page @(i == 0 ? "active" : "")">
                             <div class="flex gap-6 mb-8">
                                 <span class="w-12 h-12 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg shadow-blue-200">@(i + 1)</span>
+                                
                                 <h2 class="text-2xl font-bold text-gray-800 leading-tight">@q.QuestionText</h2>
                             </div>
 
                             <div class="grid grid-cols-1 gap-4">
-                                @foreach (var opt in q.Options)
+                                @if (q.Options != null)
                                 {
-                                    <div onclick="selectOption(@i, @q.QuestionId, @opt.OptionId, this)"
-                                         class="option-card group relative p-6 rounded-2xl border-2 border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all duration-200 flex items-center gap-5">
-                                        <div class="option-label w-10 h-10 rounded-xl border-2 border-gray-200 flex items-center justify-center font-bold text-lg text-gray-400 transition-colors">
-                                            @((char)('A' + q.Options.IndexOf(opt)))
+                                    @foreach (var opt in q.Options)
+                                    {
+                                        <div onclick="selectOption(@i, @q.QuestionId, @opt.OptionId, this)"
+                                             class="option-card group relative p-6 rounded-2xl border-2 border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all duration-200 flex items-center gap-5">
+                                            <div class="option-label w-10 h-10 rounded-xl border-2 border-gray-200 flex items-center justify-center font-bold text-lg text-gray-400 transition-colors">
+                                                @((char)('A' + q.Options.IndexOf(opt)))
+                                            </div>
+                                            <!-- ĐÃ SỬA: Hiển thị nội dung phương án @opt.OptionText -->
+                                            <span class="text-lg text-gray-700 font-semibold">@opt.OptionText</span>
                                         </div>
-                                        <span class="text-lg text-gray-700 font-semibold">@opt.OptionText</span>
-                                    </div>
+                                    }
                                 }
                             </div>
                         </div>
                     }
                 </div>
 
+                <!-- Footer Navigation -->
                 <div class="p-6 border-t bg-gray-50/50 flex justify-between items-center">
                     <button id="prev-btn" onclick="prevQuestion()" class="px-6 py-3 rounded-xl border-2 border-gray-200 text-gray-600 font-bold hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                         <i class="fa-solid fa-arrow-left mr-2"></i> Câu trước
@@ -159,11 +163,13 @@
         </main>
     </div>
 
+    @Html.AntiForgeryToken()
+
     <script>
         let currentIdx = 0;
         const totalQuestions = @Model.Questions.Count;
         let userAnswers = {};
-        const attemptId = @ViewData["AttemptId"];
+        const attemptId = "@ViewData["AttemptId"]";
 
         // Init UI
         updateNavigationButtons();
@@ -171,10 +177,12 @@
 
         function goToQuestion(index) {
             document.querySelectorAll('.question-page').forEach(page => page.classList.remove('active'));
-            document.getElementById(`page-${index}`).classList.add('active');
+            const targetPage = document.getElementById(`page-${index}`);
+            if(targetPage) targetPage.classList.add('active');
 
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`nav-btn-${index}`).classList.add('active');
+            const targetBtn = document.getElementById(`nav-btn-${index}`);
+            if(targetBtn) targetBtn.classList.add('active');
 
             currentIdx = index;
             updateNavigationButtons();
@@ -189,16 +197,18 @@
         }
 
         function updateNavigationButtons() {
-            document.getElementById('prev-btn').disabled = (currentIdx === 0);
+            const prevBtn = document.getElementById('prev-btn');
             const nextBtn = document.getElementById('next-btn');
             const submitBtn = document.getElementById('final-submit-btn');
 
+            if(prevBtn) prevBtn.disabled = (currentIdx === 0);
+
             if (currentIdx === totalQuestions - 1) {
-                nextBtn.classList.add('hidden');
-                submitBtn.classList.remove('hidden');
+                if(nextBtn) nextBtn.classList.add('hidden');
+                if(submitBtn) submitBtn.classList.remove('hidden');
             } else {
-                nextBtn.classList.remove('hidden');
-                submitBtn.classList.add('hidden');
+                if(nextBtn) nextBtn.classList.remove('hidden');
+                if(submitBtn) submitBtn.classList.add('hidden');
             }
         }
 
@@ -223,22 +233,28 @@
             document.getElementById('unanswered-count').innerText = totalQuestions - answeredCount;
         }
 
-        // Timer Logic
-        let timeString = "@ViewData["Time"]";
-        let parts = timeString.split(':');
-        let time = parseInt(parts[0]) * 60 + (parseInt(parts[1]) || 0);
+        // --- TIMER LOGIC (FIXED NaN ERROR) ---
+        let rawTime = "@ViewData["Time"]" || "15:00";
+        let timeParts = rawTime.includes(':') ? rawTime.split(':') : [rawTime, "0"];
+
+        let totalSeconds = (parseInt(timeParts[0]) || 0) * 60 + (parseInt(timeParts[1]) || 0);
+
         const timerEl = document.getElementById('timer');
 
         const timerInterval = setInterval(() => {
-            if(time <= 0) {
+            if (totalSeconds <= 0) {
                 clearInterval(timerInterval);
+                timerEl.innerText = "00:00";
                 submitExam(true);
                 return;
             }
-            const mins = Math.floor(time / 60);
-            const secs = time % 60;
-            timerEl.innerText = `${mins}:${secs < 10 ? '0' + secs : secs}`;
-            time--;
+
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+
+            timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+            totalSeconds--;
         }, 1000);
 
         async function submitExam(force = false) {
@@ -252,17 +268,26 @@
                 }))
             };
 
-            const response = await fetch('/Exam/Submit', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
-            if (response.ok) {
-                // Chuyển sang trang kết quả thật
-                window.location.href = `/Exam/Result?attemptId=${attemptId}`;
-            } else {
-                alert("Nộp bài thất bại, vui lòng kiểm tra kết nối!");
+            try {
+                const response = await fetch('/Exam/Submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    window.location.href = `/Exam/Result?attemptId=${attemptId}`;
+                } else {
+                    alert("Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.");
+                }
+            } catch (error) {
+                console.error("Submit error:", error);
+                alert("Không thể kết nối với máy chủ để nộp bài.");
             }
         }
     </script>

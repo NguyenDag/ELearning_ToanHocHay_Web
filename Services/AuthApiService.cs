@@ -58,19 +58,49 @@ namespace ToanHocHay.WebApp.Services
         }
 
         // 4. Cập nhật thông tin cá nhân (Sửa lỗi thiếu định nghĩa)
+        // 4. Cập nhật thông tin cá nhân
         public async Task<ApiResponse<bool>> UpdateProfileAsync(int userId, UpdateProfileDto request)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/auth/update-profile/{userId}", request);
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-            return result ?? ApiResponse<bool>.ErrorResponse("Lỗi kết nối API");
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/auth/update-profile/{userId}", request);
+
+                // Nếu Backend trả về lỗi 404, 500...
+                if (!response.IsSuccessStatusCode)
+                {
+                    return ApiResponse<bool>.ErrorResponse("Lỗi server: " + response.StatusCode);
+                }
+
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
+                return result ?? ApiResponse<bool>.ErrorResponse("Phản hồi lỗi");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse("Lỗi: " + ex.Message);
+            }
         }
 
-        // 5. Đổi mật khẩu (Sửa lỗi thiếu định nghĩa)
+        // 5. Đổi mật khẩu
         public async Task<ApiResponse<bool>> ChangePasswordAsync(int userId, ChangePasswordDto request)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/auth/change-password/{userId}", request);
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-            return result ?? ApiResponse<bool>.ErrorResponse("Lỗi kết nối API");
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/auth/change-password/{userId}", request);
+
+                if (response.Content.Headers.ContentLength == 0)
+                {
+                    return response.IsSuccessStatusCode
+                        ? ApiResponse<bool>.SuccessResponse(true, "Đổi mật khẩu thành công")
+                        : ApiResponse<bool>.ErrorResponse("Đổi mật khẩu thất bại");
+                }
+
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
+                return result ?? ApiResponse<bool>.ErrorResponse("Phản hồi từ server không hợp lệ");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse("Lỗi kết nối: " + ex.Message);
+            }
         }
     }
 }

@@ -115,32 +115,52 @@
 
                 @foreach (var detail in Model.AnswerDetails)
                 {
-                    <div class="bg-slate-50 rounded-2xl p-5 border-2 @(detail.IsCorrect ? "border-green-100 bg-green-50/20" : "border-red-100 bg-red-50/20")">
-                        <div class="flex justify-between items-start mb-3">
-                            <span class="font-bold text-gray-700 leading-tight">Câu hỏi: @detail.QuestionText</span>
-                            <span class="shrink-0 ml-4 text-xs font-black @(detail.IsCorrect ? "text-green-600" : "text-red-600") uppercase">
-                                @detail.PointsEarned/@detail.MaxScores đ
+                    // Xác định trạng thái của câu hỏi
+                    var isSkipped = detail.StudentAnswer == "Bạn chưa trả lời câu hỏi này";
+
+                    <div class="rounded-3xl p-6 border-2 transition-all @(isSkipped ? "border-amber-100 bg-amber-50/20" : (detail.IsCorrect ? "border-green-100 bg-green-50/10" : "border-red-100 bg-red-50/10"))">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex gap-3 items-center">
+                                @if (isSkipped)
+                                {
+                                    <i class="fa-solid fa-circle-minus text-amber-400 text-xl"></i>
+                                }
+                                else if (detail.IsCorrect)
+                                {
+                                    <i class="fa-solid fa-circle-check text-green-500 text-xl"></i>
+                                }
+                                else
+                                {
+                                    <i class="fa-solid fa-circle-xmark text-red-500 text-xl"></i>
+                                }
+                                <h3 class="font-black text-gray-800 text-lg leading-tight">@detail.QuestionText</h3>
+                            </div>
+                            <span class="shrink-0 ml-4 font-black @(isSkipped ? "text-amber-600" : (detail.IsCorrect ? "text-green-600" : "text-red-500"))">
+                                @(isSkipped ? "0" : detail.PointsEarned)/@detail.MaxScores đ
                             </span>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="p-3 rounded-xl bg-white border border-gray-100">
-                                <span class="block text-[10px] font-bold text-gray-400 uppercase">Bạn chọn</span>
-                                <span class="font-semibold @(detail.IsCorrect ? "text-green-600" : "text-red-600")">
-                                    @(string.IsNullOrEmpty(detail.StudentAnswer) ? "Bỏ qua" : detail.StudentAnswer)
+                            <!-- Cột: Đáp án học sinh -->
+                            <div class="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                                <span class="block text-[10px] font-black text-gray-400 uppercase mb-1">Đáp án của bạn</span>
+                                <span class="font-bold @(isSkipped ? "text-amber-600 italic" : (detail.IsCorrect ? "text-green-600" : "text-red-600"))">
+                                    @detail.StudentAnswer
                                 </span>
                             </div>
-                            <div class="p-3 rounded-xl bg-white border border-green-100">
-                                <span class="block text-[10px] font-bold text-green-400 uppercase">Đáp án đúng</span>
-                                <span class="font-semibold text-green-700">@detail.CorrectAnswer</span>
+
+                            <!-- Cột: Đáp án đúng -->
+                            <div class="p-4 rounded-2xl bg-white border border-blue-100 shadow-sm">
+                                <span class="block text-[10px] font-black text-blue-400 uppercase mb-1">Đáp án đúng</span>
+                                <span class="font-bold text-blue-700">@detail.CorrectAnswer</span>
                             </div>
                         </div>
 
                         @if (!string.IsNullOrEmpty(detail.Explanation))
                         {
-                            <div class="mt-4 p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-400">
-                                <p class="text-xs font-bold text-indigo-800 uppercase mb-1 italic">Giải thích:</p>
-                                <p class="text-sm text-indigo-700 italic leading-relaxed">@detail.Explanation</p>
+                            <div class="mt-4 p-4 bg-blue-600 text-white rounded-2xl text-sm leading-relaxed font-medium">
+                                <i class="fa-solid fa-lightbulb mr-2 text-yellow-300"></i>
+                                <strong>Giải thích từ hệ thống:</strong> @detail.Explanation
                             </div>
                         }
                     </div>
