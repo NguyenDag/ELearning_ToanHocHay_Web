@@ -17,6 +17,8 @@
             });
 
             const data = await response.json();
+            console.log('[chatbot.js] Response từ /Chat/Send:', data);
+            appendMessage('[DEBUG] Backend trả về:\n' + JSON.stringify(data, null, 2), 'bot');
             // Đảm bảo bóc tách đúng object response từ Python
             handleBotResponse(data.response || data);
         } catch (error) {
@@ -41,6 +43,8 @@
             if (!response.ok) throw new Error('Lỗi phản hồi Quick Reply');
 
             const data = await response.json();
+            console.log('[chatbot.js] Response từ /Chat/QuickReply:', data);
+            appendMessage('[DEBUG] Backend trả về:\n' + JSON.stringify(data, null, 2), 'bot');
 
             // Lấy dữ liệu phản hồi từ Python (thường nằm trong data.response)
             const botData = data.response || data;
