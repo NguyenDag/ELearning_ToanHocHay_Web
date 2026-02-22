@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using ToanHocHay.WebApp.Services;
+﻿using System.Net.Http;
+using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Models.DTOs;
+using ToanHocHay.WebApp.Services;
 
 namespace ToanHocHay.WebApp.Controllers
 {
@@ -27,6 +28,15 @@ namespace ToanHocHay.WebApp.Controllers
             ViewBag.RelatedLessons = relatedLessons;
 
             return View(lesson);
+        }
+        public async Task<IActionResult> Editor()
+        {
+            /*var client = _httpClientFactory.CreateClient("Api");
+
+            var chapters = await client.GetFromJsonAsync<List<ChapterSelectDto>>(
+                "api/chapters/select");*/
+
+            return View();
         }
     }
 }

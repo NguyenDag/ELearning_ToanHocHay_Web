@@ -1,0 +1,703 @@
+﻿@section Styles {
+    <link rel="stylesheet" href="~/css/lesson-editor.css" />
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Quản lý Dữ liệu Bài giảng</title>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Quản lý Dữ liệu Bài giảng</h1>
+            <p>Thêm và quản lý nội dung chương trình học một cách dễ dàng</p>
+        </div>
+
+        <div class="main-content">
+            <div id="alertBox" class="alert"></div>
+
+            <!-- Chọn chế độ -->
+            <div class="mode-selector">
+                <div class="mode-btn active" onclick="setMode('existing')">
+                    <h4>📝 Thêm vào có sẵn</h4>
+                    <p>Chọn chương/topic/lesson có sẵn để thêm dữ liệu</p>
+                </div>
+                <div class="mode-btn" onclick="setMode('new')">
+                    <h4>✨ Tạo mới hoàn toàn</h4>
+                    <p>Tạo chương mới với tất cả nội dung</p>
+                </div>
+            </div>
+
+            <!-- SECTION 1: Curriculum & Chapter -->
+            <div class="form-section">
+                <h3>1️⃣ Chương trình & Chương</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="curriculumSelect">Chọn Khung chương trình *</label>
+                        <select id="curriculumSelect" onchange="onCurriculumChange()">
+                            <option value="">-- Chọn khung chương trình --</option>
+                            <option value="1">Toán lớp 6</option>
+                            <option value="2">Toán lớp 7</option>
+                            <option value="3">Toán lớp 8</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="chapterSelectGroup" style="display: none;">
+                        <label for="chapterSelect">Chọn Chương có sẵn</label>
+                        <select id="chapterSelect" onchange="onChapterChange()">
+                            <option value="">-- Chọn chương --</option>
+                            <option value="new">➕ Tạo chương mới</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="newChapterForm" style="display: none;">
+                    <div class="section-divider"></div>
+                    <h4 style="margin-bottom: 15px; color: #667eea;">📖 Thông tin Chương mới</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="chapterName">Tên Chương *</label>
+                            <input type="text" id="chapterName" placeholder="VD: Số tự nhiên" value="Số tự nhiên">
+                        </div>
+                        <div class="form-group">
+                            <label for="chapterOrder">Thứ tự *</label>
+                            <input type="number" id="chapterOrder" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="chapterDescription">Mô tả Chương</label>
+                        <textarea id="chapterDescription" placeholder="Mô tả ngắn về chương học...">Các khái niệm về tập hợp số tự nhiên, cách đọc, viết, so sánh số tự nhiên và các phép toán cơ bản.</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Topic -->
+            <div class="form-section" id="topicSection" style="display: none;">
+                <h3>2️⃣ Chủ đề (Topic)</h3>
+
+                <div class="form-group" id="topicSelectGroup">
+                    <label for="topicSelect">Chọn Topic có sẵn</label>
+                    <select id="topicSelect" onchange="onTopicChange()">
+                        <option value="">-- Chọn topic --</option>
+                        <option value="new">➕ Tạo topic mới</option>
+                    </select>
+                </div>
+
+                <div id="newTopicForm" style="display: none;">
+                    <div class="section-divider"></div>
+                    <h4 style="margin-bottom: 15px; color: #667eea;">📋 Thông tin Topic mới</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="topicName">Tên Topic *</label>
+                            <input type="text" id="topicName" placeholder="VD: Tập hợp số tự nhiên" value="Tập hợp số tự nhiên">
+                        </div>
+                        <div class="form-group">
+                            <label for="topicOrder">Thứ tự *</label>
+                            <input type="number" id="topicOrder" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="topicDescription">Mô tả Topic</label>
+                        <textarea id="topicDescription" placeholder="Mô tả ngắn về chủ đề...">Khái niệm tập hợp, số tự nhiên, cách biểu diễn và ký hiệu tập hợp số tự nhiên.</textarea>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="topicIsFree" checked>
+                        <label for="topicIsFree">Miễn phí</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: Lesson -->
+            <div class="form-section" id="lessonSection" style="display: none;">
+                <h3>3️⃣ Bài học (Lesson)</h3>
+
+                <div class="form-group" id="lessonSelectGroup">
+                    <label for="lessonSelect">Chọn Lesson có sẵn</label>
+                    <select id="lessonSelect" onchange="onLessonChange()">
+                        <option value="">-- Chọn lesson --</option>
+                        <option value="new">➕ Tạo lesson mới</option>
+                    </select>
+                </div>
+
+                <div id="newLessonForm" style="display: none;">
+                    <div class="section-divider"></div>
+                    <h4 style="margin-bottom: 15px; color: #667eea;">📝 Thông tin Lesson mới</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lessonName">Tên Lesson *</label>
+                            <input type="text" id="lessonName" placeholder="VD: Tập hợp và ký hiệu" value="Tập hợp và ký hiệu">
+                        </div>
+                        <div class="form-group">
+                            <label for="lessonDuration">Thời lượng (phút) *</label>
+                            <input type="number" id="lessonDuration" value="30" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="lessonOrder">Thứ tự *</label>
+                            <input type="number" id="lessonOrder" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonDescription">Mô tả Lesson</label>
+                        <textarea id="lessonDescription" placeholder="Mô tả ngắn về bài học...">Giới thiệu khái niệm tập hợp và các ký hiệu thường dùng trong toán học.</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="lessonStatus">Trạng thái *</label>
+                            <select id="lessonStatus">
+                                <option value="0">Draft (Nháp)</option>
+                                <option value="1">Pending Review (Chờ duyệt)</option>
+                                <option value="2">Approved (Đã duyệt)</option>
+                                <option value="3" selected>Published (Đã xuất bản)</option>
+                                <option value="4">Rejected (Bị từ chối)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="lessonCreatedBy">Người tạo (User ID) *</label>
+                            <input type="number" id="lessonCreatedBy" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="lessonIsFree" checked>
+                        <label for="lessonIsFree">Miễn phí</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="lessonIsActive" checked>
+                        <label for="lessonIsActive">Kích hoạt</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: Lesson Content -->
+            <div class="form-section" id="contentSection" style="display: none;">
+                <h3>4️⃣ Nội dung Bài học (Lesson Content)</h3>
+
+                <div id="contentBlocksContainer">
+                    <div class="empty-state">
+                        <svg fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
+                        </svg>
+                        <p>Chưa có nội dung nào. Nhấn "Thêm Block" để bắt đầu!</p>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="addContentBlock()">➕ Thêm Block</button>
+                    <button class="btn btn-secondary" onclick="addDemoContent()">🎨 Thêm nội dung mẫu</button>
+                </div>
+            </div>
+
+            <!-- Save Buttons -->
+            <div class="btn-group" id="saveButtonsGroup" style="display: none;">
+                <button class="btn btn-success" onclick="saveAll()">
+                    💾 Lưu tất cả
+                </button>
+                <button class="btn btn-secondary" onclick="resetForm()">
+                    🔄 Làm mới
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'existing';
+        let contentBlockCounter = 0;
+
+        // Demo data
+        const demoChapters = {
+            '1': [
+                { id: 1, name: 'Số tự nhiên' },
+                { id: 2, name: 'Phân số' }
+            ],
+            '2': [
+                { id: 3, name: 'Số hữu tỉ' },
+                { id: 4, name: 'Hình học phẳng' }
+            ],
+            '3': [
+                { id: 5, name: 'Phương trình bậc nhất' },
+                { id: 6, name: 'Hàm số và đồ thị' }
+            ]
+        };
+
+        const demoTopics = {
+            '1': [
+                { id: 1, name: 'Tập hợp số tự nhiên' },
+                { id: 2, name: 'So sánh số tự nhiên' }
+            ],
+            '2': [
+                { id: 3, name: 'Phép cộng và phép trừ phân số' },
+                { id: 4, name: 'Phép nhân và phép chia phân số' }
+            ]
+        };
+
+        const demoLessons = {
+            '1': [
+                { id: 1, name: 'Tập hợp và ký hiệu' },
+                { id: 2, name: 'Tập hợp số tự nhiên N' }
+            ],
+            '2': [
+                { id: 3, name: 'So sánh hai số tự nhiên' },
+                { id: 4, name: 'Sắp xếp số tự nhiên' }
+            ]
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.mode-btn').classList.add('active');
+
+            if (mode === 'new') {
+                document.getElementById('chapterSelectGroup').style.display = 'none';
+                document.getElementById('newChapterForm').style.display = 'block';
+                document.getElementById('topicSection').style.display = 'block';
+                document.getElementById('topicSelectGroup').style.display = 'none';
+                document.getElementById('newTopicForm').style.display = 'block';
+                document.getElementById('lessonSection').style.display = 'block';
+                document.getElementById('lessonSelectGroup').style.display = 'none';
+                document.getElementById('newLessonForm').style.display = 'block';
+                document.getElementById('contentSection').style.display = 'block';
+                document.getElementById('saveButtonsGroup').style.display = 'flex';
+            } else {
+                resetToExistingMode();
+            }
+        }
+
+        function resetToExistingMode() {
+            document.getElementById('topicSection').style.display = 'none';
+            document.getElementById('lessonSection').style.display = 'none';
+            document.getElementById('contentSection').style.display = 'none';
+            document.getElementById('saveButtonsGroup').style.display = 'none';
+        }
+
+        function onCurriculumChange() {
+            const curriculumId = document.getElementById('curriculumSelect').value;
+            if (!curriculumId) {
+                document.getElementById('chapterSelectGroup').style.display = 'none';
+                resetToExistingMode();
+                return;
+            }
+
+            document.getElementById('chapterSelectGroup').style.display = 'block';
+
+            const select = document.getElementById('chapterSelect');
+            select.innerHTML = '<option value="">-- Chọn chương --</option><option value="new">➕ Tạo chương mới</option>';
+
+            if (demoChapters[curriculumId]) {
+                demoChapters[curriculumId].forEach(chapter => {
+                    select.innerHTML += `<option value="${chapter.id}">${chapter.name}</option>`;
+                });
+            }
+        }
+
+        function onChapterChange() {
+            const chapterId = document.getElementById('chapterSelect').value;
+
+            if (chapterId === 'new') {
+                document.getElementById('newChapterForm').style.display = 'block';
+                document.getElementById('topicSection').style.display = 'block';
+                document.getElementById('topicSelectGroup').style.display = 'none';
+                document.getElementById('newTopicForm').style.display = 'block';
+                document.getElementById('lessonSection').style.display = 'block';
+                document.getElementById('lessonSelectGroup').style.display = 'none';
+                document.getElementById('newLessonForm').style.display = 'block';
+                document.getElementById('contentSection').style.display = 'block';
+                document.getElementById('saveButtonsGroup').style.display = 'flex';
+                return;
+            }
+
+            document.getElementById('newChapterForm').style.display = 'none';
+
+            if (!chapterId) {
+                resetToExistingMode();
+                return;
+            }
+
+            document.getElementById('topicSection').style.display = 'block';
+            document.getElementById('topicSelectGroup').style.display = 'block';
+
+            const select = document.getElementById('topicSelect');
+            select.innerHTML = '<option value="">-- Chọn topic --</option><option value="new">➕ Tạo topic mới</option>';
+
+            if (demoTopics[chapterId]) {
+                demoTopics[chapterId].forEach(topic => {
+                    select.innerHTML += `<option value="${topic.id}">${topic.name}</option>`;
+                });
+            }
+        }
+
+        function onTopicChange() {
+            const topicId = document.getElementById('topicSelect').value;
+
+            if (topicId === 'new') {
+                document.getElementById('newTopicForm').style.display = 'block';
+                document.getElementById('lessonSection').style.display = 'block';
+                document.getElementById('lessonSelectGroup').style.display = 'none';
+                document.getElementById('newLessonForm').style.display = 'block';
+                document.getElementById('contentSection').style.display = 'block';
+                document.getElementById('saveButtonsGroup').style.display = 'flex';
+                return;
+            }
+
+            document.getElementById('newTopicForm').style.display = 'none';
+
+            if (!topicId) {
+                document.getElementById('lessonSection').style.display = 'none';
+                document.getElementById('contentSection').style.display = 'none';
+                document.getElementById('saveButtonsGroup').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('lessonSection').style.display = 'block';
+            document.getElementById('lessonSelectGroup').style.display = 'block';
+
+            const select = document.getElementById('lessonSelect');
+            select.innerHTML = '<option value="">-- Chọn lesson --</option><option value="new">➕ Tạo lesson mới</option>';
+
+            if (demoLessons[topicId]) {
+                demoLessons[topicId].forEach(lesson => {
+                    select.innerHTML += `<option value="${lesson.id}">${lesson.name}</option>`;
+                });
+            }
+        }
+
+        function onLessonChange() {
+            const lessonId = document.getElementById('lessonSelect').value;
+
+            if (lessonId === 'new') {
+                document.getElementById('newLessonForm').style.display = 'block';
+                document.getElementById('contentSection').style.display = 'block';
+                document.getElementById('saveButtonsGroup').style.display = 'flex';
+                return;
+            }
+
+            document.getElementById('newLessonForm').style.display = 'none';
+
+            if (!lessonId) {
+                document.getElementById('contentSection').style.display = 'none';
+                document.getElementById('saveButtonsGroup').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('contentSection').style.display = 'block';
+            document.getElementById('saveButtonsGroup').style.display = 'flex';
+        }
+
+        function addContentBlock() {
+            const container = document.getElementById('contentBlocksContainer');
+            const emptyState = container.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            contentBlockCounter++;
+            const blockId = `content_${contentBlockCounter}`;
+
+            const blockHtml = `
+                <div class="content-block" id="${blockId}" data-order="${contentBlockCounter}">
+                    <div class="content-block-header">
+                        <span class="block-type-badge badge-text">Text</span>
+                        <button class="btn btn-danger" style="padding: 8px 15px;" onclick="removeContentBlock('${blockId}')">🗑️ Xóa</button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Loại Block *</label>
+                            <select class="blockType" onchange="updateBlockType('${blockId}')">
+                                <option value="0">Heading - Tiêu đề</option>
+                                <option value="1" selected>Text - Đoạn văn</option>
+                                <option value="2">Definition - Định nghĩa</option>
+                                <option value="3">Example - Ví dụ</option>
+                                <option value="4">Note - Ghi chú</option>
+                                <option value="5">Formula - Công thức</option>
+                                <option value="6">Image - Hình ảnh</option>
+                                <option value="7">Video</option>
+                                <option value="8">PDF</option>
+                                <option value="9">Audio</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group contentTextGroup">
+                        <label>Nội dung Text</label>
+                        <textarea class="contentText" placeholder="Nhập nội dung..."></textarea>
+                    </div>
+                    <div class="form-group contentUrlGroup" style="display: none;">
+                        <label>URL (cho Image/Video/PDF/Audio)</label>
+                        <input type="text" class="contentUrl" placeholder="https://example.com/file.jpg">
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', blockHtml);
+        }
+
+        function addDemoContent() {
+            const container = document.getElementById('contentBlocksContainer');
+            const emptyState = container.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+
+            // Demo content blocks
+            const demoBlocks = [
+                { type: 0, text: 'Khái niệm tập hợp' },
+                { type: 2, text: 'Tập hợp là một nhóm các đối tượng xác định, mỗi đối tượng được gọi là một phần tử của tập hợp.' },
+                { type: 1, text: 'Các phần tử của tập hợp thường được viết trong dấu ngoặc nhọn {}.' },
+                { type: 3, text: 'Ví dụ: Tập hợp các số tự nhiên nhỏ hơn 5 là {0, 1, 2, 3, 4}.' },
+                { type: 4, text: 'Lưu ý: Trong một số tài liệu cũ, tập số tự nhiên có thể không bao gồm số 0.' },
+                { type: 5, text: 'N = {0, 1, 2, 3, ...}' },
+                { type: 7, url: 'https://example.com/video/tap-hop-so-tu-nhien.mp4' }
+            ];
+
+            demoBlocks.forEach((block, index) => {
+                contentBlockCounter++;
+                const blockId = `content_${contentBlockCounter}`;
+
+                const typeNames = ['Heading', 'Text', 'Definition', 'Example', 'Note', 'Formula', 'Image', 'Video', 'PDF', 'Audio'];
+                const badgeClasses = ['badge-heading', 'badge-text', 'badge-definition', 'badge-example', 'badge-note', 'badge-formula', 'badge-image', 'badge-video', 'badge-pdf', 'badge-audio'];
+                const blockClasses = ['type-heading', 'type-text', 'type-definition', 'type-example', 'type-note', 'type-formula', 'type-media', 'type-media', 'type-media', 'type-media'];
+
+                const showUrl = block.type >= 6;
+                const contentValue = showUrl ? (block.url || '') : (block.text || '');
+
+                const blockHtml = `
+                    <div class="content-block ${blockClasses[block.type]}" id="${blockId}" data-order="${contentBlockCounter}">
+                        <div class="content-block-header">
+                            <span class="block-type-badge ${badgeClasses[block.type]}">${typeNames[block.type]}</span>
+                            <button class="btn btn-danger" style="padding: 8px 15px;" onclick="removeContentBlock('${blockId}')">🗑️ Xóa</button>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Loại Block *</label>
+                                <select class="blockType" onchange="updateBlockType('${blockId}')">
+                                    <option value="0" ${block.type === 0 ? 'selected' : ''}>Heading - Tiêu đề</option>
+                                    <option value="1" ${block.type === 1 ? 'selected' : ''}>Text - Đoạn văn</option>
+                                    <option value="2" ${block.type === 2 ? 'selected' : ''}>Definition - Định nghĩa</option>
+                                    <option value="3" ${block.type === 3 ? 'selected' : ''}>Example - Ví dụ</option>
+                                    <option value="4" ${block.type === 4 ? 'selected' : ''}>Note - Ghi chú</option>
+                                    <option value="5" ${block.type === 5 ? 'selected' : ''}>Formula - Công thức</option>
+                                    <option value="6" ${block.type === 6 ? 'selected' : ''}>Image - Hình ảnh</option>
+                                    <option value="7" ${block.type === 7 ? 'selected' : ''}>Video</option>
+                                    <option value="8" ${block.type === 8 ? 'selected' : ''}>PDF</option>
+                                    <option value="9" ${block.type === 9 ? 'selected' : ''}>Audio</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group contentTextGroup" ${showUrl ? 'style="display: none;"' : ''}>
+                            <label>Nội dung Text</label>
+                            <textarea class="contentText" placeholder="Nhập nội dung...">${block.text || ''}</textarea>
+                        </div>
+                        <div class="form-group contentUrlGroup" ${!showUrl ? 'style="display: none;"' : ''}>
+                            <label>URL (cho Image/Video/PDF/Audio)</label>
+                            <input type="text" class="contentUrl" placeholder="https://example.com/file.jpg" value="${block.url || ''}">
+                        </div>
+                    </div>
+                `;
+
+                container.insertAdjacentHTML('beforeend', blockHtml);
+            });
+
+            showAlert('Đã thêm nội dung mẫu thành công!', 'success');
+        }
+
+        function updateBlockType(blockId) {
+            const block = document.getElementById(blockId);
+            const typeSelect = block.querySelector('.blockType');
+            const type = parseInt(typeSelect.value);
+            const badge = block.querySelector('.block-type-badge');
+            const textGroup = block.querySelector('.contentTextGroup');
+            const urlGroup = block.querySelector('.contentUrlGroup');
+
+            // Update badge
+            const typeNames = ['Heading', 'Text', 'Definition', 'Example', 'Note', 'Formula', 'Image', 'Video', 'PDF', 'Audio'];
+            const badgeClasses = ['badge-heading', 'badge-text', 'badge-definition', 'badge-example', 'badge-note', 'badge-formula', 'badge-image', 'badge-video', 'badge-pdf', 'badge-audio'];
+
+            badge.textContent = typeNames[type];
+            badge.className = 'block-type-badge ' + badgeClasses[type];
+
+            // Update block style
+            const blockClasses = ['type-heading', 'type-text', 'type-definition', 'type-example', 'type-note', 'type-formula', 'type-media', 'type-media', 'type-media', 'type-media'];
+            block.className = 'content-block ' + blockClasses[type];
+
+            // Show/hide fields
+            if (type >= 6) { // Image, Video, PDF, Audio
+                textGroup.style.display = 'none';
+                urlGroup.style.display = 'block';
+            } else {
+                textGroup.style.display = 'block';
+                urlGroup.style.display = 'none';
+            }
+        }
+
+        function removeContentBlock(blockId) {
+            if (confirm('Bạn có chắc muốn xóa block này?')) {
+                document.getElementById(blockId).remove();
+
+                const container = document.getElementById('contentBlocksContainer');
+                if (container.children.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <svg fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
+                            </svg>
+                            <p>Chưa có nội dung nào. Nhấn "Thêm Block" để bắt đầu!</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function saveAll() {
+            const data = {
+                Chapter: null,
+                Topic: null,
+                Lesson: null,
+                LessonContents: []
+            };
+
+            // Select Curriculum
+            const curriculumId = document.getElementById('curriculumSelect').value;
+            if (!curriculumId) {
+                showAlert('Vui lòng chọn Khung chương trình!', 'error');
+                return;
+            }
+
+            // =========================
+            // Chapter
+            // =========================
+            const chapterSelect = document.getElementById('chapterSelect')?.value;
+
+            if (chapterSelect === 'new' || currentMode === 'new') {
+                data.Chapter = {
+                    curriculumId: parseInt(curriculumId),
+                    chapterName: document.getElementById('chapterName').value,
+                    OrderIndex: parseInt(document.getElementById('chapterOrder').value),
+                    Description: document.getElementById('chapterDescription').value
+                };
+            }else if (chapterSelect) {
+                data.chapter = {
+                    chapterId: parseInt(chapterSelect)
+                };
+            }
+
+            // =========================
+            // Topic
+            // =========================
+            const topicSelect = document.getElementById('topicSelect')?.value;
+
+            if (topicSelect === 'new' || currentMode === 'new' || chapterSelect === 'new') {
+                data.Topic = {
+                    ChapterId: 0,
+                    TopicName: document.getElementById('topicName').value,
+                    OrderIndex: parseInt(document.getElementById('topicOrder').value),
+                    Description: document.getElementById('topicDescription').value,
+                    IsFree: document.getElementById('topicIsFree').checked
+                };
+            } else if (topicSelect) {
+                data.topic = {
+                    topicId: parseInt(topicSelect)
+                };
+            }
+
+            // =========================
+            // Lesson (BẮT BUỘC)
+            // =========================
+            const lessonSelect = document.getElementById('lessonSelect')?.value;
+
+            if (lessonSelect === 'new' || currentMode === 'new' || topicSelect === 'new') {
+                data.Lesson = {
+                    TopicId: 0,
+                    LessonName: document.getElementById('lessonName').value,
+                    Description: document.getElementById('lessonDescription').value,
+                    DurationMinutes: parseInt(document.getElementById('lessonDuration').value),
+                    OrderIndex: parseInt(document.getElementById('lessonOrder').value),
+                    IsFree: document.getElementById('lessonIsFree').checked,
+                    IsActive: document.getElementById('lessonIsActive').checked,
+                    Status: parseInt(document.getElementById('lessonStatus').value),
+                    CreatedBy: parseInt(document.getElementById('lessonCreatedBy').value)
+                };
+            } else if (lessonSelect) {
+                data.lesson = {
+                    LessonId: parseInt(lessonSelect)
+                };
+            }
+
+            if (!data.lesson) {
+                showAlert('Lesson là bắt buộc!', 'error');
+                return;
+            }
+
+            // =========================
+            // Lesson Contents
+            // =========================
+            const contentBlocks = document.querySelectorAll('.content-block');
+
+            if (contentBlocks.length === 0) {
+                showAlert('Phải có ít nhất 1 content block!', 'error');
+                return;
+            }
+
+            contentBlocks.forEach((block, index) => {
+                const blockType = parseInt(block.querySelector('.blockType').value);
+                const contentText = block.querySelector('.contentText')?.value || null;
+                const contentUrl = block.querySelector('.contentUrl')?.value || null;
+
+                data.LessonContents.push({
+                    BlockType: blockType,
+                    ContentText: contentText,
+                    ContentUrl: contentUrl,
+                    OrderIndex: index + 1
+                });
+            });
+
+            // =========================
+            // CALL API
+            // =========================
+            try{
+                showAlert('⏳ Đang gửi dữ liệu...', 'success');
+
+                const response = await fetch('/api/lessondata', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.message || 'Có lỗi xảy ra');
+                }
+
+                showAlert('Lưu dữ liệu thành công!', 'success');
+                console.log('API Response:', result);
+
+            }catch(error){
+                console.error(error);
+                showAlert('Lỗi: ' + error.message, 'error');
+            }
+        }
+
+        function showAlert(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert alert-' + type;
+            alertBox.textContent = message;
+            alertBox.style.display = 'block';
+
+            setTimeout(() => {
+                alertBox.style.display = 'none';
+            }, 5000);
+        }
+
+        function resetForm() {
+            if (confirm('Bạn có chắc muốn làm mới form? Tất cả dữ liệu chưa lưu sẽ bị mất.')) {
+                location.reload();
+            }
+        }
+
+        // Initialize with some demo content
+        // window.addEventListener('load', function() {
+        //     showAlert('🎉 Chào mừng đến với Demo! Hãy thử chọn Curriculum và khám phá tính năng.', 'success');
+        // });
+    </script>
+</body>
+</html>

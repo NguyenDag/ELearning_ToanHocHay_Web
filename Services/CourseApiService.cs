@@ -132,7 +132,7 @@ namespace ToanHocHay.WebApp.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi lấy cây menu: {ex.Message}");
+                Console.WriteLine($"Error get menu tree: {ex.Message}");
                 return new List<CurriculumDto>();
             }
         }
