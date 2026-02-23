@@ -175,13 +175,19 @@
 
                                 @if (User.Identity != null && User.Identity.IsAuthenticated)
                                 {
-                                    @* 1. Nút Dashboard nằm ngay bên cạnh Profile *@
+                                    @* 1. Nút Add data nằm ngay bên cạnh Dashboard *@
+                                    <a href="/lesson/editor" class="hidden lg:flex items-center gap-2 bg-blue-50 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl font-bold transition-all text-sm border border-blue-100 shadow-sm active:scale-95">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                        <span>Add Lesson</span>
+                                    </a>
+
+                                    @* 2. Nút Dashboard nằm ngay bên cạnh Profile *@
                                     <a href="/Student/Dashboard" class="hidden lg:flex items-center gap-2 bg-blue-50 text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-xl font-bold transition-all text-sm border border-blue-100 shadow-sm active:scale-95">
                                         <i class="fa-solid fa-chart-line"></i>
                                         <span>Dashboard</span>
                                     </a>
 
-                                    @* 2. Cụm Profile người dùng *@
+                                    @* 3. Cụm Profile người dùng *@
                                     <div class="relative group">
                                         <button class="flex items-center gap-3 px-2 py-1.5 rounded-full hover:bg-gray-50 transition-all duration-300">
                                             <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=@User.Identity.Name"

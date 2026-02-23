@@ -4,10 +4,10 @@ using ToanHocHay.WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. ??ng ký các Controller và View
+// 1. Đăng ký các Controller và View
 builder.Services.AddControllersWithViews();
 
-// 2. ??NG KÝ CÁC D?CH V? G?I API (QUAN TR?NG)
+// 2. ĐĂNG KÝ CÁC DỊCH VỤ GỌI API (QUAN TRỌNG)
 // Thêm dòng HttpClient cho CourseApiService ?? WebApp có th? l?y d? li?u bài gi?ng
 var baseUri = ApiConstant.apiBaseUrl.EndsWith("/") ? ApiConstant.apiBaseUrl : ApiConstant.apiBaseUrl + "/";
 var finalApiUrl = new Uri(baseUri + "api/");
@@ -21,7 +21,7 @@ builder.Services.AddHttpClient<ChatApiService>(client => client.BaseAddress = fi
 builder.Services.AddHttpContextAccessor();
 
 
-// 3. C?u hình Xác th?c b?ng Cookie
+// 3. C?u hình Xác thực bang Cookie
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -39,7 +39,18 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

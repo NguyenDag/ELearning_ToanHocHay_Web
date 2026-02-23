@@ -39,9 +39,6 @@
                         <label for="curriculumSelect">Chọn Khung chương trình *</label>
                         <select id="curriculumSelect" onchange="onCurriculumChange()">
                             <option value="">-- Chọn khung chương trình --</option>
-                            <option value="1">Toán lớp 6</option>
-                            <option value="2">Toán lớp 7</option>
-                            <option value="3">Toán lớp 8</option>
                         </select>
                     </div>
 
@@ -205,44 +202,7 @@
     <script>
         let currentMode = 'existing';
         let contentBlockCounter = 0;
-
-        // Demo data
-        const demoChapters = {
-            '1': [
-                { id: 1, name: 'Số tự nhiên' },
-                { id: 2, name: 'Phân số' }
-            ],
-            '2': [
-                { id: 3, name: 'Số hữu tỉ' },
-                { id: 4, name: 'Hình học phẳng' }
-            ],
-            '3': [
-                { id: 5, name: 'Phương trình bậc nhất' },
-                { id: 6, name: 'Hàm số và đồ thị' }
-            ]
-        };
-
-        const demoTopics = {
-            '1': [
-                { id: 1, name: 'Tập hợp số tự nhiên' },
-                { id: 2, name: 'So sánh số tự nhiên' }
-            ],
-            '2': [
-                { id: 3, name: 'Phép cộng và phép trừ phân số' },
-                { id: 4, name: 'Phép nhân và phép chia phân số' }
-            ]
-        };
-
-        const demoLessons = {
-            '1': [
-                { id: 1, name: 'Tập hợp và ký hiệu' },
-                { id: 2, name: 'Tập hợp số tự nhiên N' }
-            ],
-            '2': [
-                { id: 3, name: 'So sánh hai số tự nhiên' },
-                { id: 4, name: 'Sắp xếp số tự nhiên' }
-            ]
-        };
+        const API_BASE = "https://localhost:7290";
 
         function setMode(mode) {
             currentMode = mode;
@@ -272,163 +232,213 @@
             document.getElementById('saveButtonsGroup').style.display = 'none';
         }
 
-        function onCurriculumChange() {
-            const curriculumId = document.getElementById('curriculumSelect').value;
-            if (!curriculumId) {
-                document.getElementById('chapterSelectGroup').style.display = 'none';
-                resetToExistingMode();
-                return;
-            }
+        async function onCurriculumChange() {
+            const curriculumId = document.getElementById("curriculumSelect").value;
 
-            document.getElementById('chapterSelectGroup').style.display = 'block';
+            if (!curriculumId) return;
 
-            const select = document.getElementById('chapterSelect');
-            select.innerHTML = '<option value="">-- Chọn chương --</option><option value="new">➕ Tạo chương mới</option>';
+            document.getElementById("chapterSelectGroup").style.display = "block";
 
-            if (demoChapters[curriculumId]) {
-                demoChapters[curriculumId].forEach(chapter => {
-                    select.innerHTML += `<option value="${chapter.id}">${chapter.name}</option>`;
+            try {
+                const response = await fetch(`${API_BASE}/api/Chapter/curriculum/${curriculumId}`);
+
+                console.log("📡 Response status of chapter by curriculum:", response.status);
+                console.log("📡 Response object:", response);
+
+                const result = await response.json();
+
+                const select = document.getElementById("chapterSelect");
+                select.innerHTML =
+                    '<option value="">-- Chọn chương --</option>' +
+                    '<option value="new">➕ Tạo chương mới</option>';
+
+                result.Data.forEach(ch => {
+                    select.innerHTML += `
+                        <option value="${ch.ChapterId}">
+                            ${ch.ChapterName}
+                        </option>`;
                 });
+            } catch (error) {
+                showAlert("Không load được chapter", "error");
             }
         }
 
-        function onChapterChange() {
-            const chapterId = document.getElementById('chapterSelect').value;
+        async function onChapterChange() {
+            const chapterId = document.getElementById("chapterSelect").value;
 
-            if (chapterId === 'new') {
-                document.getElementById('newChapterForm').style.display = 'block';
-                document.getElementById('topicSection').style.display = 'block';
-                document.getElementById('topicSelectGroup').style.display = 'none';
-                document.getElementById('newTopicForm').style.display = 'block';
-                document.getElementById('lessonSection').style.display = 'block';
-                document.getElementById('lessonSelectGroup').style.display = 'none';
-                document.getElementById('newLessonForm').style.display = 'block';
-                document.getElementById('contentSection').style.display = 'block';
-                document.getElementById('saveButtonsGroup').style.display = 'flex';
-                return;
-            }
+            if (!chapterId || chapterId === "new") return;
 
-            document.getElementById('newChapterForm').style.display = 'none';
+            document.getElementById("topicSection").style.display = "block";
 
-            if (!chapterId) {
-                resetToExistingMode();
-                return;
-            }
+            try {
+                const url = `${API_BASE}/api/Topic/by-chapter/${chapterId}`;
+                console.log("🚀 Calling URL:", url);
 
-            document.getElementById('topicSection').style.display = 'block';
-            document.getElementById('topicSelectGroup').style.display = 'block';
+                const response = await fetch(url);
 
-            const select = document.getElementById('topicSelect');
-            select.innerHTML = '<option value="">-- Chọn topic --</option><option value="new">➕ Tạo topic mới</option>';
+                console.log("📡 Response status:", response.status);
+                console.log("📡 Response ok:", response.ok);
 
-            if (demoTopics[chapterId]) {
-                demoTopics[chapterId].forEach(topic => {
-                    select.innerHTML += `<option value="${topic.id}">${topic.name}</option>`;
-                });
-            }
-        }
+                const result = await response.json();
+                console.log("📦 Full Topic Response:", result);
 
-        function onTopicChange() {
-            const topicId = document.getElementById('topicSelect').value;
+                const select = document.getElementById("topicSelect");
 
-            if (topicId === 'new') {
-                document.getElementById('newTopicForm').style.display = 'block';
-                document.getElementById('lessonSection').style.display = 'block';
-                document.getElementById('lessonSelectGroup').style.display = 'none';
-                document.getElementById('newLessonForm').style.display = 'block';
-                document.getElementById('contentSection').style.display = 'block';
-                document.getElementById('saveButtonsGroup').style.display = 'flex';
-                return;
-            }
+                select.innerHTML =
+                    '<option value="">-- Chọn topic --</option>' +
+                    '<option value="new">➕ Tạo topic mới</option>';
 
-            document.getElementById('newTopicForm').style.display = 'none';
+                if (result.Success && Array.isArray(result.Data)) {
 
-            if (!topicId) {
-                document.getElementById('lessonSection').style.display = 'none';
-                document.getElementById('contentSection').style.display = 'none';
-                document.getElementById('saveButtonsGroup').style.display = 'none';
-                return;
-            }
+                    console.log("📊 Topic count:", result.Data.length);
 
-            document.getElementById('lessonSection').style.display = 'block';
-            document.getElementById('lessonSelectGroup').style.display = 'block';
+                    result.Data.forEach((t, index) => {
+                        console.log(`📘 Topic ${index}:`, t);
 
-            const select = document.getElementById('lessonSelect');
-            select.innerHTML = '<option value="">-- Chọn lesson --</option><option value="new">➕ Tạo lesson mới</option>';
+                        select.innerHTML += `
+                            <option value="${t.TopicId}">
+                                ${t.TopicName}
+                            </option>`;
+                    });
 
-            if (demoLessons[topicId]) {
-                demoLessons[topicId].forEach(lesson => {
-                    select.innerHTML += `<option value="${lesson.id}">${lesson.name}</option>`;
-                });
+                } else {
+                    console.warn("⚠️ Data không hợp lệ:", result);
+                }
+
+            } catch (error) {
+                console.error("❌ Error loading topic:", error);
+                showAlert("Không load được topic", "error");
             }
         }
 
-        function onLessonChange() {
-            const lessonId = document.getElementById('lessonSelect').value;
+        async function onTopicChange() {
+            const topicId = document.getElementById("topicSelect").value;
 
-            if (lessonId === 'new') {
-                document.getElementById('newLessonForm').style.display = 'block';
-                document.getElementById('contentSection').style.display = 'block';
-                document.getElementById('saveButtonsGroup').style.display = 'flex';
-                return;
+            if (!topicId || topicId === "new") return;
+
+            document.getElementById("lessonSection").style.display = "block";
+
+            try {
+                const url = `${API_BASE}/api/Lesson/by-topic/${topicId}`;
+                console.log("🚀 Calling URL:", url);
+
+                const response = await fetch(url);
+
+                console.log("📡 Response status:", response.status);
+                console.log("📡 Response ok:", response.ok);
+
+                const result = await response.json();
+                console.log("📦 Full Lesson Response:", result);
+
+                const select = document.getElementById("lessonSelect");
+
+                select.innerHTML =
+                    '<option value="">-- Chọn lesson --</option>' +
+                    '<option value="new">➕ Tạo lesson mới</option>';
+
+                if (result.Success && Array.isArray(result.Data)) {
+
+                    console.log("📊 Lesson count:", result.Data.length);
+
+                    result.Data.forEach((l, index) => {
+                        console.log(`📘 Lesson ${index}:`, l);
+
+                        select.innerHTML += `
+                            <option value="${l.LessonId}">
+                                ${l.LessonName}
+                            </option>`;
+                    });
+
+                } else {
+                    console.warn("⚠️ Data không hợp lệ:", result);
+                }
+
+            } catch (error) {
+                console.error("❌ Error loading lesson:", error);
+                showAlert("Không load được lesson", "error");
             }
-
-            document.getElementById('newLessonForm').style.display = 'none';
-
-            if (!lessonId) {
-                document.getElementById('contentSection').style.display = 'none';
-                document.getElementById('saveButtonsGroup').style.display = 'none';
-                return;
-            }
-
-            document.getElementById('contentSection').style.display = 'block';
-            document.getElementById('saveButtonsGroup').style.display = 'flex';
         }
 
-        function addContentBlock() {
-            const container = document.getElementById('contentBlocksContainer');
-            const emptyState = container.querySelector('.empty-state');
-            if (emptyState) emptyState.remove();
+                async function onLessonChange() {
+
+            const lessonId = document.getElementById("lessonSelect").value;
+
+            if (!lessonId || lessonId === "new") return;
+
+            document.getElementById("contentSection").style.display = "block";
+
+            try {
+
+                const url = `https://localhost:7290/api/Lesson/${lessonId}`;
+                console.log("🚀 Calling Lesson Detail URL:", url);
+
+                const response = await fetch(url);
+                console.log("📡 Response status:", response.status);
+
+                const result = await response.json();
+                console.log("📦 Full Lesson Detail Response:", result);
+
+                if (!result.Success) {
+                    showAlert(result.Message, "error");
+                    return;
+                }
+
+                const lesson = result.Data.Lesson;
+                const contents = result.Data.Contents;
+
+                console.log("📘 Lesson object:", lesson);
+                console.log("📚 Contents:", contents);
+                console.log("📊 Content count:", contents?.length);
+
+                // Clear content cũ
+                document.getElementById("contentBlocksContainer").innerHTML = "";
+
+                if (Array.isArray(contents)) {
+
+                    contents.forEach(content => {
+                        addExistingContentBlock(content);
+                    });
+
+                    // ✅ HIỆN BUTTON SAVE
+                    document.getElementById("saveButtonsGroup").style.display = "flex";
+
+                } else {
+                    console.warn("⚠️ Contents không phải array");
+                }
+
+            } catch (error) {
+                console.error("❌ Load lesson detail error:", error);
+                showAlert("Không load được lesson detail", "error");
+            }
+        }
+
+
+                function addExistingContentBlock(content) {
 
             contentBlockCounter++;
             const blockId = `content_${contentBlockCounter}`;
 
             const blockHtml = `
-                <div class="content-block" id="${blockId}" data-order="${contentBlockCounter}">
+                <div class="content-block"
+                     id="${blockId}"
+                     data-blocktype="${content.BlockType}">
+
                     <div class="content-block-header">
-                        <span class="block-type-badge badge-text">Text</span>
-                        <button class="btn btn-danger" style="padding: 8px 15px;" onclick="removeContentBlock('${blockId}')">🗑️ Xóa</button>
+                        <span class="block-type-badge">
+                            ${content.BlockType}
+                        </span>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Loại Block *</label>
-                            <select class="blockType" onchange="updateBlockType('${blockId}')">
-                                <option value="0">Heading - Tiêu đề</option>
-                                <option value="1" selected>Text - Đoạn văn</option>
-                                <option value="2">Definition - Định nghĩa</option>
-                                <option value="3">Example - Ví dụ</option>
-                                <option value="4">Note - Ghi chú</option>
-                                <option value="5">Formula - Công thức</option>
-                                <option value="6">Image - Hình ảnh</option>
-                                <option value="7">Video</option>
-                                <option value="8">PDF</option>
-                                <option value="9">Audio</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group contentTextGroup">
-                        <label>Nội dung Text</label>
-                        <textarea class="contentText" placeholder="Nhập nội dung..."></textarea>
-                    </div>
-                    <div class="form-group contentUrlGroup" style="display: none;">
-                        <label>URL (cho Image/Video/PDF/Audio)</label>
-                        <input type="text" class="contentUrl" placeholder="https://example.com/file.jpg">
+
+                    <div class="form-group">
+                        <textarea class="contentText">${content.ContentText || ""}</textarea>
                     </div>
                 </div>
             `;
 
-            container.insertAdjacentHTML('beforeend', blockHtml);
+            document.getElementById("contentBlocksContainer")
+                .insertAdjacentHTML("beforeend", blockHtml);
         }
+
 
         function addDemoContent() {
             const container = document.getElementById('contentBlocksContainer');
@@ -545,7 +555,7 @@
             }
         }
 
-        function saveAll() {
+        async function saveAll() {
             const data = {
                 Chapter: null,
                 Topic: null,
@@ -567,14 +577,14 @@
 
             if (chapterSelect === 'new' || currentMode === 'new') {
                 data.Chapter = {
-                    curriculumId: parseInt(curriculumId),
-                    chapterName: document.getElementById('chapterName').value,
+                    CurriculumId: parseInt(curriculumId),
+                    ChapterName: document.getElementById('chapterName').value,
                     OrderIndex: parseInt(document.getElementById('chapterOrder').value),
                     Description: document.getElementById('chapterDescription').value
                 };
             }else if (chapterSelect) {
-                data.chapter = {
-                    chapterId: parseInt(chapterSelect)
+                data.Chapter = {
+                    ChapterId: parseInt(chapterSelect)
                 };
             }
 
@@ -585,15 +595,14 @@
 
             if (topicSelect === 'new' || currentMode === 'new' || chapterSelect === 'new') {
                 data.Topic = {
-                    ChapterId: 0,
                     TopicName: document.getElementById('topicName').value,
                     OrderIndex: parseInt(document.getElementById('topicOrder').value),
                     Description: document.getElementById('topicDescription').value,
                     IsFree: document.getElementById('topicIsFree').checked
                 };
             } else if (topicSelect) {
-                data.topic = {
-                    topicId: parseInt(topicSelect)
+                data.Topic = {
+                    TopicId: parseInt(topicSelect)
                 };
             }
 
@@ -604,7 +613,6 @@
 
             if (lessonSelect === 'new' || currentMode === 'new' || topicSelect === 'new') {
                 data.Lesson = {
-                    TopicId: 0,
                     LessonName: document.getElementById('lessonName').value,
                     Description: document.getElementById('lessonDescription').value,
                     DurationMinutes: parseInt(document.getElementById('lessonDuration').value),
@@ -615,12 +623,12 @@
                     CreatedBy: parseInt(document.getElementById('lessonCreatedBy').value)
                 };
             } else if (lessonSelect) {
-                data.lesson = {
+                data.Lesson = {
                     LessonId: parseInt(lessonSelect)
                 };
             }
 
-            if (!data.lesson) {
+            if (!data.Lesson) {
                 showAlert('Lesson là bắt buộc!', 'error');
                 return;
             }
@@ -636,7 +644,7 @@
             }
 
             contentBlocks.forEach((block, index) => {
-                const blockType = parseInt(block.querySelector('.blockType').value);
+                const blockType = block.dataset.blocktype;
                 const contentText = block.querySelector('.contentText')?.value || null;
                 const contentUrl = block.querySelector('.contentUrl')?.value || null;
 
@@ -648,13 +656,15 @@
                 });
             });
 
+            console.log("📦 Payload gửi lên:", data);
+
             // =========================
             // CALL API
             // =========================
             try{
                 showAlert('⏳ Đang gửi dữ liệu...', 'success');
 
-                const response = await fetch('/api/lessondata', {
+                const response = await fetch('https://localhost:7290/api/LessonData', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -664,8 +674,17 @@
 
                 const result = await response.json();
 
+                console.log("📦 API Response:", result);
+
                 if (!response.ok) {
-                    throw new Error(result.message || 'Có lỗi xảy ra');
+
+                    console.error("❌ Validation errors:", result.errors);
+
+                    for (const key in result.errors) {
+                        console.error(`🔴 ${key}:`, result.errors[key]);
+                    }
+
+                    throw new Error("Validation failed - xem console");
                 }
 
                 showAlert('Lưu dữ liệu thành công!', 'success');
@@ -694,10 +713,34 @@
             }
         }
 
-        // Initialize with some demo content
-        // window.addEventListener('load', function() {
-        //     showAlert('🎉 Chào mừng đến với Demo! Hãy thử chọn Curriculum và khám phá tính năng.', 'success');
-        // });
+        window.addEventListener("load", loadCurriculums);
+
+        async function loadCurriculums() {
+            const url = `https://localhost:7290/api/Curriculum`;
+
+            try {
+                const response = await fetch(url);
+
+                console.log("📡 Response status:", response.status);
+                console.log("📡 Response object:", response);
+
+                const result = await response.json();
+
+                const select = document.getElementById("curriculumSelect");
+                select.innerHTML = '<option value="">-- Chọn khung chương trình --</option>';
+
+                result.Data.forEach(c => {
+                    select.innerHTML += `<option value="${c.CurriculumId}">
+                                            ${c.CurriculumName}
+                                         </option>`;
+                });
+
+            } catch (error) {
+                console.error("❌ Error:", error);
+                showAlert("Không load được curriculum", "error");
+            }
+        }
+
     </script>
 </body>
 </html>
