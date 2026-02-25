@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-
 namespace ToanHocHay.WebApp.Models.DTOs
 {
     // Cấu trúc dữ liệu chuẩn để hứng JSON từ Backend
@@ -12,6 +11,10 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public List<ChapterProgressSummaryDto> ChapterProgress { get; set; }
         public int PackageType { get; set; }
         public DashboardLinksDto Links { get; set; }
+
+        // ── THÊM MỚI ──────────────────────────────────────────────
+        public SubscriptionInfoDto SubscriptionInfo { get; set; } = new();
+        // ────────────────────────────────────────────────────────────
     }
 
     public class StudentInfoDto
@@ -21,7 +24,6 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public int GradeLevel { get; set; }
         public string SchoolName { get; set; }
     }
-
     public class OverviewStatsDto
     {
         public int WeeklyStudyMinutes { get; set; }
@@ -34,7 +36,6 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public int LongestStreak { get; set; }
         public bool StudiedToday { get; set; }
     }
-
     public class ComparisonDto
     {
         public double ScoreChange { get; set; }
@@ -42,7 +43,6 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public int ExerciseCountChange { get; set; }
         public int Direction { get; set; }
     }
-
     public class RecentLessonDto
     {
         public int LessonId { get; set; }
@@ -54,7 +54,6 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public bool IsCompleted { get; set; }
         public int ProgressPercentage { get; set; }
     }
-
     public class ChapterProgressSummaryDto
     {
         public int ChapterId { get; set; }
@@ -66,7 +65,6 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public bool IsLocked { get; set; }
         public double CurrentMastery { get; set; }
     }
-
     public class DashboardLinksDto
     {
         public string ExerciseHistory { get; set; }
