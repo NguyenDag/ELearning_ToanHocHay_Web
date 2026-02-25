@@ -1,217 +1,317 @@
 ﻿@using ToanHocHay.WebApp.Models.DTOs
-@model StudentDashboardDto
-
+@using System.Security.Claims
+@model ToanHocHay.WebApp.Models.DTOs.CoreDashboardDto
 @{
-    Layout = null;
+    ViewData["Title"] = "Dashboard Học Sinh";
+    Layout = "_Layout";
+
+    // 1. Kiểm tra trạng thái dữ liệu thực từ Database
+    bool isDbConnected = Model?.StudentInfo != null && Model.StudentInfo.StudentId > 0;
+    int packageType = Model?.PackageType ?? 0;
+
+    // 2. Thông tin hiển thị cá nhân hóa
+    var displayName = isDbConnected ? Model.StudentInfo.FullName : (User.Identity?.Name ?? "Bạn");
+    var firstName = !string.IsNullOrEmpty(displayName) ? displayName.Split(' ').Last() : "Bạn";
+
+    // 3. THU THẬP TẤT CẢ ID THỰC TẾ TỪ TOKEN ĐỂ GỠ LỖI
+    var studentId = User.FindFirst("StudentId")?.Value ?? "N/A";
+    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "N/A";
+    var httpStatus = Context.Items["LastApiStatus"]?.ToString() ?? "N/A";
 }
 
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Học sinh - ToanHocHay</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Thư viện giao diện chuẩn Premium -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
 
-    <style>
-        body {
-            font-family: 'Nunito', sans-serif;
-        }
-    </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { primary: '#3B82F6', secondary: '#F97316' } }
-            }
-        }
-    </script>
-</head>
-<body class="bg-gray-50 min-h-screen">
+<style>
+    body {
+        font-family: 'Nunito', sans-serif;
+        background-color: #F4F7FE;
+        color: #1E293B;
+    }
 
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="/" class="flex items-center gap-3 hover:opacity-80 transition cursor-pointer">
-                <img src="/logo_header.ico" alt="Logo" class="w-8 h-8 object-contain" />
-                <span class="text-xl font-black tracking-tight text-primary">ToanHocHay</span>
-            </a>
-            <div class="flex items-center gap-4">
-                <span class="text-sm font-bold text-gray-600 hidden md:inline">Học sinh: @User.Identity?.Name</span>
-                <button type="button" onclick="openAvatarModal()" class="hover:scale-110 transition">
-                    <img id="header-avatar"
-                         src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=@User.Identity?.Name"
-                         class="w-9 h-9 rounded-full border bg-blue-50 shadow-sm">
-                </button>
+    .glass-card {
+        background: white;
+        border-radius: 2rem;
+        border: 1px solid #F1F5F9;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card {
+        border-radius: 1.5rem;
+        background: white;
+        padding: 1.5rem;
+        border: 1px solid #F1F5F9;
+    }
+
+    .stat-value {
+        font-size: 2.25rem;
+        font-weight: 900;
+        color: #2D3748;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #A0AEC0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .purple-gradient {
+        background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+    }
+
+    .locked-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: inherit;
+    }
+
+    .progress-bar {
+        height: 10px;
+        border-radius: 999px;
+        background: #F1F5F9;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: #6366F1;
+        transition: width 1s ease-in-out;
+    }
+
+    .debug-box {
+        background: #0f172a;
+        color: #38bdf8;
+        font-family: monospace;
+        font-size: 11px;
+        border-radius: 1rem;
+    }
+</style>
+
+<div class="min-h-screen py-8">
+    <div class="container mx-auto px-4 max-w-6xl">
+
+        <!-- Diagnostic Panel (Sửa để hiện ID thực của UserId và StudentId) -->
+        @if (!isDbConnected)
+        {
+            <div class="glass-card p-6 mb-8 border-l-8 border-red-500 bg-red-50/30 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-4 text-left">
+                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-3xl flex items-center justify-center animate-pulse"><i class="fa-solid fa-plug-circle-xmark text-3xl"></i></div>
+                    <div>
+                        <h3 class="font-black text-red-800 text-lg uppercase">Chưa thể hiển thị dữ liệu thực</h3>
+                        <p class="text-sm text-red-600 font-bold opacity-80 mt-1 uppercase italic">Mã lỗi: @httpStatus | Hệ thống đang kiểm tra hồ sơ học sinh...</p>
+                    </div>
+                </div>
+                <div class="debug-box p-5 w-full md:w-80 shadow-2xl border border-slate-700">
+                    <p class="border-b border-slate-700 mb-2 pb-1 font-black text-[10px] uppercase">Dữ liệu thực từ tài khoản:</p>
+                    <div class="space-y-1">
+                        <div class="flex justify-between"><span>Tên tài khoản:</span> <span class="text-white">@User.Identity?.Name</span></div>
+                        <div class="flex justify-between"><span>UserId (Mã User):</span> <span class="text-green-400 font-bold">@userId</span></div>
+                        <div class="flex justify-between"><span>StudentId (Mã hồ sơ):</span> <span class="text-yellow-400 font-bold">@studentId</span></div>
+                        <div class="flex justify-between border-t border-slate-800 mt-2 pt-1 italic"><span>Lỗi API:</span> <span class="text-red-400">@httpStatus</span></div>
+                    </div>
+                    <a href="/Account/Logout" class="mt-4 block text-center bg-red-600 text-white py-2 rounded-xl font-bold uppercase text-[10px] hover:bg-red-700 transition">Đăng xuất & Thử lại</a>
+                </div>
+            </div>
+        }
+
+        <!-- 1. WELCOME BANNER -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
+            <div class="glass-card p-8 flex-1 w-full flex items-center justify-between border-none shadow-sm">
+                <div>
+                    <h2 class="text-3xl font-black text-slate-800 mb-1">Chào mừng bạn! 👋</h2>
+                    <p class="text-slate-400 font-bold">
+                        @if (isDbConnected)
+                        {
+                            <span>Bạn đã hoàn thành <b class="text-indigo-600">@Model.Stats.TotalLessonsCompleted</b> bài học.</span>
+                        }
+                        else
+                        {
+
+                            <span>Hãy bắt đầu bài học đầu tiên ngay hôm nay!</span>
+                        }
+                    </p>
+                </div>
+            </div>
+            <div class="glass-card px-10 py-6 flex items-center gap-5 border-none shadow-orange-100/50">
+                <span class="text-4xl">🔥</span>
+                <div class="text-left">
+                    <p class="stat-label text-orange-400">Streak hiện tại</p>
+                    <p class="text-2xl font-black text-orange-600">@(isDbConnected? Model.Stats.CurrentStreak : 0) Ngày</p>
+                </div>
             </div>
         </div>
-    </header>
 
-    <main class="container mx-auto px-4 py-8 max-w-6xl">
-
-        <section class="mb-8 space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-300 transition">
-                    <div class="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center text-xl mb-3">
-                        <i class="fa-solid fa-medal"></i>
-                    </div>
-                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Điểm Trung Bình</p>
-                    <h3 class="text-3xl font-extrabold text-gray-800">@Model.AverageScore.ToString("0.0")</h3>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-green-300 transition">
-                    <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center text-xl mb-3">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Chương Hoàn Thành</p>
-                    <h3 class="text-3xl font-extrabold text-gray-800">@Model.CompletedChapters</h3>
-                </div>
-
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-300 transition">
-                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-xl mb-3">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
-                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Tổng Lần Làm Bài</p>
-                    <h3 class="text-3xl font-extrabold text-gray-800">@Model.TotalAttempts</h3>
+        <!-- 2. PREMIUM PROMO -->
+        <div class="purple-gradient rounded-[2.5rem] p-10 mb-10 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl shadow-indigo-100 relative overflow-hidden">
+            <div class="absolute right-0 top-0 opacity-10 translate-x-1/4 -translate-y-1/4"><i class="fa-solid fa-rocket text-[250px]"></i></div>
+            <div class="flex items-center gap-8 relative z-10">
+                <div class="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center text-4xl"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <div class="text-left">
+                    <h3 class="text-3xl font-black mb-2 tracking-tight">Mở khóa sức mạnh AI</h3>
+                    <p class="text-indigo-100 font-medium max-w-md">Nâng cấp để sử dụng AI Hint không giới hạn, lộ trình cá nhân hóa và báo cáo phân tích lỗi sai.</p>
                 </div>
             </div>
+            <button class="px-10 py-5 bg-white text-indigo-600 font-black rounded-2xl text-xs uppercase shadow-xl hover:scale-105 transition relative z-10">Khám phá gói Premium</button>
+        </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center gap-2 mb-6">
-                    <div class="w-6 h-6 rounded-full border-2 border-purple-500 flex items-center justify-center">
-                        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
-                    </div>
-                    <h3 class="font-bold text-gray-800 text-lg">Phân tích điểm theo Chương</h3>
+        <!-- 3. QUICK STATS -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
+            <div class="stat-card">
+                <p class="stat-label mb-2 text-left">Thời gian học</p>
+                <div class="flex items-baseline gap-1">
+                    <p class="stat-value text-slate-800">@(isDbConnected ? (Model.Stats.WeeklyStudyMinutes / 60.0).ToString("F1") : "0")</p>
+                    <span class="text-lg font-bold text-slate-300">h</span>
                 </div>
-                <div class="h-80 w-full">
-                    @if (Model.ChartData != null && Model.ChartData.Any())
+                <p class="text-[10px] text-slate-400 font-bold mt-2 text-left uppercase tracking-widest">Tuần này</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label mb-2 text-left">Điểm trung bình</p>
+                <p class="stat-value text-indigo-600 text-left">@(isDbConnected? Model.Stats.AverageScore.ToString("F1") : "0.0")</p>
+                <p class="text-[10px] text-slate-400 font-bold mt-2 text-left uppercase tracking-widest">Khá tốt</p>
+            </div>
+            <div class="stat-card bg-orange-50/30 border-orange-100">
+                <p class="stat-label mb-2 text-left text-orange-500">AI Hint hôm nay</p>
+                <p class="stat-value text-orange-600 text-left">0/0</p>
+                <p class="text-[10px] text-orange-300 font-bold mt-2 text-left italic">Chỉ dành cho Standard+</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <!-- LEFT CONTENT: Chart & Chapters -->
+            <div class="lg:col-span-2 space-y-10">
+
+                <!-- Chart Area (Locked) -->
+                <div class="glass-card p-10 h-[450px] relative flex flex-col items-center justify-center overflow-hidden">
+                    @if (packageType < 1)
                     {
-                        <canvas id="scoreChart"></canvas>
-                    }
-                    else
-                    {
-                        <div class="h-full flex flex-col items-center justify-center text-gray-400">
-                            <i class="fa-solid fa-chart-line text-4xl mb-2"></i>
-                            <p>Chưa có dữ liệu bài làm để phân tích</p>
+                        <div class="locked-overlay">
+                            <div class="w-16 h-16 bg-white rounded-3xl shadow-xl flex items-center justify-center text-indigo-600 mb-6 border border-indigo-50"><i class="fa-solid fa-lock text-3xl"></i></div>
+                            <h4 class="text-2xl font-black text-slate-800 mb-2">Biểu đồ phân tích chuyên sâu</h4>
+                            <p class="text-slate-400 font-bold mb-8 text-center max-w-xs">Gói Standard trở lên giúp bạn theo dõi sự tiến bộ qua từng tuần học.</p>
+                            <button class="px-8 py-4 purple-gradient text-white font-black rounded-2xl text-[10px] uppercase shadow-lg shadow-indigo-100">Nâng cấp để xem</button>
                         </div>
                     }
+                    <div class="w-full h-full opacity-5 flex items-center justify-center italic font-black text-slate-400 uppercase tracking-[1em]">Analytics</div>
                 </div>
-            </div>
-        </section>
 
-        <section class="mb-10">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-800 border-l-4 border-primary pl-3">Chương trình học</h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @if (Model.Chapters != null && Model.Chapters.Any())
-                {
-                    foreach (var chapter in Model.Chapters)
-                    {
-                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div class="flex justify-between items-start mb-3">
-                                <span class="text-xs font-bold px-2 py-1 rounded @(chapter.ProgressPercentage == 100 ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700")">
-                                    @(chapter.ProgressPercentage == 100 ? "Đã hoàn thành" : "Đang học")
-                                </span>
-                                <span class="text-blue-600 font-bold text-sm">@chapter.ProgressPercentage%</span>
-                            </div>
-                            <h3 class="font-bold text-lg text-gray-800 mb-2">@chapter.ChapterName</h3>
-                            <p class="text-xs text-gray-500 mb-4">@chapter.TotalLessons Bài học</p>
-                            <div class="w-full bg-gray-200 rounded-full h-1.5 mb-4">
-                                <div class="bg-blue-600 h-1.5 rounded-full" style="width: @chapter.ProgressPercentage%"></div>
-                            </div>
-                            <div class="flex gap-2">
-                                <a href="/Course/Learning/@chapter.ChapterId" class="flex-1 bg-primary text-white text-sm font-bold py-2 rounded-lg hover:bg-blue-600 text-center">Tiếp tục</a>
-                            </div>
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="col-span-full py-10 text-center text-gray-400 bg-white rounded-xl border border-dashed">
-                        <p>Dữ liệu chương trình học đang được cập nhật...</p>
-                    </div>
-                }
-            </div>
-        </section>
-
-        <section class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-clock-rotate-left mr-2 text-primary"></i>Lịch sử kiểm tra</h2>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-gray-600">
-                    <thead class="bg-gray-50 text-gray-700 font-bold uppercase text-xs">
-                        <tr>
-                            <th class="px-6 py-3">Tên bài kiểm tra</th>
-                            <th class="px-6 py-3">Ngày làm</th>
-                            <th class="px-6 py-3 text-center">Điểm số</th>
-                            <th class="px-6 py-3 text-right">Chi tiết</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @if (Model.RecentAttempts != null && Model.RecentAttempts.Any())
+                <!-- Curriculum List (Lấy từ DB) -->
+                <div class="glass-card p-10">
+                    <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tight mb-10">Chương trình lớp @(isDbConnected? Model.StudentInfo.GradeLevel.ToString() : "---")</h3>
+                    <div class="space-y-6">
+                        @if (isDbConnected && Model.ChapterProgress != null && Model.ChapterProgress.Any())
                         {
-                            foreach (var item in Model.RecentAttempts)
+                            @foreach (var chapter in Model.ChapterProgress.OrderBy(c => c.OrderIndex))
                             {
-                                <tr class="hover:bg-blue-50/50 transition">
-                                    <td class="px-6 py-4 font-semibold text-gray-800">@item.ExerciseName</td>
-                                    <td class="px-6 py-4">@item.StartTime.ToString("dd/MM/yyyy")</td>
-                                    <td class="px-6 py-4 text-center">
-                                        <span class="px-2 py-1 rounded font-bold @(item.Score >= 8 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700")">
-                                            @item.Score.ToString("0.0")
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <a href="/Exam/Review/@item.AttemptId" class="text-primary font-bold underline">Xem</a>
-                                    </td>
-                                </tr>
+                                <div class="flex items-center gap-8 p-8 @(chapter.IsLocked ? "bg-slate-50/50 opacity-60" : "bg-indigo-50/30 border-indigo-100") rounded-[2rem] border transition hover:shadow-md">
+                                    <div class="w-16 h-16 @(chapter.IsLocked ? "bg-slate-200 text-slate-400" : "bg-indigo-600 text-white shadow-xl shadow-indigo-100") rounded-2xl flex items-center justify-center text-2xl font-black">
+                                        @if (chapter.IsLocked)
+                                        {
+                                            <i class="fa-solid fa-lock"></i>
+                                        }
+                                        else
+                                        {
+
+                                            @chapter.OrderIndex.ToString("D2")
+                                        }
+                                    </div>
+                                    <div class="flex-1 text-left">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h4 class="font-black @(chapter.IsLocked ? "text-slate-400" : "text-slate-800") text-xl">@chapter.ChapterName</h4>
+                                            <span class="font-black text-indigo-600">@chapter.CompletionPercentage%</span>
+                                        </div>
+                                        <div class="progress-bar"><div class="progress-fill" style="width: @chapter.CompletionPercentage%"></div></div>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase mt-3 tracking-widest">
+                                            @if (chapter.IsLocked)
+                                            {
+                                                <span><i class="fa-solid fa-crown mr-1 text-yellow-500"></i> Yêu cầu gói Premium</span>
+                                            }
+                                            else
+                                            {
+
+                                                <span>Hoàn thành @chapter.CompletedTopics / @chapter.TotalTopics chủ đề</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
                             }
                         }
                         else
                         {
-                            <tr>
-                                <td colspan="4" class="px-6 py-10 text-center text-gray-400 italic">
-                                    Bạn chưa thực hiện bài kiểm tra nào.
-                                </td>
-                            </tr>
+                            <div class="py-20 text-center text-slate-300 italic font-black uppercase text-xs tracking-widest border-2 border-dashed border-slate-100 rounded-[2rem]">
+                                <i class="fa-solid fa-book-open text-5xl mb-4 block opacity-10"></i>
+                                Chưa có dữ liệu chương trình học cho tài khoản này
+                            </div>
                         }
-                    </tbody>
-                </table>
+                    </div>
+                </div>
             </div>
-        </section>
 
-    </main>
+            <!-- RIGHT SIDEBAR: Recent Activities -->
+            <div class="space-y-10">
+                <div class="glass-card p-8">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-10 border-b pb-4 text-left">Bài tập gần đây</h3>
+                    <div class="space-y-8">
+                        @if (isDbConnected && Model.RecentLessons != null && Model.RecentLessons.Any())
+                        {
+                            @foreach (var item in Model.RecentLessons)
+                            {
+                                <div class="flex items-center justify-between group cursor-pointer transition">
+                                    <div class="flex items-center gap-4 text-left">
+                                        <div class="w-12 h-12 @(item.IsCompleted ? "bg-green-50 text-green-500" : "bg-indigo-50 text-indigo-500") rounded-2xl flex items-center justify-center shadow-sm border">
+                                            <i class="fa-solid @(item.IsCompleted ? "fa-check" : "fa-clock") text-lg"></i>
+                                        </div>
+                                        <div class="max-w-[150px]">
+                                            <p class="font-black text-slate-700 text-sm leading-tight truncate">@item.LessonName</p>
+                                            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1 italic">@item.CompletedAt.ToString("dd/MM")</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-black text-slate-800">@(item.IsCompleted ? "10.0" : "---")</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="py-16 text-center text-slate-300 italic font-black uppercase text-[10px] tracking-tighter">
+                                <i class="fa-solid fa-list-check text-4xl mb-4 block opacity-10"></i>
+                                Chưa có hoạt động gần đây
+                            </div>
+                        }
+                    </div>
+                </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        async function openAvatarModal() {
-            const { value: style } = await Swal.fire({
-                title: 'Chọn phong cách Dashboard',
-                input: 'select',
-                inputOptions: {
-                    'fun-emoji': 'Vui nhộn (Emoji)',
-                    'adventurer': 'Nhà thám hiểm',
-                    'avataaars': 'Hoạt hình',
-                    'bottts': 'Người máy',
-                    'pixel-art': 'Cổ điển'
-                },
-                inputPlaceholder: 'Thay đổi kiểu Avatar...',
-                showCancelButton: true,
-                confirmButtonColor: '#3B82F6'
-            });
+                <!-- AI Assessment Card -->
+                <div class="glass-card p-8 text-center bg-slate-900 text-white border-none shadow-2xl relative overflow-hidden">
+                    <div class="absolute inset-0 purple-gradient opacity-20"></div>
+                    <div class="relative z-10">
+                        <div class="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-6 text-indigo-400 shadow-inner">
+                            <i class="fa-solid fa-brain text-3xl"></i>
+                        </div>
+                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-3">AI Assessment</p>
+                        <button class="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl text-[10px] uppercase shadow-lg hover:bg-indigo-700 transition">Mở khóa phân tích</button>
+                    </div>
+                </div>
 
-            if (style) {
-                // Đổi ảnh trên Header Dashboard ngay lập tức
-                const newUrl = `https://api.dicebear.com/7.x/${style}/svg?seed=@User.Identity?.Name`;
-                document.getElementById('header-avatar').src = newUrl;
-
-                Swal.fire('Đã đổi!', 'Giao diện Dashboard của bạn trông mới mẻ hơn rồi đấy.', 'success');
-            }
-        }
-    </script>
-</body>
-</html>
+                <!-- AI Learning Path Card -->
+                <div class="glass-card p-8 text-center border-none bg-white shadow-blue-100">
+                    <h4 class="text-sm font-black text-slate-800 mb-2 uppercase tracking-tighter text-left">Lộ trình học AI</h4>
+                    <p class="text-[10px] text-slate-400 font-bold mb-8 italic text-left">Hệ thống tự động sắp xếp bài học dựa trên lỗ hổng kiến thức của bạn.</p>
+                    <button class="w-full py-4 border-2 border-indigo-600 text-indigo-600 font-black rounded-2xl text-[10px] uppercase hover:bg-indigo-50 transition">Khám phá ngay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

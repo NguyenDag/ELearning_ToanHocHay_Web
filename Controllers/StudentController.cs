@@ -20,11 +20,15 @@ namespace ToanHocHay.WebApp.Controllers
         }
         public async Task<IActionResult> Dashboard()
         {
-            // Gọi Service để lấy dữ liệu thống kê (Điểm TB, Chart...)
-            var stats = await _courseApiService.GetStudentDashboardStatsAsync();
+            // Lấy StudentId từ Claims (Đã được AccountController lưu lúc Login)
+            var studentIdClaim = User.FindFirst("StudentId")?.Value;
+            int studentId = string.IsNullOrEmpty(studentIdClaim) ? 5 : int.Parse(studentIdClaim);
 
-            // Nếu stats null (ví dụ học sinh mới chưa làm bài), truyền một object rỗng để View không lỗi
-            return View(stats ?? new StudentDashboardDto());
+            // Gọi Service với kiểu dữ liệu CoreDashboardDto mới
+            var stats = await _courseApiService.GetStudentDashboardStatsAsync(studentId);
+
+            // Truyền sang View (Đảm bảo View cũng sử dụng @model CoreDashboardDto)
+            return View(stats ?? new CoreDashboardDto());
         }
 
         // URL: /Student/Profile

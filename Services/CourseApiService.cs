@@ -74,14 +74,14 @@ namespace ToanHocHay.WebApp.Services
                 return new List<LessonDto>();
             }
         }
-        public async Task<StudentDashboardDto?> GetStudentDashboardStatsAsync()
+        public async Task<CoreDashboardDto?> GetStudentDashboardStatsAsync(int studentId)
         {
             try
             {
                 AddAuthHeader();
-                // Gọi đến endpoint dashboard-stats ở phía API
-                var response = await _httpClient.GetFromJsonAsync<ApiResponse<StudentDashboardDto>>("Student/dashboard-stats", _jsonOptions);
-                return response?.Data;
+                // Gọi đến endpoint dashboard của Backend (Dự án Control)
+                var response = await _httpClient.GetFromJsonAsync<CoreDashboardDto>($"api/Dashboard/{studentId}", _jsonOptions);
+                return response;
             }
             catch (Exception ex)
             {
@@ -89,6 +89,7 @@ namespace ToanHocHay.WebApp.Services
                 return null;
             }
         }
+        
         public async Task<ApiResponse<bool>> UpdateProfileAsync(UpdateProfileDto dto)
         {
             try

@@ -3,176 +3,245 @@
 
 @{
     ViewData["Title"] = Model.LessonName;
-    ViewData["HideMainHeader"] = true; // Lệnh này để ẩn Header chính của Website
+    ViewData["HideMainHeader"] = true;
     var curriculum = ViewBag.FullCurriculum as CurriculumDto;
     var relatedLessons = ViewBag.RelatedLessons as IEnumerable<LessonDto>;
-
-    // Thời gian tối thiểu để tính là hoàn thành (giây) - Logic cũ
     var minTimeSeconds = 30;
 
-    // Logic tìm bài trước/sau để tạo link điều hướng - Logic cũ
+    // Navigation logic
     var currentList = relatedLessons?.OrderBy(l => l.OrderIndex).ToList();
     var currentIndex = currentList?.FindIndex(l => l.LessonId == Model.LessonId) ?? -1;
-
     var prevLessonId = (currentIndex > 0) ? currentList?[currentIndex - 1].LessonId : null;
     var nextLessonId = (currentIndex >= 0 && currentIndex < (currentList?.Count - 1)) ? currentList?[currentIndex + 1].LessonId : null;
 }
 
 <div class="min-h-screen bg-[#F8FAFC] flex flex-col font-nunito">
-
     <div class="container mx-auto px-4 py-6 flex-1">
         <div class="flex flex-col lg:flex-row gap-6">
 
-            @* --- NỘI DUNG BÀI HỌC (Bên trái) --- *@
-            <main class="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit flex flex-col relative">
+            @* LESSON CONTENT (Left side) *@
+            <main class="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden h-fit flex flex-col">
 
-                @* Progress Bar (Thêm từ logic cũ) *@
+                @* Progress Bar *@
                 <div class="w-full h-1 bg-gray-100">
                     <div id="progress-bar" class="h-full bg-blue-600 w-0 transition-all duration-1000 ease-linear"></div>
                 </div>
 
-                @* Tab Menu sạch sẽ *@
+                @* Tab Menu *@
                 <div class="flex border-b border-gray-100 bg-gray-50/50 justify-between items-center pr-4">
                     <div class="flex">
-                        <button class="px-8 py-4 text-xs font-black border-b-2 border-blue-600 text-blue-600 tracking-widest uppercase">
+                        <button onclick="switchTab('theory')" id="btn-theory"
+                                class="tab-btn px-8 py-4 text-xs font-black border-b-2 border-blue-600 text-blue-600 tracking-widest uppercase transition-all duration-200">
                             Lý thuyết
                         </button>
-                        <button class="px-8 py-4 text-xs font-bold text-gray-400 hover:text-gray-600 tracking-widest uppercase">
+                        <button onclick="switchTab('document')" id="btn-document"
+                                class="tab-btn px-8 py-4 text-xs font-bold text-gray-400 hover:text-gray-600 tracking-widest uppercase transition-all duration-200">
                             Tài liệu
+                        </button>
+                        <button onclick="switchTab('notes')" id="btn-notes"
+                                class="tab-btn px-8 py-4 text-xs font-bold text-gray-400 hover:text-gray-600 tracking-widest uppercase transition-all duration-200">
+                            Ghi chú
                         </button>
                     </div>
 
-                    @* Timer & Status (Thêm từ logic cũ) *@
                     <div class="flex items-center gap-3">
-                        <span id="timer-display" class="text-xs font-bold text-gray-400">00:00 / 00:@minTimeSeconds</span>
+                        <span id="timer-display" class="text-xs font-bold text-gray-400">00:00 / 00:@minTimeSeconds.ToString("D2")</span>
                         <div id="btn-complete" class="hidden px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full items-center gap-1 animate-bounce">
                             <i class="fa-solid fa-check-circle"></i> Đã học xong
                         </div>
                     </div>
                 </div>
 
-                @* Render nội dung từ Database (Logic cũ + Giao diện mới) *@
-                <div class="p-6 md:p-12 space-y-8">
-                    @if (Model.Contents != null && Model.Contents.Any())
-                    {
-                        @foreach (var block in Model.Contents.OrderBy(c => c.OrderIndex))
+                @* Content Area *@
+                <div class="relative min-h-[400px]">
+                    @* Theory Content *@
+                    <div id="theory-content" class="p-6 md:p-12 space-y-8">
+                        @if (Model.Contents != null && Model.Contents.Any())
                         {
-                            switch (block.BlockType)
+                            @foreach (var block in Model.Contents.OrderBy(c => c.OrderIndex))
                             {
-                                case LessonBlockType.Heading:
-                                    <h2 class="text-2xl font-black text-gray-800 border-l-4 border-blue-600 pl-4">@Html.Raw(block.ContentText)</h2>
-                                    break;
+                                switch (block.BlockType)
+                                {
+                                    case LessonBlockType.Heading:
+                                        <h2 class="text-2xl font-black text-gray-800 border-l-4 border-blue-600 pl-4">
+                                            @Html.Raw(block.ContentText)
+                                        </h2>
+                                        break;
 
-                                case LessonBlockType.Text:
-                                    <div class="prose max-w-none text-gray-700 leading-relaxed text-base text-justify">
-                                        @Html.Raw(block.ContentText)
-                                    </div>
-                                    break;
-
-                                case LessonBlockType.Definition:
-                                    <div class="bg-blue-50/50 border-l-4 border-blue-400 rounded-r-lg p-6 my-4">
-                                        <div class="text-blue-700 font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wide">
-                                            <i class="fa-solid fa-lightbulb"></i> Định nghĩa
-                                        </div>
-                                        <div class="text-gray-700 leading-relaxed italic font-medium">@Html.Raw(block.ContentText)</div>
-                                    </div>
-                                    break;
-
-                                case LessonBlockType.Example:
-                                    <div class="bg-green-50 border border-green-100 rounded-2xl p-6 my-6 shadow-sm relative overflow-hidden">
-                                        <div class="absolute top-0 right-0 w-16 h-16 bg-green-100 rounded-bl-full -mr-8 -mt-8"></div>
-                                        <h4 class="text-green-700 font-bold text-sm mb-3 flex items-center gap-2 relative z-10 uppercase tracking-wide">
-                                            <i class="fa-solid fa-layer-group"></i> Ví dụ minh họa
-                                        </h4>
-                                        <div class="text-gray-700 relative z-10">
+                                    case LessonBlockType.Text:
+                                        <div class="prose max-w-none text-gray-700 leading-relaxed text-base text-justify">
                                             @Html.Raw(block.ContentText)
                                         </div>
-                                    </div>
-                                    break;
+                                        break;
 
-                                case LessonBlockType.Note:
-                                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded-r-lg my-6 flex gap-4 items-start">
-                                        <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-xl mt-1"></i>
-                                        <div>
-                                            <h4 class="text-yellow-800 font-bold text-sm mb-1 uppercase">Lưu ý quan trọng</h4>
-                                            <div class="text-yellow-900 text-sm">
+                                    case LessonBlockType.Definition:
+                                        <div class="bg-blue-50/50 border-l-4 border-blue-400 rounded-r-lg p-6 my-4">
+                                            <div class="text-blue-700 font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wide">
+                                                <i class="fa-solid fa-lightbulb"></i> Định nghĩa
+                                            </div>
+                                            <div class="text-gray-700 leading-relaxed italic font-medium">
                                                 @Html.Raw(block.ContentText)
                                             </div>
                                         </div>
-                                    </div>
-                                    break;
+                                        break;
 
-                                case LessonBlockType.Formula:
-                                    <div class="bg-slate-900 text-white p-8 rounded-xl text-center shadow-lg my-6 overflow-x-auto">
-                                        <div class="text-xl md:text-2xl text-yellow-300 font-mono">\[ @Html.Raw(block.ContentText) \]</div>
-                                    </div>
-                                    break;
+                                    case LessonBlockType.Example:
+                                        <div class="bg-green-50 border border-green-100 rounded-2xl p-6 my-6 shadow-sm relative overflow-hidden">
+                                            <div class="absolute top-0 right-0 w-16 h-16 bg-green-100 rounded-bl-full -mr-8 -mt-8"></div>
+                                            <h4 class="text-green-700 font-bold text-sm mb-3 flex items-center gap-2 relative z-10 uppercase tracking-wide">
+                                                <i class="fa-solid fa-layer-group"></i> Ví dụ minh họa
+                                            </h4>
+                                            <div class="text-gray-700 relative z-10">
+                                                @Html.Raw(block.ContentText)
+                                            </div>
+                                        </div>
+                                        break;
 
-                                case LessonBlockType.Video:
-                                    <div class="aspect-video rounded-xl overflow-hidden shadow-lg border-4 border-gray-100 bg-black relative group my-6">
-                                        <iframe id="lesson-video" class="w-full h-full" src="@block.ContentUrl" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                                    </div>
-                                    break;
+                                    case LessonBlockType.Note:
+                                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded-r-lg my-6 flex gap-4 items-start">
+                                            <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-xl mt-1 flex-shrink-0"></i>
+                                            <div class="flex-1">
+                                                <h4 class="text-yellow-800 font-bold text-sm mb-1 uppercase">Lưu ý quan trọng</h4>
+                                                <div class="text-yellow-900 text-sm">
+                                                    @Html.Raw(block.ContentText)
+                                                </div>
+                                            </div>
+                                        </div>
+                                        break;
 
-                                case LessonBlockType.Image:
-                                    <figure class="my-8 text-center group">
-                                        <img src="@block.ContentUrl" alt="Minh họa"
-                                             class="rounded-2xl shadow-lg max-h-[400px] mx-auto object-contain border border-gray-100 group-hover:scale-[1.01] transition-transform duration-300">
-                                        @if (!string.IsNullOrEmpty(block.ContentText))
-                                        {
-                                            <figcaption class="mt-3 text-xs text-gray-400 font-bold uppercase">@block.ContentText</figcaption>
-                                        }
-                                    </figure>
-                                    break;
+                                    case LessonBlockType.Formula:
+                                        <div class="bg-slate-900 text-white p-8 rounded-xl text-center shadow-lg my-6 overflow-x-auto">
+                                            <div class="text-xl md:text-2xl text-yellow-300 font-mono mathjax-formula">
+                                                \[ @Html.Raw(block.ContentText) \]
+                                            </div>
+                                        </div>
+                                        break;
 
-                                case LessonBlockType.Pdf:
-                                case LessonBlockType.Audio:
-                                    // Giữ nguyên logic hiển thị đơn giản cho các loại này
-                                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-600">
-                                        <i class="fa-solid fa-paperclip mr-2"></i> Tài liệu đính kèm: <a href="@block.ContentUrl" target="_blank" class="text-blue-600 hover:underline font-bold">Mở xem</a>
-                                    </div>
-                                    break;
+                                    case LessonBlockType.Video:
+                                        <div class="aspect-video rounded-xl overflow-hidden shadow-lg border-4 border-gray-100 bg-black relative group my-6">
+                                            <iframe id="lesson-video"
+                                                    class="w-full h-full"
+                                                    src="@block.ContentUrl"
+                                                    frameborder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowfullscreen>
+                                            </iframe>
+                                        </div>
+                                        break;
+
+                                    case LessonBlockType.Image:
+                                        <figure class="my-8 text-center group">
+                                            <img src="@block.ContentUrl"
+                                                 alt="@(!string.IsNullOrEmpty(block.ContentText) ? block.ContentText : "Minh họa")"
+                                                 class="rounded-2xl shadow-lg max-h-[400px] mx-auto object-contain border border-gray-100 group-hover:scale-[1.01] transition-transform duration-300">
+                                            @if (!string.IsNullOrEmpty(block.ContentText))
+                                            {
+                                                <figcaption class="mt-3 text-xs text-gray-400 font-bold uppercase">
+                                                    @block.ContentText
+                                                </figcaption>
+                                            }
+                                        </figure>
+                                        break;
+
+                                    case LessonBlockType.Pdf:
+                                    case LessonBlockType.Audio:
+                                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-600 flex items-center gap-2">
+                                            <i class="fa-solid fa-paperclip"></i>
+                                            <span>Tài liệu đính kèm:</span>
+                                            <a href="@block.ContentUrl" target="_blank" class="text-blue-600 hover:underline font-bold">
+                                                Mở xem
+                                            </a>
+                                        </div>
+                                        break;
+                                }
                             }
                         }
-                    }
-                    else
-                    {
+                        else
+                        {
+                            <div class="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50">
+                                <i class="fa-solid fa-book-open text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500 font-medium">Nội dung bài học đang được cập nhật.</p>
+                            </div>
+                        }
+                    </div>
+
+                    @* Document Content *@
+                    <div id="document-content" class="p-6 md:p-12 hidden">
                         <div class="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50">
-                            <i class="fa-solid fa-book-open text-4xl text-gray-300 mb-4"></i>
-                            <p class="text-gray-500 font-medium">Nội dung bài học đang được cập nhật.</p>
+                            <i class="fa-solid fa-file-pdf text-4xl text-gray-300 mb-4"></i>
+                            <h3 class="text-lg font-bold text-gray-700 mb-2">Tài liệu đính kèm</h3>
+                            <p class="text-gray-500 font-medium">Nội dung tài liệu đang được chuẩn bị.</p>
                         </div>
-                    }
+                    </div>
+
+                    @* Notes Content *@
+                    <div id="notes-content" class="p-6 md:p-12 hidden">
+                        @* Notes Header *@
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-black text-gray-800">Ghi chú của tôi</h3>
+                            <button onclick="clearAllNotes()" class="text-xs text-red-500 hover:text-red-700 font-bold transition">
+                                <i class="fa-solid fa-trash-can mr-1"></i> Xóa tất cả
+                            </button>
+                        </div>
+
+                        @* Note Input *@
+                        <div class="bg-yellow-50 rounded-xl p-4 mb-6 border border-yellow-100">
+                            <textarea id="note-input"
+                                      placeholder="Ghi chú lại những ý quan trọng trong bài học..."
+                                      class="w-full p-4 border border-yellow-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none text-sm"
+                                      rows="4"></textarea>
+                            <div class="flex justify-between items-center mt-3">
+                                <span id="note-timestamp" class="text-xs text-gray-400"></span>
+                                <button onclick="saveNote()"
+                                        class="bg-yellow-400 hover:bg-yellow-500 text-white px-6 py-2 rounded-full font-bold text-sm transition shadow-sm">
+                                    <i class="fa-solid fa-plus mr-1"></i> Lưu ghi chú
+                                </button>
+                            </div>
+                        </div>
+
+                        @* Saved Notes List *@
+                        <div id="notes-list" class="space-y-4">
+                            <div class="text-center py-12 text-gray-400">
+                                <i class="fa-solid fa-note-sticky text-4xl mb-3 opacity-50"></i>
+                                <p class="text-sm font-medium">Chưa có ghi chú nào</p>
+                                <p class="text-xs mt-1">Hãy thêm ghi chú đầu tiên của bạn!</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                @* Nút chuyển bài ở dưới (Logic cũ + Giao diện mới) *@
+                @* Navigation Buttons *@
                 <div class="p-6 border-t border-gray-100 flex items-center justify-between bg-white mt-auto">
                     @if (prevLessonId != null)
                     {
                         <a href="/Course/Lesson/@prevLessonId" class="flex items-center gap-2 text-gray-400 font-bold hover:text-gray-800 transition group">
-                            <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition-transform"></i> Bài trước
+                            <i class="fa-solid fa-arrow-left text-xs group-hover:-translate-x-1 transition-transform"></i>
+                            <span>Bài trước</span>
                         </a>
                     }
                     else
                     {
-                        <div class="w-10"></div>
+                        <div></div>
                     }
 
                     @if (nextLessonId != null)
                     {
                         <a href="/Course/Lesson/@nextLessonId" class="bg-blue-600 text-white px-8 py-3 rounded-full font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition flex items-center gap-2 group">
-                            Bài tiếp theo <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
+                            <span>Bài tiếp theo</span>
+                            <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
                         </a>
                     }
                     else
                     {
                         <a href="/Exam/Index" class="bg-orange-500 text-white px-8 py-3 rounded-full font-black shadow-lg shadow-orange-100 hover:bg-orange-600 transition flex items-center gap-2 group">
-                            Làm bài tập vận dụng <i class="fa-solid fa-check text-xs"></i>
+                            <span>Làm bài tập vận dụng</span>
+                            <i class="fa-solid fa-check text-xs"></i>
                         </a>
                     }
                 </div>
             </main>
 
-            @* --- SYLLABUS (Bên phải) --- *@
+            @* SYLLABUS SIDEBAR (Right side) *@
             <aside class="w-full lg:w-[380px]">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden sticky top-[90px]">
                     <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
@@ -181,7 +250,7 @@
                     </div>
 
                     <div class="p-2 space-y-2 overflow-y-auto max-h-[calc(100vh-220px)] custom-scrollbar">
-                        @if (curriculum?.Chapters != null)
+                        @if (curriculum?.Chapters != null && curriculum.Chapters.Any())
                         {
                             @foreach (var chapter in curriculum.Chapters.OrderBy(c => c.OrderIndex))
                             {
@@ -190,30 +259,51 @@
 
                                 <div class="border @(isCurrentChapter ? "border-blue-100 bg-blue-50/5" : "border-gray-50") rounded-lg overflow-hidden transition-all">
                                     <button onclick="toggleChapter('@chapterId')"
+                                            type="button"
                                             class="w-full px-4 py-3 flex items-center justify-between @(isCurrentChapter ? "bg-blue-50/20" : "bg-white") hover:bg-blue-50/10 transition-colors">
-                                        <span class="text-[11px] font-black @(isCurrentChapter ? "text-blue-600" : "text-gray-500") uppercase text-left">@chapter.ChapterName</span>
-                                        <i class="fa-solid @(isCurrentChapter ? "fa-chevron-up" : "fa-chevron-down") text-[10px] transition-transform duration-300" id="@(chapterId)-icon"></i>
+                                        <span class="text-[11px] font-black @(isCurrentChapter ? "text-blue-600" : "text-gray-500") uppercase text-left">
+                                            @chapter.ChapterName
+                                        </span>
+                                        <i class="fa-solid @(isCurrentChapter ? "fa-chevron-up" : "fa-chevron-down") text-[10px] transition-transform duration-300"
+                                           id="@(chapterId)-icon">
+                                        </i>
                                     </button>
 
                                     <div id="@chapterId" class="@(isCurrentChapter ? "" : "hidden") bg-white divide-y divide-gray-50">
-                                        @foreach (var topic in chapter.Topics ?? new List<TopicDto>())
+                                        @if (chapter.Topics != null && chapter.Topics.Any())
                                         {
-                                            @foreach (var lesson in topic.Lessons ?? new List<LessonDto>())
+                                            @foreach (var topic in chapter.Topics.OrderBy(t => t.OrderIndex))
                                             {
-                                                bool isSelected = lesson.LessonId == Model.LessonId;
-                                                <a href="/Course/Learning/@lesson.LessonId"
-                                                   class="flex items-center gap-3 p-4 hover:bg-blue-50/30 transition-all @(isSelected ? "bg-blue-50/20" : "")">
-                                                    <i class="fa-solid @(isSelected ? "fa-circle-play text-blue-600" : "fa-circle-check text-gray-200") text-base"></i>
-                                                    <div class="flex-1">
-                                                        <p class="text-[13px] font-bold @(isSelected ? "text-blue-700" : "text-gray-600") leading-tight">@lesson.LessonName</p>
-                                                        <p class="text-[10px] text-gray-400 mt-0.5">@(lesson.DurationMinutes ?? 0) phút</p>
-                                                    </div>
-                                                </a>
+                                                @if (topic.Lessons != null && topic.Lessons.Any())
+                                                {
+                                                    @foreach (var lesson in topic.Lessons.OrderBy(l => l.OrderIndex))
+                                                    {
+                                                        bool isSelected = lesson.LessonId == Model.LessonId;
+                                                        <a href="/Course/Learning/@lesson.LessonId"
+                                                           class="flex items-center gap-3 p-4 hover:bg-blue-50/30 transition-all @(isSelected ? "bg-blue-50/20" : "")">
+                                                            <i class="fa-solid @(isSelected ? "fa-circle-play text-blue-600" : "fa-circle-check text-gray-200") text-base flex-shrink-0"></i>
+                                                            <div class="flex-1 min-w-0">
+                                                                <p class="text-[13px] font-bold @(isSelected ? "text-blue-700" : "text-gray-600") leading-tight truncate">
+                                                                    @lesson.LessonName
+                                                                </p>
+                                                                <p class="text-[10px] text-gray-400 mt-0.5">
+                                                                    @(lesson.DurationMinutes ?? 0) phút
+                                                                </p>
+                                                            </div>
+                                                        </a>
+                                                    }
+                                                }
                                             }
                                         }
                                     </div>
                                 </div>
                             }
+                        }
+                        else
+                        {
+                            <div class="p-4 text-center text-gray-400 text-sm">
+                                Chưa có nội dung khóa học
+                            </div>
                         }
                     </div>
                 </div>
@@ -223,42 +313,272 @@
 </div>
 
 @section Scripts {
+    @* MathJax Configuration *@
     <script>
-        // Logic đóng mở chương
-        function toggleChapter(chapterId) {
-            const content = document.getElementById(chapterId);
-            const icon = document.getElementById(chapterId + '-icon');
-            if (content) {
-                content.classList.toggle('hidden');
-                if (icon) {
-                    icon.classList.toggle('fa-chevron-down');
-                    icon.classList.toggle('fa-chevron-up');
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: false
+            },
+            options: {
+                ignoreHtmlClass: 'no-mathjax',
+                processHtmlClass: 'mathjax-enabled'
+            },
+            startup: {
+                ready: () => {
+                    const theoryArea = document.getElementById('theory-content');
+                    if (theoryArea) {
+                        let html = theoryArea.innerHTML;
+                        // Sửa lỗi dính chữ: Tự động bọc \text{} vào nội dung trong \[ \]
+                        html = html.replace(/\\\[([\s\S]+?)\\\]/g, (match, p1) => {
+                            return `\\[ \\text{${p1.trim()}} \\]`;
+                        });
+                        theoryArea.innerHTML = html;
+                    }
+                    MathJax.startup.defaultReady();
                 }
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    @* Tab Switching & Chapter Toggle *@
+    <script>
+        function switchTab(tabName) {
+            const theoryContent = document.getElementById('theory-content');
+            const docContent = document.getElementById('document-content');
+            const notesContent = document.getElementById('notes-content');
+            const btnTheory = document.getElementById('btn-theory');
+            const btnDoc = document.getElementById('btn-document');
+            const btnNotes = document.getElementById('btn-notes');
+
+            const activeClass = 'px-8 py-4 text-xs font-black border-b-2 border-blue-600 text-blue-600 tracking-widest uppercase transition-all duration-200';
+            const inactiveClass = 'px-8 py-4 text-xs font-bold text-gray-400 hover:text-gray-600 tracking-widest uppercase transition-all duration-200';
+
+            // Hide all content
+            theoryContent.classList.add('hidden');
+            docContent.classList.add('hidden');
+            notesContent.classList.add('hidden');
+
+            // Reset all buttons
+            btnTheory.className = inactiveClass;
+            btnDoc.className = inactiveClass;
+            btnNotes.className = inactiveClass;
+
+            // Show selected content
+            if (tabName === 'document') {
+                docContent.classList.remove('hidden');
+                btnDoc.className = activeClass;
+            } else if (tabName === 'notes') {
+                notesContent.classList.remove('hidden');
+                btnNotes.className = activeClass;
+                loadNotes();
+            } else {
+                theoryContent.classList.remove('hidden');
+                btnTheory.className = activeClass;
             }
         }
 
-        // Logic Timer & Tự động hoàn thành (Từ code cũ)
+        function toggleChapter(chapterId) {
+            const content = document.getElementById(chapterId);
+            const icon = document.getElementById(chapterId + '-icon');
+
+            if (content && icon) {
+                content.classList.toggle('hidden');
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            }
+        }
+    </script>
+
+    @* Notes Management *@
+    <script>
+        const lessonId = '@Model.LessonId';
+        const storageKey = `notes_lesson_${lessonId}`;
+
+        function updateTimestamp() {
+            const now = new Date();
+            const timestamp = now.toLocaleString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('note-timestamp').textContent = timestamp;
+        }
+
+        function saveNote() {
+            const noteInput = document.getElementById('note-input');
+            const noteText = noteInput.value.trim();
+
+            if (!noteText) {
+                alert('Vui lòng nhập nội dung ghi chú!');
+                return;
+            }
+
+            // Get existing notes
+            const notes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+            // Add new note
+            const newNote = {
+                id: Date.now(),
+                text: noteText,
+                timestamp: new Date().toLocaleString('vi-VN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            };
+
+            notes.unshift(newNote);
+            localStorage.setItem(storageKey, JSON.stringify(notes));
+
+            // Clear input
+            noteInput.value = '';
+
+            // Reload notes display
+            loadNotes();
+
+            // Show success animation
+            showNotification('Đã lưu ghi chú!');
+        }
+
+        function loadNotes() {
+            const notesList = document.getElementById('notes-list');
+            const notes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+
+            if (notes.length === 0) {
+                notesList.innerHTML = `
+                    <div class="text-center py-12 text-gray-400">
+                        <i class="fa-solid fa-note-sticky text-4xl mb-3 opacity-50"></i>
+                        <p class="text-sm font-medium">Chưa có ghi chú nào</p>
+                        <p class="text-xs mt-1">Hãy thêm ghi chú đầu tiên của bạn!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            notesList.innerHTML = notes.map(note => `
+                <div class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition group">
+                    <div class="flex items-start justify-between mb-2">
+                        <span class="text-[10px] text-gray-400 font-bold">${note.timestamp}</span>
+                        <button onclick="deleteNote(${note.id})"
+                                class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition">
+                            <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${escapeHtml(note.text)}</p>
+                </div>
+            `).join('');
+        }
+
+        function deleteNote(noteId) {
+            if (!confirm('Bạn có chắc muốn xóa ghi chú này?')) return;
+
+            const notes = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const updatedNotes = notes.filter(note => note.id !== noteId);
+            localStorage.setItem(storageKey, JSON.stringify(updatedNotes));
+            loadNotes();
+            showNotification('Đã xóa ghi chú!');
+        }
+
+        function clearAllNotes() {
+            if (!confirm('Bạn có chắc muốn xóa tất cả ghi chú của bài học này?')) return;
+
+            localStorage.removeItem(storageKey);
+            loadNotes();
+            showNotification('Đã xóa tất cả ghi chú!');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg font-bold text-sm z-50 animate-bounce';
+            notification.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i>${message}`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 2000);
+        }
+
+        // Update timestamp every minute
+        setInterval(updateTimestamp, 60000);
+        updateTimestamp();
+    </script>
+
+    @* Timer & Progress Bar *@
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const hasVideo = document.getElementById('lesson-video') !== null;
             const progressBar = document.getElementById('progress-bar');
             const timerDisplay = document.getElementById('timer-display');
             const btnComplete = document.getElementById('btn-complete');
-
             const requiredTime = @minTimeSeconds;
             let currentTime = 0;
             let isCompleted = false;
 
+            function updateTimer() {
+                const minutes = Math.floor(currentTime / 60).toString().padStart(2, '0');
+                const seconds = (currentTime % 60).toString().padStart(2, '0');
+                const requiredMin = Math.floor(requiredTime / 60).toString().padStart(2, '0');
+                const requiredSec = (requiredTime % 60).toString().padStart(2, '0');
+
+                if (timerDisplay) {
+                    timerDisplay.innerText = `${minutes}:${seconds} / ${requiredMin}:${requiredSec}`;
+                }
+            }
+
+            function updateProgress() {
+                const progress = Math.min((currentTime / requiredTime) * 100, 100);
+                if (progressBar) {
+                    progressBar.style.width = `${progress}%`;
+                }
+            }
+
+            function completeLesson() {
+                if (isCompleted) return;
+                isCompleted = true;
+
+                if (progressBar) {
+                    progressBar.classList.remove('bg-blue-600');
+                    progressBar.classList.add('bg-green-500');
+                }
+
+                if (btnComplete) {
+                    btnComplete.classList.remove('hidden');
+                    btnComplete.classList.add('flex');
+                }
+
+                // Confetti effect
+                if (typeof confetti !== 'undefined') {
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+            }
+
             if (!hasVideo) {
+                // Start timer for non-video lessons
                 const interval = setInterval(() => {
-                    if (isCompleted) { clearInterval(interval); return; }
+                    if (isCompleted) {
+                        clearInterval(interval);
+                        return;
+                    }
+
                     currentTime++;
-
-                    const progressPercent = Math.min((currentTime / requiredTime) * 100, 100);
-                    progressBar.style.width = `${progressPercent}%`;
-
-                    const displayMin = Math.floor(currentTime / 60).toString().padStart(2, '0');
-                    const displaySec = (currentTime % 60).toString().padStart(2, '0');
-                    timerDisplay.innerText = `${displayMin}:${displaySec} / 00:${requiredTime}`;
+                    updateTimer();
+                    updateProgress();
 
                     if (currentTime >= requiredTime) {
                         completeLesson();
@@ -266,34 +586,19 @@
                     }
                 }, 1000);
             } else {
+                // For video lessons, complete after required time
                 progressBar.style.width = '100%';
-                timerDisplay.innerText = "Video Mode";
                 setTimeout(completeLesson, requiredTime * 1000);
-            }
-
-            async function completeLesson() {
-                if(isCompleted) return;
-                isCompleted = true;
-
-                progressBar.classList.remove('bg-blue-600');
-                progressBar.classList.add('bg-green-500');
-                btnComplete.classList.remove('hidden');
-                btnComplete.classList.add('flex');
-
-                if (typeof confetti !== 'undefined') {
-                    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-                }
-                console.log("Bài học hoàn thành!");
             }
         });
     </script>
 
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    @* Confetti Library *@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 }
 
 <style>
-    /* CSS cho thanh cuộn đẹp */
+    /* Custom Scrollbar Styles */
     .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
     }
@@ -305,9 +610,23 @@
     .custom-scrollbar::-webkit-scrollbar-thumb {
         background-color: rgba(203, 213, 225, 0.5);
         border-radius: 20px;
+        transition: background-color 0.2s;
     }
 
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background-color: rgba(148, 163, 184, 0.8);
         }
+
+    /* Ensure MathJax formulas don't overflow */
+    .mathjax-formula {
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    /* Smooth transitions */
+    * {
+        transition-property: color, background-color, border-color;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 150ms;
+    }
 </style>
