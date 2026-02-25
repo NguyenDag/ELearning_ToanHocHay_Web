@@ -80,7 +80,7 @@ namespace ToanHocHay.WebApp.Services
             {
                 AddAuthHeader();
                 // Gọi đến endpoint dashboard của Backend (Dự án Control)
-                var response = await _httpClient.GetFromJsonAsync<CoreDashboardDto>($"api/Dashboard/{studentId}", _jsonOptions);
+                var response = await _httpClient.GetFromJsonAsync<CoreDashboardDto>($"student/{studentId}/dashboard", _jsonOptions);
                 return response;
             }
             catch (Exception ex)
