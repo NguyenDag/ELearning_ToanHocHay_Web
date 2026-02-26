@@ -83,6 +83,7 @@ namespace ToanHocHay.WebApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var resString = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"=== EXERCISE DETAIL JSON: {resString} ===");
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse<ExerciseDetailDto>>(resString, _jsonOptions);
                     return apiResponse?.Data;
                 }
@@ -150,7 +151,18 @@ namespace ToanHocHay.WebApp.Services
             try
             {
                 AddAuthHeader();
-                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/save-answer", dto);
+                Console.WriteLine($"=== SAVE ANSWER: qId={dto.QuestionId}, optId={dto.SelectedOptionId}, text={dto.AnswerText} ===");
+
+                var response = await _httpClient.PostAsJsonAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/save-answer", dto);
+
+                // THÊM ĐOẠN NÀY
+                if (!response.IsSuccessStatusCode)
+                {
+                    var err = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"=== SAVE FAILED {(int)response.StatusCode}: {err} ===");
+                }
+
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }

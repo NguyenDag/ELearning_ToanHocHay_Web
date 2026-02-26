@@ -64,26 +64,22 @@ namespace ToanHocHay.WebApp.Controllers
             if (payload == null || payload.AttemptId == 0)
                 return BadRequest("Dữ liệu nộp bài không hợp lệ.");
 
-            // Bước A: Gửi từng câu trả lời về Backend
-            // Sử dụng Task.WhenAll để gửi song song tất cả đáp án thay vì gửi lần lượt (giúp chạy nhanh hơn)
+            // Gửi từng câu trả lời — truyền đủ cả SelectedOptionId VÀ AnswerText
             var tasks = payload.Answers.Select(ans => _examService.SaveSingleAnswer(new SubmitAnswerRequestDto
             {
                 AttemptId = payload.AttemptId,
                 QuestionId = ans.QuestionId,
-                SelectedOptionId = ans.SelectedOptionId
+                SelectedOptionId = ans.SelectedOptionId,  // MultipleChoice
+                AnswerText = ans.AnswerText          // TrueFalse + FillBlank ← THÊM DÒNG NÀY
             }));
 
-            await Task.WhenAll(tasks); // Đợi tất cả request gửi xong
+            await Task.WhenAll(tasks);
 
-            // Bước B: Gọi API Complete để chốt điểm và kết thúc bài thi
             var result = await _examService.CompleteExercise(payload.AttemptId);
 
-            if (result)
-            {
-                return Ok(new { message = "Nộp bài thành công!" });
-            }
-
-            return BadRequest("Lỗi khi hoàn tất bài thi.");
+            return result
+                ? Ok(new { message = "Nộp bài thành công!" })
+                : BadRequest("Lỗi khi hoàn tất bài thi.");
         }
 
         // 4. Trang kết quả

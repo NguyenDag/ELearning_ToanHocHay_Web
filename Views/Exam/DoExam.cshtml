@@ -39,17 +39,34 @@
             border-color: #2563EB;
         }
 
+        /* TrueFalse buttons */
+        .tf-btn {
+            transition: all .2s;
+        }
+
+            .tf-btn.selected-true {
+                background: #16a34a;
+                color: white;
+                border-color: #16a34a;
+            }
+
+            .tf-btn.selected-false {
+                background: #dc2626;
+                color: white;
+                border-color: #dc2626;
+            }
+
         .nav-btn.answered {
             background-color: #1E40AF !important;
             color: #FACC15 !important;
             border-color: #1E3A8A !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,.1);
         }
 
         .nav-btn.active {
             border-color: #2563EB;
             background-color: #F1F5F9;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.3);
         }
 
         .question-page {
@@ -64,7 +81,7 @@
 <body class="bg-[#E0E7FF] h-screen flex items-center justify-center p-4 md:p-6 overflow-hidden">
     <div class="w-full max-w-[1400px] h-[90vh] flex gap-6">
 
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar -->
         <aside class="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden border border-blue-100 shrink-0 hidden lg:flex">
             <div class="p-5 border-b border-blue-50 bg-blue-50/50">
                 <h3 class="text-blue-800 font-bold text-lg text-center flex items-center justify-center gap-2">
@@ -99,8 +116,9 @@
             </div>
         </aside>
 
+        <!-- Main -->
         <main class="flex-1 flex flex-col gap-4 overflow-hidden">
-            <!-- Header Info -->
+            <!-- Header -->
             <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-3 px-6 flex justify-between items-center">
                 <div>
                     <h1 class="text-lg font-bold text-gray-800">@Model.Title</h1>
@@ -112,22 +130,25 @@
                 </div>
             </div>
 
-            <!-- Question Area -->
+            <!-- Questions -->
             <div class="flex-1 bg-white rounded-3xl shadow-xl border border-blue-50 flex flex-col overflow-hidden relative">
                 <div id="questions-container" class="flex-1 p-6 md:p-12 overflow-y-auto custom-scroll">
+
                     @for (int i = 0; i < Model.Questions.Count; i++)
                     {
                         var q = Model.Questions[i];
                         <div id="page-@i" class="question-page @(i == 0 ? "active" : "")">
+
+                            <!-- Question header -->
                             <div class="flex gap-6 mb-8">
                                 <span class="w-12 h-12 shrink-0 bg-blue-600 text-white rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg shadow-blue-200">@(i + 1)</span>
-                                
                                 <h2 class="text-2xl font-bold text-gray-800 leading-tight">@q.QuestionText</h2>
                             </div>
 
-                            <div class="grid grid-cols-1 gap-4">
-                                @if (q.Options != null)
-                                {
+                            <!-- ── MULTIPLE CHOICE ──────────────────────────── -->
+                            @if (q.QuestionType == QuestionType.MultipleChoice && q.Options != null)
+                            {
+                                <div class="grid grid-cols-1 gap-4">
                                     @foreach (var opt in q.Options)
                                     {
                                         <div onclick="selectOption(@i, @q.QuestionId, @opt.OptionId, this)"
@@ -135,23 +156,57 @@
                                             <div class="option-label w-10 h-10 rounded-xl border-2 border-gray-200 flex items-center justify-center font-bold text-lg text-gray-400 transition-colors">
                                                 @((char)('A' + q.Options.IndexOf(opt)))
                                             </div>
-                                            <!-- ĐÃ SỬA: Hiển thị nội dung phương án @opt.OptionText -->
                                             <span class="text-lg text-gray-700 font-semibold">@opt.OptionText</span>
                                         </div>
                                     }
-                                }
-                            </div>
+                                </div>
+                            }
 
-                            <!-- AI HINT SECTION -->
+                            <!-- ── TRUE / FALSE ────────────────────────────── -->
+                            @if (q.QuestionType == QuestionType.TrueFalse)
+                            {
+                                <div class="flex gap-4 mt-2" id="tf-group-@q.QuestionId">
+                                    <button type="button"
+                                            onclick="selectTrueFalse(@i, @q.QuestionId, 'true', this)"
+                                            class="tf-btn flex-1 py-5 rounded-2xl border-2 border-gray-200 text-xl font-black text-green-600 hover:border-green-400 hover:bg-green-50 flex items-center justify-center gap-3 transition">
+                                        <i class="fa-solid fa-check"></i> ĐÚNG
+                                    </button>
+                                    <button type="button"
+                                            onclick="selectTrueFalse(@i, @q.QuestionId, 'false', this)"
+                                            class="tf-btn flex-1 py-5 rounded-2xl border-2 border-gray-200 text-xl font-black text-red-500 hover:border-red-400 hover:bg-red-50 flex items-center justify-center gap-3 transition">
+                                        <i class="fa-solid fa-xmark"></i> SAI
+                                    </button>
+                                </div>
+                            }
+
+                            <!-- ── FILL BLANK ───────────────────────────────── -->
+                            @if (q.QuestionType == QuestionType.FillBlank)
+                            {
+                                <div class="mt-2">
+                                    <label class="block text-sm font-bold text-gray-500 uppercase tracking-widest mb-3">Nhập đáp án của bạn:</label>
+                                    <input type="text"
+                                           id="fill-@q.QuestionId"
+                                           oninput="selectFillBlank(@i, @q.QuestionId, this.value)"
+                                           placeholder="Nhập đáp án..."
+                                           class="w-full p-5 text-xl font-bold border-2 border-gray-200 rounded-2xl focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 transition" />
+                                    <p class="text-xs text-gray-400 mt-2 font-semibold">
+                                        <i class="fa-solid fa-circle-info mr-1"></i>
+                                        Không phân biệt chữ hoa/thường, khoảng trắng đầu cuối sẽ tự bỏ qua.
+                                    </p>
+                                </div>
+                            }
+
+                            <!-- AI Hint -->
                             <div class="mt-8 border-t border-dashed border-blue-100 pt-6">
-                                <div id="hint-container-@q.QuestionId" class="hidden mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-5 animate-fade-in">
+                                <div id="hint-container-@q.QuestionId" class="hidden mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-5">
                                     <div class="flex items-center gap-2 text-amber-700 font-bold mb-2">
                                         <i class="fa-solid fa-lightbulb"></i>
                                         <span>Gợi ý từ AI:</span>
                                     </div>
                                     <p id="hint-text-@q.QuestionId" class="text-gray-700 leading-relaxed"></p>
                                 </div>
-                                <button onclick="getAIHint(@q.QuestionId)" id="hint-btn-@q.QuestionId" class="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-amber-400 text-amber-600 font-bold rounded-xl hover:bg-amber-50 transition-all shadow-sm">
+                                <button onclick="getAIHint(@q.QuestionId)" id="hint-btn-@q.QuestionId"
+                                        class="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-amber-400 text-amber-600 font-bold rounded-xl hover:bg-amber-50 transition-all shadow-sm">
                                     <i class="fa-solid fa-robot"></i>
                                     <span>Gợi ý AI</span>
                                 </button>
@@ -160,12 +215,11 @@
                     }
                 </div>
 
-                <!-- Footer Navigation -->
+                <!-- Footer nav -->
                 <div class="p-6 border-t bg-gray-50/50 flex justify-between items-center">
                     <button id="prev-btn" onclick="prevQuestion()" class="px-6 py-3 rounded-xl border-2 border-gray-200 text-gray-600 font-bold hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                         <i class="fa-solid fa-arrow-left mr-2"></i> Câu trước
                     </button>
-
                     <div class="flex gap-3">
                         <button id="next-btn" onclick="nextQuestion()" class="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all">
                             Câu tiếp theo <i class="fa-solid fa-arrow-right ml-2"></i>
@@ -184,160 +238,101 @@
     <script>
         let currentIdx = 0;
         const totalQuestions = @Model.Questions.Count;
-        let userAnswers = {};
         const attemptId = "@ViewData["AttemptId"]";
 
-        // Init UI
+        // userAnswers[qId] = { selectedOptionId, answerText }
+        let userAnswers = {};
+
         updateNavigationButtons();
         goToQuestion(0);
 
+        // ── Navigation ────────────────────────────────────────────────
         function goToQuestion(index) {
-            document.querySelectorAll('.question-page').forEach(page => page.classList.remove('active'));
-            const targetPage = document.getElementById(`page-${index}`);
-            if(targetPage) targetPage.classList.add('active');
-
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            const targetBtn = document.getElementById(`nav-btn-${index}`);
-            if(targetBtn) targetBtn.classList.add('active');
-
+            document.querySelectorAll('.question-page').forEach(p => p.classList.remove('active'));
+            document.getElementById(`page-${index}`)?.classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`nav-btn-${index}`)?.classList.add('active');
             currentIdx = index;
             updateNavigationButtons();
         }
 
-        function nextQuestion() {
-            if (currentIdx < totalQuestions - 1) goToQuestion(currentIdx + 1);
-        }
-
-        function prevQuestion() {
-            if (currentIdx > 0) goToQuestion(currentIdx - 1);
-        }
+        function nextQuestion() { if (currentIdx < totalQuestions - 1) goToQuestion(currentIdx + 1); }
+        function prevQuestion() { if (currentIdx > 0) goToQuestion(currentIdx - 1); }
 
         function updateNavigationButtons() {
-            const prevBtn = document.getElementById('prev-btn');
-            const nextBtn = document.getElementById('next-btn');
-            const submitBtn = document.getElementById('final-submit-btn');
-
-            if(prevBtn) prevBtn.disabled = (currentIdx === 0);
-
+            const prevBtn    = document.getElementById('prev-btn');
+            const nextBtn    = document.getElementById('next-btn');
+            const submitBtn  = document.getElementById('final-submit-btn');
+            if (prevBtn)   prevBtn.disabled = (currentIdx === 0);
             if (currentIdx === totalQuestions - 1) {
-                if(nextBtn) nextBtn.classList.add('hidden');
-                if(submitBtn) submitBtn.classList.remove('hidden');
+                nextBtn?.classList.add('hidden');
+                submitBtn?.classList.remove('hidden');
             } else {
-                if(nextBtn) nextBtn.classList.remove('hidden');
-                if(submitBtn) submitBtn.classList.add('hidden');
+                nextBtn?.classList.remove('hidden');
+                submitBtn?.classList.add('hidden');
             }
         }
 
-        // --- AI HINT LOGIC ---
-        let questionHints = {}; // Lưu level gợi ý cho từng câu hỏi
+        // ── Answer handlers ──────────────────────────────────────────
 
-        async function getAIHint(questionId) {
-            const btn = document.getElementById(`hint-btn-${questionId}`);
-            const originalContent = btn.innerHTML;
-            
-            // Loading state
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Đang suy nghĩ...</span>`;
-
-            const currentLevel = (questionHints[questionId] || 0) + 1;
-            
-            // Lấy text của phương án học sinh đang chọn để AI gợi ý sát thực tế hơn
-            let currentAnswerText = null;
-            const selectedCard = document.querySelector(`.question-page.active .option-card.selected`);
-            if (selectedCard) {
-                const textSpan = selectedCard.querySelector('span:not(.option-label)');
-                if (textSpan) {
-                    currentAnswerText = textSpan.innerText.trim();
-                }
-            }
-
-            const payload = {
-                attemptId: parseInt(attemptId),
-                questionId: questionId,
-                hintLevel: currentLevel,
-                studentAnswer: currentAnswerText
-            };
-
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-            try {
-                const response = await fetch('/Exam/GetHint', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    const hintContainer = document.getElementById(`hint-container-${questionId}`);
-                    const hintTextEl = document.getElementById(`hint-text-${questionId}`);
-                    
-                    hintTextEl.innerText = result.data.hintText;
-                    hintContainer.classList.remove('hidden');
-                    
-                    questionHints[questionId] = result.data.hintLevel;
-                    
-                    if (result.data.hintLevel >= 3) {
-                        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Đã hết gợi ý</span>`;
-                        btn.disabled = true;
-                        btn.classList.add('opacity-50');
-                    } else {
-                        btn.innerHTML = `<i class="fa-solid fa-robot"></i> <span>Gợi ý tiếp theo</span>`;
-                        btn.disabled = false;
-                    }
-                } else {
-                    alert(result.message || "Không thể lấy gợi ý lúc này.");
-                    btn.innerHTML = originalContent;
-                    btn.disabled = false;
-                }
-            } catch (error) {
-                console.error("AI Hint Error:", error);
-                alert("Lỗi kết nối server AI.");
-                btn.innerHTML = originalContent;
-                btn.disabled = false;
-            }
-        }
-
-        function selectOption(index, qId, optId, cardElement) {
-            const container = cardElement.parentElement;
-            container.querySelectorAll('.option-card').forEach(el => {
+        // MultipleChoice
+        function selectOption(index, qId, optId, cardEl) {
+            cardEl.parentElement.querySelectorAll('.option-card').forEach(el => {
                 el.classList.remove('selected');
                 el.querySelector('.option-label').classList.remove('selected');
             });
+            cardEl.classList.add('selected');
+            cardEl.querySelector('.option-label').classList.add('selected');
 
-            cardElement.classList.add('selected');
-            cardElement.querySelector('.option-label').classList.add('selected');
+            // Lưu cả OptionId VÀ OptionText để Backend FillBlank/TF không bị null
+            const optText = cardEl.querySelector('span:last-child')?.innerText?.trim() ?? '';
+            userAnswers[qId] = { selectedOptionId: optId, answerText: null };
 
-            userAnswers[qId] = optId;
-            document.getElementById(`nav-btn-${index}`).classList.add('answered');
+            markAnswered(index, qId);
+        }
+
+        // TrueFalse — AnswerText = "true" hoặc "false" (khớp với CorrectAnswer trong DB)
+        function selectTrueFalse(index, qId, value, btnEl) {
+            const group = document.getElementById(`tf-group-${qId}`);
+            group.querySelectorAll('.tf-btn').forEach(b => {
+                b.classList.remove('selected-true', 'selected-false');
+            });
+            btnEl.classList.add(value === 'true' ? 'selected-true' : 'selected-false');
+
+            userAnswers[qId] = { selectedOptionId: null, answerText: value };
+            markAnswered(index, qId);
+        }
+
+        // FillBlank — AnswerText = nội dung học sinh nhập
+        function selectFillBlank(index, qId, value) {
+            if (value.trim() === '') {
+                delete userAnswers[qId];
+                document.getElementById(`nav-btn-${index}`)?.classList.remove('answered');
+            } else {
+                userAnswers[qId] = { selectedOptionId: null, answerText: value.trim() };
+                markAnswered(index, qId);
+            }
+            updateStats();
+        }
+
+        function markAnswered(index, qId) {
+            document.getElementById(`nav-btn-${index}`)?.classList.add('answered');
             updateStats();
         }
 
         function updateStats() {
-            const answeredCount = Object.keys(userAnswers).length;
-            document.getElementById('answered-count').innerText = answeredCount;
-            document.getElementById('unanswered-count').innerText = totalQuestions - answeredCount;
+            const count = Object.keys(userAnswers).length;
+            document.getElementById('answered-count').innerText = count;
+            document.getElementById('unanswered-count').innerText = totalQuestions - count;
         }
 
-        // --- TIMER LOGIC (ROBUST INITIALIZATION) ---
+        // ── Timer ────────────────────────────────────────────────────
         let rawTime = "@ViewData["Time"]" || "15:00";
-        let totalSeconds = 0;
-
-        if (rawTime.toString().includes(':')) {
-            // Trường hợp định dạng "MM:SS"
-            let parts = rawTime.split(':');
-            totalSeconds = (parseInt(parts[0]) || 0) * 60 + (parseInt(parts[1]) || 0);
-        } else {
-            // Trường hợp chỉ trả về số phút (ví dụ: 15 hoặc "15")
-            totalSeconds = (parseInt(rawTime) || 15) * 60;
-        }
+        let totalSeconds = rawTime.toString().includes(':')
+            ? (parseInt(rawTime.split(':')[0]) || 0) * 60 + (parseInt(rawTime.split(':')[1]) || 0)
+            : (parseInt(rawTime) || 15) * 60;
 
         const timerEl = document.getElementById('timer');
-
         const timerInterval = setInterval(() => {
             if (totalSeconds <= 0) {
                 clearInterval(timerInterval);
@@ -345,18 +340,16 @@
                 submitExam(true);
                 return;
             }
-
             const mins = Math.floor(totalSeconds / 60);
             const secs = totalSeconds % 60;
-
-            timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
+            timerEl.innerText = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
             totalSeconds--;
         }, 1000);
 
-                async function submitExam(force = false) {
-            // 1. Kiểm tra nếu chưa làm câu nào thì cảnh báo
+        // ── Submit ───────────────────────────────────────────────────
+        async function submitExam(force = false) {
             const answeredCount = Object.keys(userAnswers).length;
+
             if (!force && answeredCount === 0) {
                 alert("Bạn chưa trả lời câu hỏi nào!");
                 return;
@@ -364,17 +357,17 @@
 
             if (!force && !confirm(`Bạn đã làm ${answeredCount}/${totalQuestions} câu. Bạn có chắc chắn muốn nộp bài?`)) return;
 
-            // 2. Chuan bi Payload (ÉP KIỂU SỐ Ở ĐÂY)
+            // Build payload — gửi đủ cả selectedOptionId VÀ answerText
             const payload = {
                 attemptId: parseInt(attemptId),
                 answers: Object.keys(userAnswers).map(key => ({
-                    questionId: parseInt(key),           // Chắc chắn là Số
-                    selectedOptionId: parseInt(userAnswers[key]) // Chắc chắn là Số
+                    questionId:       parseInt(key),
+                    selectedOptionId: userAnswers[key].selectedOptionId ?? null,
+                    answerText:       userAnswers[key].answerText ?? null
                 }))
             };
 
-            // LOG RA ĐỂ KIỂM TRA (An nhấn F12 để xem dòng này nhé)
-            console.log("Dữ liệu nộp bài chuẩn:", payload);
+            console.log("📤 Nộp bài:", JSON.stringify(payload, null, 2));
 
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
@@ -389,15 +382,80 @@
                 });
 
                 if (response.ok) {
-                    // Nộp thành công, chuyển đến trang kết quả
                     window.location.href = `/Exam/Result?attemptId=${attemptId}`;
                 } else {
-                    const errorData = await response.json();
-                    alert("Lỗi: " + (errorData.message || "Không thể nộp bài."));
+                    const err = await response.json();
+                    alert("Lỗi: " + (err.message || "Không thể nộp bài."));
                 }
             } catch (error) {
                 console.error("Submit error:", error);
                 alert("Mất kết nối với máy chủ khi đang nộp bài.");
+            }
+        }
+
+        // ── AI Hint ──────────────────────────────────────────────────
+        let questionHints = {};
+
+        async function getAIHint(questionId) {
+            const btn = document.getElementById(`hint-btn-${questionId}`);
+            const originalContent = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin"></i> <span>Đang suy nghĩ...</span>`;
+
+            const currentLevel = (questionHints[questionId] || 0) + 1;
+
+            // Lấy text đáp án hiện tại (nếu có)
+            const ans = userAnswers[questionId];
+            let studentAnswer = null;
+            if (ans) {
+                if (ans.answerText) studentAnswer = ans.answerText;
+                else if (ans.selectedOptionId) {
+                    const selectedCard = document.querySelector(`.question-page.active .option-card.selected span:last-child`);
+                    studentAnswer = selectedCard?.innerText?.trim() ?? null;
+                }
+            }
+
+            const payload = {
+                attemptId: parseInt(attemptId),
+                questionId,
+                hintLevel: currentLevel,
+                studentAnswer
+            };
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            try {
+                const response = await fetch('/Exam/GetHint', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById(`hint-text-${questionId}`).innerText = result.data.hintText;
+                    document.getElementById(`hint-container-${questionId}`).classList.remove('hidden');
+                    questionHints[questionId] = result.data.hintLevel;
+
+                    if (result.data.hintLevel >= 3) {
+                        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Đã hết gợi ý</span>`;
+                        btn.disabled = true;
+                        btn.classList.add('opacity-50');
+                    } else {
+                        btn.innerHTML = `<i class="fa-solid fa-robot"></i> <span>Gợi ý tiếp theo</span>`;
+                        btn.disabled = false;
+                    }
+                } else {
+                    alert(result.message || "Không thể lấy gợi ý lúc này.");
+                    btn.innerHTML = originalContent;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error("AI Hint Error:", err);
+                alert("Lỗi kết nối server AI.");
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
             }
         }
     </script>
