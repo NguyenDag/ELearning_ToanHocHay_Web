@@ -1,203 +1,342 @@
 ﻿@using ToanHocHay.WebApp.Models.DTOs
 @{
-	ViewData["Title"] = "Thư viện đề thi Lớp 6";
+    ViewData["Title"] = "Thư viện đề thi Lớp 6";
 }
 
 @functions {
-	string GetDurationLabel(int? minutes)
-	{
-		if (!minutes.HasValue)
-			return "Không giới hạn";
+    string GetDurationLabel(int? minutes)
+    {
+        if (!minutes.HasValue) return "Không giới hạn";
+        return minutes.Value switch
+        {
+            45 => "1 Tiết (45p)",
+            90 => "Cuối kỳ (90p)",
+            _ => $"{minutes} phút"
+        };
+    }
 
-		return minutes.Value switch
-		{
-			45 => "1 Tiết (45p)",
-			90 => "Đề kiểm tra cuối kỳ",
-			_ => $"{minutes} phút"
-		};
-	}
-
-	string GetDurationBadgeClass(int? minutes)
-	{
-		return minutes switch
-		{
-			45 => "bg-orange-50 text-orange-700 border-orange-100",
-			90 => "bg-red-50 text-red-700 border-red-100",
-			_ => "bg-blue-50 text-blue-700 border-blue-100"
-		};
-	}
+    string GetDurationColor(int? minutes)
+    {
+        return minutes switch
+        {
+            45 => "#F97316",
+            90 => "#EF4444",
+            _ => "#6366F1"
+        };
+    }
 }
 
 @model List<ExerciseDto>
 
-@* --- 1. HERO SECTION ĐỒNG BỘ 100% MÀU GRADIENT VÀ CUBES --- *@
-<section class="relative bg-gradient-to-br from-blue-700 via-indigo-700 to-purple-800 text-white pt-16 pb-24 overflow-hidden">
-	@* Họa tiết khối vuông chìm *@
-	<div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-
-	@* Hiệu ứng mờ ảo (Blobs) *@
-	<div class="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px] animate-pulse"></div>
-	<div class="absolute bottom-0 left-0 w-64 h-64 bg-yellow-400 opacity-10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
-
-	<div class="container mx-auto px-4 relative z-10 text-center">
-		<div class="max-w-4xl mx-auto">
-			<span class="inline-block bg-white/20 backdrop-blur-sm text-white text-[10px] font-black px-4 py-2 rounded-full mb-6 border border-white/30 tracking-widest uppercase">
-				<i class="fa-solid fa-file-signature mr-2"></i> Thư viện đề thi Lớp 6
-			</span>
-
-			<h1 class="text-4xl md:text-6xl font-black mb-8 leading-tight tracking-tight">
-				Thư viện Đề thi <br />
-				<span class="text-yellow-300">Thông minh & Hiệu quả</span>
-			</h1>
-
-			<p class="text-lg md:text-xl text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
-				Tổng hợp đề thi bám sát chương trình GDPT mới.
-				Hệ thống tự động chấm điểm và cung cấp lời giải chi tiết ngay lập tức.
-			</p>
-
-			@* Thanh tìm kiếm đồng bộ thiết kế *@
-			<div class="max-w-2xl mx-auto bg-white p-2 rounded-2xl shadow-2xl flex items-center group focus-within:ring-4 focus-within:ring-blue-500/20 transition-all">
-				<div class="flex-1 px-4 flex items-center">
-					<i class="fa-solid fa-magnifying-glass text-gray-400 mr-3 group-focus-within:text-blue-600 transition-colors"></i>
-					<input type="text" placeholder="Tìm kiếm đề thi (VD: Giữa kỳ, Số nguyên...)"
-						   class="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 font-bold text-sm h-12">
-				</div>
-				<button class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black py-3 px-8 rounded-xl transition shadow-md flex items-center gap-2 active:scale-95">
-					<span>Tìm kiếm</span>
-				</button>
-			</div>
-		</div>
-	</div>
-</section>
-
-
-<section class="bg-slate-50 py-12 -mt-10 relative z-20 rounded-t-[2.5rem]">
-	<div class="container mx-auto px-4">
-
-		<div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-10 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-			<div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-				<button class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-md whitespace-nowrap transition">Tất cả</button>
-				<button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Số học</button>
-				<button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Hình học</button>
-				<button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Giữa kỳ</button>
-				<button class="px-5 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-sm hover:bg-blue-50 hover:text-blue-600 whitespace-nowrap transition">Cuối kỳ</button>
-			</div>
-
-			<div class="flex items-center gap-3">
-				<span class="text-sm text-gray-500 font-medium hidden sm:block">Sắp xếp:</span>
-				<select class="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none cursor-pointer hover:bg-gray-100 transition">
-					<option>Mới nhất</option>
-					<option>Nhiều người thi nhất</option>
-					<option>Dễ nhất</option>
-					<option>Khó nhất</option>
-				</select>
-			</div>
-		</div>
-
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-			@foreach (var exam in Model)
-			{
-				<div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100
-				                        hover:shadow-xl hover:-translate-y-1 transition
-				                        duration-300 flex flex-col h-full relative overflow-hidden">
-
-					@if (!exam.IsFree)
-					{
-						<div class="absolute top-0 right-0 bg-gradient-to-l from-orange-500 to-yellow-500
-								                text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
-							<i class="fa-solid fa-crown text-xs"></i> Premium
-						</div>
-					}
-					<!-- Thanh màu trái -->
-					<div class="absolute top-0 left-0 w-1 h-full
-				                            @(exam.IsFree ? "bg-green-500" : "bg-orange-500")"></div>
-
-					<!-- Badge -->
-					<div class="flex justify-between items-start mb-4 pl-3">
-						<span class="@GetDurationBadgeClass(exam.DurationMinutes)
-				             text-[10px] font-bold px-3 py-1 rounded-full uppercase border">
-							@GetDurationLabel(exam.DurationMinutes)
-						</span>
-					</div>
-
-
-
-					<!-- Nội dung -->
-					<div class="pl-3 mb-4 flex-1">
-						<h3 class="text-lg font-bold text-gray-800 mb-2">
-							@exam.ExerciseName
-						</h3>
-
-						<p class="text-xs text-gray-500">
-							📄 @exam.TotalQuestions câu hỏi
-						</p>
-					</div>
-
-					<!-- Footer -->
-					<div class="pl-3 mt-auto">
-						<div class="flex items-center gap-4 text-xs text-gray-500 mb-4
-				                                border-t border-gray-100 pt-3">
-							<span>⏱ @(exam.DurationMinutes ?? 0) phút</span>
-							<span>
-								@(exam.IsFree ? "🟢 Miễn phí" : "🔒 Premium")
-							</span>
-						</div>
-
-						@if (exam.IsFree)
-						{
-							<!-- Nút FREE -->
-							<a asp-controller="Exam"
-							   asp-action="DoExam"
-							   asp-route-id="@exam.ExerciseId"
-							   class="w-full py-2.5 rounded-xl border border-blue-600
-						              text-blue-600 font-bold text-sm
-						              hover:bg-blue-600 hover:text-white transition
-						              flex items-center justify-center gap-2">
-								Thi ngay <i class="fa-solid fa-play text-xs"></i>
-							</a>
-						}
-						else
-						{
-							<!-- Nút PREMIUM -->
-							<a asp-controller="Exam"
-							   asp-action="DoExam"
-							   asp-route-id="@exam.ExerciseId"
-							   class="w-full py-2.5 rounded-xl
-						              bg-gradient-to-r from-orange-500 to-yellow-500
-						              text-white font-bold text-sm
-						              shadow-lg shadow-orange-500/30
-						              hover:shadow-orange-500/50 transition
-						              flex items-center justify-center gap-2">
-								Thi ngay <i class="fa-solid fa-lock-open text-xs"></i>
-							</a>
-						}
-
-					</div>
-				</div>
-			}
-		</div>
-
-		<div class="mt-12 flex justify-center">
-			<nav class="flex items-center gap-2">
-				<button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition disabled:opacity-50"><i class="fa-solid fa-chevron-left"></i></button>
-				<button class="w-10 h-10 rounded-lg bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center transition">1</button>
-				<button class="w-10 h-10 rounded-lg border border-gray-200 text-gray-600 font-bold hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center transition">2</button>
-				<button class="w-10 h-10 rounded-lg border border-gray-200 text-gray-600 font-bold hover:bg-blue-50 hover:text-blue-600 flex items-center justify-center transition">3</button>
-				<span class="w-10 h-10 flex items-center justify-center text-gray-400">...</span>
-				<button class="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-blue-600 transition"><i class="fa-solid fa-chevron-right"></i></button>
-			</nav>
-		</div>
-
-	</div>
-</section>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
 
 <style>
-	.hide-scrollbar::-webkit-scrollbar {
-		display: none;
-	}
+    body {
+        font-family: 'Nunito', sans-serif;
+    }
 
-	.hide-scrollbar {
-		-ms-overflow-style: none;
-		scrollbar-width: none;
-	}
+    .exam-card {
+        background: white;
+        border-radius: 1.5rem;
+        border: 1px solid #F1F5F9;
+        box-shadow: 0 2px 12px rgba(0,0,0,.04);
+        transition: all .25s ease;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+    }
+
+        .exam-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,.08);
+        }
+
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    @@keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .fade-up {
+        animation: fadeUp .4s ease both;
+    }
+
+    .page-btn {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: .6rem;
+        border: 1px solid #E2E8F0;
+        background: white;
+        color: #64748b;
+        font-weight: 800;
+        font-size: .8rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all .2s;
+        font-family: 'Nunito', sans-serif;
+    }
+
+        .page-btn:hover {
+            background: #EEF2FF;
+            color: #6366f1;
+            border-color: #C7D2FE;
+        }
+
+        .page-btn.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+            box-shadow: 0 4px 12px rgba(99,102,241,.3);
+        }
+
+        .page-btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
 </style>
+
+<!-- HERO -->
+<section class="relative bg-gradient-to-br from-blue-700 via-indigo-700 to-purple-800 text-white pt-16 pb-28 overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px]"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 bg-yellow-400 opacity-10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+
+    <div class="container mx-auto px-4 relative z-10 text-center">
+        <div class="max-w-3xl mx-auto">
+            <span class="inline-block bg-white/20 backdrop-blur-sm text-white text-[10px] font-black px-4 py-2 rounded-full mb-6 border border-white/30 tracking-widest uppercase">
+                <i class="fa-solid fa-file-signature mr-2"></i> Thư viện đề thi Lớp 6
+            </span>
+            <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight">
+                Thư viện Đề thi<br>
+                <span class="text-yellow-300">Thông minh & Hiệu quả</span>
+            </h1>
+            <p class="text-blue-100 font-bold mb-10 max-w-xl mx-auto">
+                Tổng hợp đề thi bám sát chương trình GDPT mới. Hệ thống tự động chấm điểm và cung cấp lời giải chi tiết ngay lập tức.
+            </p>
+
+            <!-- Search -->
+            <div class="max-w-xl mx-auto bg-white p-2 rounded-2xl shadow-2xl flex items-center">
+                <div class="flex-1 px-4 flex items-center">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 mr-3"></i>
+                    <input type="text" id="search-input" placeholder="Tìm kiếm đề thi..."
+                           class="w-full bg-transparent outline-none text-gray-800 placeholder-gray-400 font-bold text-sm h-11"
+                           oninput="filterExams()">
+                </div>
+                <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 px-6 rounded-xl transition text-sm">
+                    Tìm
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MAIN -->
+<section class="bg-[#F4F7FE] py-10 -mt-10 relative z-20 rounded-t-[2rem]">
+    <div class="container mx-auto px-4 max-w-6xl">
+
+        <!-- Stats + Filter bar -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex gap-2 overflow-x-auto w-full sm:w-auto hide-scrollbar">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs whitespace-nowrap transition">Tất cả</button>
+                <button onclick="setFilter('free')" id="filter-free" class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-indigo-50 hover:text-indigo-600 whitespace-nowrap transition">🟢 Miễn phí</button>
+                <button onclick="setFilter('premium')" id="filter-premium" class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-indigo-50 hover:text-indigo-600 whitespace-nowrap transition">⭐ Premium</button>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 font-bold">
+                <span id="exam-count">@Model.Count đề thi</span>
+            </div>
+        </div>
+
+        <!-- Grid -->
+        <div id="exam-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            @foreach (var exam in Model)
+            {
+                string color = GetDurationColor(exam.DurationMinutes);
+                <div class="exam-card fade-up"
+                     data-name="@exam.ExerciseName.ToLower()"
+                     data-type="@(exam.IsFree ? "free" : "premium")">
+
+                    <!-- Top color bar -->
+                    <div style="height:4px; background:@color; width:100%;"></div>
+
+                    <div class="p-6 flex flex-col flex-1">
+                        <!-- Badge row -->
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-[10px] font-black px-3 py-1 rounded-full border uppercase tracking-widest"
+                                  style="background:@(color)15; color:@color; border-color:@(color)30;">
+                                @GetDurationLabel(exam.DurationMinutes)
+                            </span>
+                            @if (!exam.IsFree)
+                            {
+                                <span class="text-[10px] font-black text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                    <i class="fa-solid fa-crown text-[9px]"></i> Premium
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Title -->
+                        <h3 class="font-black text-slate-800 text-lg leading-snug mb-3 flex-1">@exam.ExerciseName</h3>
+
+                        <!-- Meta -->
+                        <div class="flex items-center gap-4 text-xs text-slate-400 font-bold mb-5 border-t border-slate-50 pt-4">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-question" style="color:@color"></i>
+                                @exam.TotalQuestions câu
+                            </span>
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-regular fa-clock" style="color:@color"></i>
+                                @(exam.DurationMinutes ?? 0) phút
+                            </span>
+                        </div>
+
+                        <!-- CTA -->
+                        @if (exam.IsFree)
+                        {
+                            <a asp-controller="Exam" asp-action="DoExam" asp-route-id="@exam.ExerciseId"
+                               class="w-full py-3 rounded-xl border-2 border-indigo-600 text-indigo-600 font-black text-xs uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition flex items-center justify-center gap-2">
+                                Thi ngay <i class="fa-solid fa-play text-[10px]"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Exam" asp-action="DoExam" asp-route-id="@exam.ExerciseId"
+                               class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition flex items-center justify-center gap-2 text-white"
+                               style="background:linear-gradient(135deg,#f97316,#ef4444); box-shadow:0 4px 16px rgba(249,115,22,.25);">
+                                Thi ngay <i class="fa-solid fa-lock-open text-[10px]"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden py-24 text-center text-slate-300 font-black uppercase text-xs tracking-widest">
+            <i class="fa-solid fa-magnifying-glass text-5xl mb-4 block opacity-20"></i>
+            Không tìm thấy đề thi phù hợp
+        </div>
+
+        <!-- Pagination (chỉ hiện khi > 9 đề) -->
+        @if (Model.Count > 9)
+        {
+            <div id="pagination" class="flex justify-center items-center gap-2 mt-4">
+                <button class="page-btn" id="prev-btn" onclick="changePage(-1)" disabled>
+                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                </button>
+                <div id="page-numbers" class="flex gap-2"></div>
+                <button class="page-btn" id="next-btn" onclick="changePage(1)">
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
+        }
+
+    </div>
+</section>
+
+<script>
+    const ITEMS_PER_PAGE = 9;
+    let currentPage = 1;
+    let currentFilter = 'all';
+    let searchQuery = '';
+
+    const allCards = Array.from(document.querySelectorAll('.exam-card'));
+
+    function getFilteredCards() {
+        return allCards.filter(card => {
+            const matchFilter = currentFilter === 'all' || card.dataset.type === currentFilter;
+            const matchSearch = !searchQuery || card.dataset.name.includes(searchQuery.toLowerCase());
+            return matchFilter && matchSearch;
+        });
+    }
+
+    function render() {
+        const filtered = getFilteredCards();
+        const total = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+
+        // Ẩn/hiện cards
+        allCards.forEach(c => c.style.display = 'none');
+        filtered.forEach((c, i) => {
+            c.style.display = (i >= start && i < end) ? 'flex' : 'none';
+        });
+
+        // Empty state
+        document.getElementById('empty-state').classList.toggle('hidden', total > 0);
+
+        // Count
+        document.getElementById('exam-count').textContent = `${total} đề thi`;
+
+        // Pagination
+        const pg = document.getElementById('pagination');
+        if (!pg) return;
+
+        pg.style.display = totalPages <= 1 ? 'none' : 'flex';
+
+        // Page numbers
+        const container = document.getElementById('page-numbers');
+        container.innerHTML = '';
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+            btn.textContent = i;
+            btn.onclick = () => { currentPage = i; render(); };
+            container.appendChild(btn);
+        }
+
+        document.getElementById('prev-btn').disabled = currentPage === 1;
+        document.getElementById('next-btn').disabled = currentPage === totalPages;
+    }
+
+    function changePage(dir) {
+        const filtered = getFilteredCards();
+        const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+        currentPage = Math.max(1, Math.min(totalPages, currentPage + dir));
+        render();
+    }
+
+    function setFilter(f) {
+        currentFilter = f;
+        currentPage = 1;
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('bg-indigo-600', 'text-white');
+            b.classList.add('bg-gray-100', 'text-gray-600');
+        });
+        const active = document.getElementById('filter-' + f);
+        active.classList.add('bg-indigo-600', 'text-white');
+        active.classList.remove('bg-gray-100', 'text-gray-600');
+        render();
+    }
+
+    function filterExams() {
+        searchQuery = document.getElementById('search-input').value;
+        currentPage = 1;
+        render();
+    }
+
+    // Init
+    render();
+</script>
