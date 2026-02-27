@@ -54,6 +54,7 @@ namespace ToanHocHay.WebApp.Controllers
             }
 
             ViewData["AttemptId"] = attemptId;
+            ViewData["Time"] = exam.DurationMinutes.HasValue ? $"{exam.DurationMinutes}:00" : "15:00";
             return View(exam);
         }
 
