@@ -16,6 +16,8 @@ builder.Services.AddHttpClient<CourseApiService>(client => client.BaseAddress = 
 builder.Services.AddHttpClient<ExamApiService>(client => client.BaseAddress = finalApiUrl);
 builder.Services.AddHttpClient<ChatApiService>(client => client.BaseAddress = finalApiUrl);
 builder.Services.AddHttpClient<IDashboardApiService, DashboardApiService>(client => client.BaseAddress = finalApiUrl);
+builder.Services.AddHttpClient<PackageApiService>();
+builder.Services.AddHttpClient<SubscriptionApiService>();
 
 // --- CẤU HÌNH SESSION CHO SERVER (BẮT BUỘC) ---
 builder.Services.AddDistributedMemoryCache(); // <--- THÊM DÒNG NÀY ĐỂ SERVER LƯU ĐƯỢC SESSION

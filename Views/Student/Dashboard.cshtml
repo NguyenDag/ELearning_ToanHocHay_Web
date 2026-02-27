@@ -363,7 +363,9 @@
                                             <p class="text-[10px] text-slate-400 font-bold uppercase mt-1 italic">@item.CompletedAt.ToString("dd/MM")</p>
                                         </div>
                                     </div>
-                                    <span class="text-sm font-black text-slate-800">@(item.IsCompleted ? "10.0" : "---")</span>
+                                    <span class="text-sm font-black text-slate-800">
+                                        @(item.IsCompleted && item.Score.HasValue ? item.Score.Value.ToString("F1") : item.IsCompleted ? "✓" : "---")
+                                    </span>
                                 </div>
                             }
                         }

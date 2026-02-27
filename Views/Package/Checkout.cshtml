@@ -1,0 +1,322 @@
+﻿@model ToanHocHay.WebApp.Models.DTOs.PackageDto
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Thanh toán";
+    var package = (ToanHocHay.WebApp.Models.DTOs.PackageDto)ViewData["Package"]!;
+    var subId = (int)ViewData["SubscriptionId"]!;
+    var qrUrl = (string)ViewData["QrUrl"]!;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+    body {
+        font-family: 'Nunito', sans-serif;
+        background: #F4F7FE;
+    }
+
+    .glass {
+        background: white;
+        border-radius: 2rem;
+        border: 1px solid #F1F5F9;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+    }
+
+    @@keyframes spin-slow {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @@keyframes pulse-ring {
+        0% {
+            transform: scale(1);
+            opacity: .6;
+        }
+
+        100% {
+            transform: scale(1.5);
+            opacity: 0;
+        }
+    }
+
+    @@keyframes check-pop {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+
+        70% {
+            transform: scale(1.2);
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .spinner {
+        animation: spin-slow 1.2s linear infinite;
+    }
+
+    .pulse-ring {
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        border: 3px solid #6366f1;
+        animation: pulse-ring 1.5s ease-out infinite;
+    }
+
+    .check-pop {
+        animation: check-pop .5s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+
+    .qr-img {
+        border-radius: 1.25rem;
+        border: 3px solid #E0E7FF;
+        padding: 12px;
+        background: white;
+    }
+
+    .step-dot {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .75rem;
+        font-weight: 900;
+        flex-shrink: 0;
+    }
+
+    #success-panel {
+        display: none;
+    }
+</style>
+
+<div class="min-h-screen py-10 px-4">
+    <div class="max-w-5xl mx-auto">
+
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-black text-slate-800 mb-2">Thanh toán đơn hàng</h1>
+            <p class="text-slate-400 font-bold">Quét mã QR để kích hoạt gói <span class="text-indigo-600">@package.PackageName</span></p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <!-- LEFT: QR + Hướng dẫn -->
+            <div class="glass p-8 flex flex-col items-center">
+
+                <!-- Trạng thái polling -->
+                <div id="status-badge" class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full mb-6">
+                    <div class="relative w-4 h-4">
+                        <div class="pulse-ring"></div>
+                        <div class="w-4 h-4 rounded-full bg-amber-400"></div>
+                    </div>
+                    <span class="text-xs font-black text-amber-700 uppercase tracking-widest">Chờ thanh toán...</span>
+                </div>
+
+                <!-- QR Code -->
+                <div id="qr-section">
+                    <img src="@qrUrl" alt="QR Thanh toán" class="qr-img w-56 h-56 object-contain mx-auto mb-6" />
+                    <p class="text-center text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest">Mã QR hết hạn sau</p>
+                    <p class="text-center text-2xl font-black text-indigo-600" id="countdown">15:00</p>
+                </div>
+
+                <!-- Success panel (ẩn, hiện khi thanh toán xong) -->
+                <div id="success-panel" class="text-center py-4">
+                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-check text-4xl text-green-500 check-pop"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-green-600 mb-2">Thanh toán thành công!</h3>
+                    <p class="text-slate-400 font-bold mb-6">Gói <b class="text-slate-700">@package.PackageName</b> đã được kích hoạt.</p>
+                    <a href="/Dashboard" class="px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl text-sm uppercase hover:bg-indigo-700 transition inline-block">
+                        Vào học ngay <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+
+                <!-- Hướng dẫn -->
+                <div class="w-full mt-8 space-y-3">
+                    @{
+                        var steps = new[] {
+                                        ("1", "Mở app ngân hàng bất kỳ", "fa-mobile-screen"),
+                                        ("2", "Chọn QR Pay / Quét mã", "fa-qrcode"),
+                                        ("3", "Quét mã QR bên trên", "fa-camera"),
+                                        ("4", "Xác nhận & chuyển khoản", "fa-check-double"),
+                                        };
+                    }
+                    @foreach (var (num, text, icon) in steps)
+                    {
+                        <div class="flex items-center gap-3">
+                            <div class="step-dot bg-indigo-100 text-indigo-600">@num</div>
+                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                <i class="fa-solid @icon text-indigo-400 w-4 text-center"></i>
+                                @text
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- RIGHT: Chi tiết đơn hàng -->
+            <div class="space-y-6">
+
+                <!-- Thông tin gói -->
+                <div class="glass p-8">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4">Chi tiết đơn hàng</h3>
+
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-2xl">
+                            @(package.PackageName.Contains("Premium") ? "⭐" : package.PackageName.Contains("Standard") ? "🎯" : "🆓")
+                        </div>
+                        <div>
+                            <p class="font-black text-slate-800 text-lg">@package.PackageName</p>
+                            <p class="text-sm text-slate-400 font-bold">@package.DurationDays ngày sử dụng</p>
+                        </div>
+                    </div>
+
+                    <!-- Features -->
+                    <div class="space-y-2 mb-6">
+                        @if (package.UnlimitedAiHint)
+                        {
+                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                <i class="fa-solid fa-check text-green-500"></i> AI Hint không giới hạn
+                            </div>
+                        }
+                        @if (package.PersonalizedPath)
+                        {
+                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                <i class="fa-solid fa-check text-green-500"></i> Lộ trình cá nhân hóa
+                            </div>
+                        }
+                        @if (package.MistakeRetry)
+                        {
+                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                <i class="fa-solid fa-check text-green-500"></i> Ôn luyện lỗi sai
+                            </div>
+                        }
+                        @if (package.SmartReminder)
+                        {
+                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                <i class="fa-solid fa-check text-green-500"></i> Nhắc nhở thông minh
+                            </div>
+                        }
+                        @if (package.PrioritySupport)
+                        {
+                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                <i class="fa-solid fa-check text-green-500"></i> Hỗ trợ ưu tiên
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Tổng tiền -->
+                    <div class="border-t pt-4 space-y-2">
+                        <div class="flex justify-between text-sm font-bold text-slate-500">
+                            <span>Giá gói</span>
+                            <span>@package.Price.ToString("N0") đ</span>
+                        </div>
+                        <div class="flex justify-between text-sm font-bold text-slate-500">
+                            <span>Giảm giá</span>
+                            <span class="text-green-500">0 đ</span>
+                        </div>
+                        <div class="flex justify-between font-black text-slate-800 text-xl pt-2 border-t">
+                            <span>Tổng thanh toán</span>
+                            <span class="text-indigo-600">@package.Price.ToString("N0") đ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mã đơn hàng -->
+                <div class="glass p-6 flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Mã đơn hàng</p>
+                        <p class="font-black text-slate-800 text-lg">#SUB-@subId.ToString("D6")</p>
+                    </div>
+                    <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                </div>
+
+                <!-- Lưu ý -->
+                <div class="glass p-6 bg-blue-50/30 border-blue-100">
+                    <div class="flex gap-3">
+                        <i class="fa-solid fa-circle-info text-blue-400 mt-0.5"></i>
+                        <div class="text-sm text-slate-500 font-bold space-y-1">
+                            <p>Gói sẽ được kích hoạt <b class="text-slate-700">ngay sau khi thanh toán thành công</b>.</p>
+                            <p>Nếu đã thanh toán nhưng chưa kích hoạt sau 5 phút, vui lòng liên hệ hỗ trợ.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút hủy -->
+                <a href="/Package" class="block text-center text-sm text-slate-400 font-bold hover:text-slate-600 transition py-2">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Quay lại chọn gói khác
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const subscriptionId = @subId;
+    let pollInterval;
+    let countdownSeconds = 15 * 60;
+
+    // ── Countdown ────────────────────────────────────────────────
+    const countdownEl = document.getElementById('countdown');
+    const countdownTimer = setInterval(() => {
+        if (countdownSeconds <= 0) {
+            clearInterval(countdownTimer);
+            clearInterval(pollInterval);
+            countdownEl.textContent = 'Hết hạn';
+            countdownEl.classList.add('text-red-500');
+            document.getElementById('status-badge').innerHTML =
+                `<i class="fa-solid fa-clock text-red-400"></i>
+                 <span class="text-xs font-black text-red-600 uppercase tracking-widest">QR đã hết hạn</span>`;
+            return;
+        }
+        const m = Math.floor(countdownSeconds / 60);
+        const s = countdownSeconds % 60;
+        countdownEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        countdownSeconds--;
+    }, 1000);
+
+    // ── Polling kiểm tra thanh toán ──────────────────────────────
+    async function checkPaymentStatus() {
+        try {
+            const res = await fetch(`/Package/CheckStatus?subscriptionId=${subscriptionId}`);
+            const data = await res.json();
+
+            if (data.status === 'Active') {
+                clearInterval(pollInterval);
+                clearInterval(countdownTimer);
+                showSuccess(data.endDate);
+            }
+        } catch (e) {
+            console.error('Polling error:', e);
+        }
+    }
+
+    function showSuccess(endDate) {
+        // Ẩn QR, hiện success
+        document.getElementById('qr-section').style.display = 'none';
+        document.getElementById('success-panel').style.display = 'block';
+
+        // Cập nhật badge
+        document.getElementById('status-badge').innerHTML =
+            `<i class="fa-solid fa-check text-green-500"></i>
+             <span class="text-xs font-black text-green-700 uppercase tracking-widest">Đã thanh toán!</span>`;
+        document.getElementById('status-badge').className =
+            'flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full mb-6';
+    }
+
+    // Poll mỗi 3 giây
+    pollInterval = setInterval(checkPaymentStatus, 3000);
+    // Check ngay lần đầu sau 2 giây
+    setTimeout(checkPaymentStatus, 2000);
+</script>
