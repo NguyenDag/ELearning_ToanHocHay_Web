@@ -238,7 +238,13 @@
             <div class="stat-card">
                 <p class="stat-label mb-2 text-left">Điểm trung bình</p>
                 <p class="stat-value text-indigo-600 text-left">@(isDbConnected? Model!.Stats.AverageScore.ToString("F1") : "0.0")</p>
-                <p class="text-[10px] text-slate-400 font-bold mt-2 text-left uppercase tracking-widest">Khá tốt</p>
+                <p class="text-[10px] text-slate-400 font-bold mt-2 text-left uppercase tracking-widest">
+                    @{
+                        var avg = isDbConnected ? Model!.Stats.AverageScore : 0;
+                        var label = avg >= 8.5 ? "Xuất sắc" : avg >= 7.0 ? "Khá tốt" : avg >= 5.0 ? "Trung bình" : avg > 0 ? "Cần cố gắng" : "Chưa có dữ liệu";
+                    }
+                    @label
+                </p>
             </div>
             <div class="stat-card @(canAiHint ? "bg-indigo-50/30 border-indigo-100" : "bg-orange-50/30 border-orange-100")">
                 <p class="stat-label mb-2 text-left @(canAiHint ? "text-indigo-400" : "text-orange-500")">AI Hint hôm nay</p>
