@@ -53,6 +53,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public int DurationMinutes { get; set; }
         public bool IsCompleted { get; set; }
         public int ProgressPercentage { get; set; }
+        public double? Score { get; set; }
     }
     public class ChapterProgressSummaryDto
     {
