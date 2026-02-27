@@ -413,7 +413,7 @@
         }
 
 
-                function addExistingContentBlock(content) {
+        function addExistingContentBlock(content) {
 
             contentBlockCounter++;
             const blockId = `content_${contentBlockCounter}`;
@@ -563,6 +563,8 @@
                 LessonContents: []
             };
 
+            console.log("Bắt đầu thực hiện lưu ở đây!");
+
             // Select Curriculum
             const curriculumId = document.getElementById('curriculumSelect').value;
             if (!curriculumId) {
@@ -604,6 +606,7 @@
                 data.Topic = {
                     TopicId: parseInt(topicSelect)
                 };
+                console.log("Topic được chọn với id là:", data.Topic.TopicId);
             }
 
             // =========================
@@ -626,6 +629,7 @@
                 data.Lesson = {
                     LessonId: parseInt(lessonSelect)
                 };
+                console.log("Lesson được chọn với id là:", data.Lesson.LessonId);
             }
 
             if (!data.Lesson) {
@@ -643,8 +647,34 @@
                 return;
             }
 
+            // const blockTypeMap = {
+            //     "Heading": 0,
+            //     "Text": 1,
+            //     "Definition": 2,
+            //     "Example": 3,
+            //     "Note": 4,
+            //     "Formula": 5,
+            //     "Image": 6,
+            //     "Video": 7,
+            //     "Pdf": 8,
+            //     "Audio": 9
+            // };
+
             contentBlocks.forEach((block, index) => {
-                const blockType = block.dataset.blocktype;
+                const select = block.querySelector('.blockType');
+
+                let blockType;
+
+                if (select) {
+                    blockType = parseInt(select.value);
+                } else {
+                    blockType = parseInt(block.dataset.blocktype);
+                }
+
+                if (isNaN(blockType)) {
+                    blockType = 1; // fallback Text
+                }
+
                 const contentText = block.querySelector('.contentText')?.value || null;
                 const contentUrl = block.querySelector('.contentUrl')?.value || null;
 
