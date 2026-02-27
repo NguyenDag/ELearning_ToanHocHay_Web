@@ -1,9 +1,9 @@
 ﻿// ============================================================
 // FILE: ToanHocHay.WebApp/Services/DashboardApiService.cs
-// Fix deserialize ApiResponse<T> wrapper + subscription info
 // ============================================================
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Text.Json;
 using ToanHocHay.WebApp.Models.DTOs;
 
@@ -33,14 +33,35 @@ namespace ToanHocHay.WebApp.Services
                 _httpContextAccessor.HttpContext.Items["LastApiStatus"] = status;
         }
 
+        private string? GetToken()
+        {
+            var ctx = _httpContextAccessor.HttpContext;
+            if (ctx == null) return null;
+
+            // Ưu tiên 1: Session (nhanh, còn thì dùng)
+            var sessionToken = ctx.Session.GetString("Token")
+                            ?? ctx.Session.GetString("JWT");
+            if (!string.IsNullOrEmpty(sessionToken))
+                return sessionToken;
+
+            // Ưu tiên 2: Cookie claim "Token" (không bao giờ mất trừ khi logout)
+            var claimToken = ctx.User.FindFirst("Token")?.Value
+                          ?? ctx.User.FindFirst("jwt")?.Value;
+            if (!string.IsNullOrEmpty(claimToken))
+                return claimToken;
+
+            return null;
+        }
+
         public async Task<CoreDashboardDto?> GetStudentDashboardAsync(int studentId)
         {
             try
             {
-                var token = _httpContextAccessor.HttpContext?.Session.GetString("Token");
+                var token = GetToken();
+
                 if (string.IsNullOrEmpty(token))
                 {
-                    SetStatus("TOKEN_MISSING_ON_SERVER");
+                    SetStatus("TOKEN_MISSING");
                     return null;
                 }
 
@@ -57,7 +78,6 @@ namespace ToanHocHay.WebApp.Services
                     return null;
                 }
 
-                // ✅ FIX CHÍNH: Backend trả ApiResponse<CoreDashboardDto>, không phải CoreDashboardDto thẳng
                 var apiResponse = await response.Content
                     .ReadFromJsonAsync<ApiResponse<CoreDashboardDto>>(_jsonOptions);
 
@@ -66,6 +86,9 @@ namespace ToanHocHay.WebApp.Services
                     SetStatus($"API_FAIL:{apiResponse?.Message ?? "null"}");
                     return null;
                 }
+
+                // Ghi lại session để lần sau dùng nhanh hơn
+                _httpContextAccessor.HttpContext?.Session.SetString("Token", token);
 
                 return apiResponse.Data;
             }

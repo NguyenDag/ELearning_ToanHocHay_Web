@@ -281,16 +281,29 @@
         });
     }
 
-    // Preselect nếu có ?plan=premium
+    // Highlight card được preselect từ ?plan=
     const plan = "@preselected".toLowerCase();
-    if (plan.includes('premium') || plan.includes('standard')) {
-        // Scroll tới card tương ứng
+    if (plan) {
         window.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.pkg-card');
-            cards.forEach(card => {
-                if (card.innerText.toLowerCase().includes(plan)) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    card.style.boxShadow = '0 0 0 3px #6366f1, 0 20px 48px rgba(99,102,241,.2)';
+            document.querySelectorAll('.pkg-card').forEach(card => {
+                const name = card.querySelector('h3')?.textContent?.toLowerCase() ?? '';
+                const isPremiumPlan = plan.includes('premium') && name.includes('premium');
+                const isStandardPlan = plan.includes('standard') && name.includes('standard');
+                const isYearPlan = plan.includes('year') && (name.includes('year') || name.includes('năm'));
+
+                if (isPremiumPlan || isStandardPlan || isYearPlan) {
+                    // Highlight viền
+                    card.style.boxShadow = '0 0 0 3px #6366f1, 0 20px 48px rgba(99,102,241,.25)';
+                    card.style.borderColor = '#6366f1';
+
+                    // Thêm badge "Đang xem"
+                    const badge = document.createElement('div');
+                    badge.style.cssText = 'position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:#6366f1;color:white;font-size:.6rem;font-weight:900;padding:.3rem .85rem;border-radius:0 0 .75rem .75rem;letter-spacing:.06em;white-space:nowrap;';
+                    badge.innerHTML = '👆 Được đề xuất';
+                    card.appendChild(badge);
+
+                    // Scroll vào
+                    setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
                 }
             });
         });

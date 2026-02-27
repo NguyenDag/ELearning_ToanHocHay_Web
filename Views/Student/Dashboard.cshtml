@@ -110,34 +110,6 @@
         font-size: 11px;
         border-radius: 1rem;
     }
-
-    /* Pricing modal */
-    .pricing-card {
-        border-radius: 1.5rem;
-        padding: 1.75rem;
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #F1F5F9;
-        transition: box-shadow .25s, transform .25s;
-    }
-
-        .pricing-card:hover {
-            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-
-    .btn-pricing {
-        width: 100%;
-        padding: .75rem;
-        border-radius: .875rem;
-        font-size: .7rem;
-        font-weight: 800;
-        letter-spacing: .05em;
-        text-transform: uppercase;
-        cursor: pointer;
-        border: none;
-        transition: all .2s;
-    }
 </style>
 
 <div class="min-h-screen py-8">
@@ -181,7 +153,6 @@
                         }
                         else
                         {
-
                             <span>Hãy bắt đầu bài học đầu tiên ngay hôm nay!</span>
                         }
                     </p>
@@ -196,7 +167,7 @@
             </div>
         </div>
 
-        <!-- PREMIUM PROMO (chỉ hiện với Free / Standard) -->
+        <!-- PREMIUM PROMO (chỉ hiện với Free) -->
         @if (isFree)
         {
             <div class="purple-gradient rounded-[2.5rem] p-10 mb-10 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl shadow-indigo-100 relative overflow-hidden">
@@ -208,9 +179,14 @@
                         <p class="text-indigo-100 font-medium max-w-md">Nâng cấp để sử dụng AI Hint không giới hạn, lộ trình cá nhân hóa và báo cáo phân tích lỗi sai.</p>
                     </div>
                 </div>
-                <button onclick="openPricing()" class="px-10 py-5 bg-white text-indigo-600 font-black rounded-2xl text-xs uppercase shadow-xl hover:scale-105 transition relative z-10">Khám phá gói Premium</button>
+                <a href="/Package?plan=premium"
+                   class="px-10 py-5 bg-white text-indigo-600 font-black rounded-2xl text-xs uppercase shadow-xl hover:scale-105 transition relative z-10">
+                    Khám phá gói Premium
+                </a>
             </div>
         }
+
+        <!-- STANDARD → PREMIUM PROMO -->
         @if (isStandard && !isPremium)
         {
             <div class="glass-card p-5 mb-8 flex items-center justify-between bg-amber-50/50 border-amber-100">
@@ -221,7 +197,10 @@
                         <p class="text-xs text-amber-600">Mở khóa AI Assessment, lộ trình cá nhân hóa và AI Hint không giới hạn.</p>
                     </div>
                 </div>
-                <button onclick="openPricing()" class="px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-black rounded-xl text-xs uppercase hover:opacity-90 transition">Nâng cấp</button>
+                <a href="/Package?plan=premium"
+                   class="px-6 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-black rounded-xl text-xs uppercase hover:opacity-90 transition">
+                    Nâng cấp
+                </a>
             </div>
         }
 
@@ -241,7 +220,7 @@
                 <p class="text-[10px] text-slate-400 font-bold mt-2 text-left uppercase tracking-widest">
                     @{
                         var avg = isDbConnected ? Model!.Stats.AverageScore : 0;
-                        var label = avg >= 8.5 ? "Xuất sắc" : avg >= 7.0 ? "Khá tốt" : avg >= 5.0 ? "Trung bình" : avg > 0 ? "Cần cố gắng" : "Chưa có dữ liệu";
+                        var label = avg >= 85 ? "Xuất sắc" : avg >= 70 ? "Khá tốt" : avg >= 50 ? "Trung bình" : avg > 0 ? "Cần cố gắng" : "Chưa có dữ liệu";
                     }
                     @label
                 </p>
@@ -265,10 +244,15 @@
                     @if (!canChart)
                     {
                         <div class="locked-overlay">
-                            <div class="w-16 h-16 bg-white rounded-3xl shadow-xl flex items-center justify-center text-indigo-600 mb-6 border border-indigo-50"><i class="fa-solid fa-lock text-3xl"></i></div>
+                            <div class="w-16 h-16 bg-white rounded-3xl shadow-xl flex items-center justify-center text-indigo-600 mb-6 border border-indigo-50">
+                                <i class="fa-solid fa-lock text-3xl"></i>
+                            </div>
                             <h4 class="text-2xl font-black text-slate-800 mb-2">Biểu đồ phân tích chuyên sâu</h4>
                             <p class="text-slate-400 font-bold mb-8 text-center max-w-xs">Gói Standard trở lên giúp bạn theo dõi sự tiến bộ qua từng tuần học.</p>
-                            <button onclick="openPricing()" class="px-8 py-4 purple-gradient text-white font-black rounded-2xl text-[10px] uppercase shadow-lg shadow-indigo-100">Nâng cấp để xem</button>
+                            <a href="/Package?plan=standard"
+                               class="px-8 py-4 purple-gradient text-white font-black rounded-2xl text-[10px] uppercase shadow-lg shadow-indigo-100">
+                                Nâng cấp để xem
+                            </a>
                         </div>
                     }
                     <div class="w-full h-full opacity-5 flex items-center justify-center italic font-black text-slate-400 uppercase tracking-[1em]">Analytics</div>
@@ -320,7 +304,6 @@
                                             }
                                             else
                                             {
-
                                                 <span>Hoàn thành @ch.CompletedTopics / @ch.TotalTopics chủ đề</span>
                                             }
                                         </p>
@@ -370,7 +353,7 @@
                                         </div>
                                     </div>
                                     <span class="text-sm font-black text-slate-800">
-                                        @(item.IsCompleted && item.Score.HasValue ? item.Score.Value.ToString("F1") : item.IsCompleted ? "✓" : "---")
+                                        @(item.Score.HasValue? item.Score.Value.ToString("F1") : item.IsCompleted ? "✓" : "---")
                                     </span>
                                 </div>
                             }
@@ -386,16 +369,20 @@
                 </div>
 
                 <!-- AI Assessment (locked nếu chưa Premium) -->
-                <div class="glass-card p-8 text-center bg-slate-900 text-white border-none shadow-2xl relative overflow-hidden @(!canAiAssessment ? "cursor-pointer" : "")"
-                     @(!canAiAssessment ? "onclick=\"openPricing()\"" : "")>
+                <div class="glass-card p-8 text-center bg-slate-900 text-white border-none shadow-2xl relative overflow-hidden">
                     <div class="absolute inset-0 purple-gradient opacity-20"></div>
                     @if (!canAiAssessment)
                     {
                         <div class="locked-overlay" style="background:rgba(15,23,42,0.75)">
-                            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-indigo-400 mb-3"><i class="fa-solid fa-brain text-xl"></i></div>
+                            <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-indigo-400 mb-3">
+                                <i class="fa-solid fa-brain text-xl"></i>
+                            </div>
                             <p class="font-black text-white text-sm mb-1">AI Assessment</p>
                             <p class="text-slate-400 text-xs mb-4 max-w-[160px]">Phân tích điểm yếu kiến thức. Chỉ dành cho Premium.</p>
-                            <button onclick="openPricing()" class="px-5 py-2 bg-amber-400 text-slate-900 font-black rounded-xl text-[10px] uppercase">Nâng lên Premium</button>
+                            <a href="/Package?plan=premium"
+                               class="px-5 py-2 bg-amber-400 text-slate-900 font-black rounded-xl text-[10px] uppercase">
+                                Nâng lên Premium
+                            </a>
                         </div>
                     }
                     <div class="relative z-10">
@@ -411,15 +398,19 @@
                 </div>
 
                 <!-- Lộ trình học AI (locked nếu chưa Premium) -->
-                <div class="glass-card p-8 text-center border-none bg-white shadow-blue-100 relative overflow-hidden @(!canPersonalPath ? "cursor-pointer" : "")"
-                     @(!canPersonalPath ? "onclick=\"openPricing()\"" : "")>
+                <div class="glass-card p-8 text-center border-none bg-white shadow-blue-100 relative overflow-hidden">
                     @if (!canPersonalPath)
                     {
                         <div class="locked-overlay">
-                            <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 mb-3"><i class="fa-solid fa-map-location-dot text-xl"></i></div>
+                            <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 mb-3">
+                                <i class="fa-solid fa-map-location-dot text-xl"></i>
+                            </div>
                             <p class="font-black text-slate-800 text-sm mb-1">Lộ trình cá nhân hóa</p>
                             <p class="text-slate-400 text-xs mb-4 max-w-[180px]">AI sắp xếp bài học theo lỗ hổng kiến thức. Yêu cầu Premium.</p>
-                            <button onclick="openPricing()" class="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black rounded-xl text-[10px] uppercase">Nâng lên Premium</button>
+                            <a href="/Package?plan=premium"
+                               class="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black rounded-xl text-[10px] uppercase">
+                                Nâng lên Premium
+                            </a>
                         </div>
                     }
                     <h4 class="text-sm font-black text-slate-800 mb-2 uppercase tracking-tighter text-left">Lộ trình học AI</h4>
@@ -435,135 +426,7 @@
     </div>
 </div>
 
-<!-- ── PRICING MODAL ──────────────────────────────────────────── -->
-<div id="pricing-modal"
-     style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.5); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:1rem;"
-     onclick="if(event.target===this) closePricing()">
-
-    <div style="background:white; border-radius:2rem; width:100%; max-width:1000px; max-height:92vh; overflow-y:auto; position:relative; padding:2.5rem;">
-
-        <!-- Close -->
-        <button onclick="closePricing()"
-                style="position:absolute; top:1rem; right:1rem; width:2.5rem; height:2.5rem; border-radius:50%; background:#F1F5F9; border:none; color:#64748b; cursor:pointer; font-size:1.1rem;">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
-
-        <!-- Header -->
-        <div style="text-align:center; margin-bottom:2rem;">
-            <h2 style="font-family:'Nunito',sans-serif; font-size:2rem; font-weight:900; color:#1E293B; margin-bottom:.5rem;">
-                Đầu tư cho tương lai Toán học 🚀
-            </h2>
-            <p style="color:#94a3b8; font-size:.875rem; font-weight:700;">Chọn gói phù hợp để mở khóa <span style="color:#6366f1; font-weight:900;">AI Tutor</span> và lộ trình cá nhân hóa.</p>
-
-            <!-- Toggle -->
-            <div style="display:inline-flex; background:#F1F5F9; border-radius:999px; padding:.25rem; margin-top:1.25rem; position:relative;">
-                <div id="ptoggle-bg"
-                     style="position:absolute; top:.25rem; bottom:.25rem; left:.25rem; width:calc(50% - .25rem); background:white; border-radius:999px; box-shadow:0 2px 8px rgba(0,0,0,0.1); transition:transform .3s ease;"></div>
-                <button id="pbtn-month" onclick="switchPricing('month')"
-                        style="position:relative; z-index:1; padding:.45rem 1.5rem; border-radius:999px; border:none; background:transparent; color:#1E293B; font-family:'Nunito',sans-serif; font-size:.75rem; font-weight:900; cursor:pointer; letter-spacing:.03em;">
-                    Theo tháng
-                </button>
-                <button id="pbtn-year" onclick="switchPricing('year')"
-                        style="position:relative; z-index:1; padding:.45rem 1.5rem; border-radius:999px; border:none; background:transparent; color:#94a3b8; font-family:'Nunito',sans-serif; font-size:.75rem; font-weight:900; cursor:pointer; letter-spacing:.03em; display:flex; align-items:center; gap:.4rem;">
-                    Theo năm
-                    <span style="background:#FEE2E2; color:#ef4444; font-size:.6rem; font-weight:900; padding:.15rem .45rem; border-radius:.4rem;">-30%</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Cards -->
-        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.25rem;">
-
-            <!-- Free -->
-            <div class="pricing-card" style="background:#F8FAFC;">
-                <span style="display:inline-block; background:#E2E8F0; color:#64748b; font-size:.6rem; font-weight:900; padding:.2rem .65rem; border-radius:.4rem; margin-bottom:1rem; text-transform:uppercase; letter-spacing:.08em;">Trải nghiệm</span>
-                <h3 style="font-family:'Nunito',sans-serif; font-size:1.2rem; font-weight:900; color:#1E293B; margin-bottom:.25rem;">Miễn phí</h3>
-                <p style="font-size:.75rem; color:#94a3b8; font-weight:700; margin-bottom:1rem;">Dành cho học sinh muốn làm quen.</p>
-                <div style="margin-bottom:1.25rem;">
-                    <span style="font-family:'Nunito',sans-serif; font-size:2.25rem; font-weight:900; color:#1E293B;">0</span>
-                    <span style="font-size:.85rem; color:#94a3b8; font-weight:700;">đ</span>
-                </div>
-                <ul style="list-style:none; padding:0; margin:0 0 1.5rem; flex:1; display:flex; flex-direction:column; gap:.6rem;">
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#475569; font-weight:700;"><i class="fa-solid fa-check" style="color:#22c55e; margin-top:2px; flex-shrink:0;"></i>Học thử 3 bài đầu mỗi chương</li>
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#475569; font-weight:700;"><i class="fa-solid fa-check" style="color:#22c55e; margin-top:2px; flex-shrink:0;"></i>Bài tập cơ bản</li>
-                </ul>
-                <button onclick="closePricing()" class="btn-pricing" style="background:#F1F5F9; color:#64748b;">Đang dùng</button>
-            </div>
-
-            <!-- Standard -->
-            <div class="pricing-card" style="border:1px solid #C7D2FE; background:#EEF2FF;">
-                <span style="display:inline-block; background:#C7D2FE; color:#4338ca; font-size:.6rem; font-weight:900; padding:.2rem .65rem; border-radius:.4rem; margin-bottom:1rem; text-transform:uppercase; letter-spacing:.08em;">Cơ bản</span>
-                <h3 style="font-family:'Nunito',sans-serif; font-size:1.2rem; font-weight:900; color:#1E293B; margin-bottom:.25rem;">Standard</h3>
-                <p style="font-size:.75rem; color:#94a3b8; font-weight:700; margin-bottom:1rem;">Đầy đủ kiến thức sách giáo khoa.</p>
-                <div style="margin-bottom:1.25rem;">
-                    <span class="price-val" data-month="149k" data-year="1,049k"
-                          style="font-family:'Nunito',sans-serif; font-size:2.25rem; font-weight:900; color:#4338ca;">149k</span>
-                    <span class="price-period" style="font-size:.85rem; color:#94a3b8; font-weight:700;">/tháng</span>
-                </div>
-                <ul style="list-style:none; padding:0; margin:0 0 1.5rem; flex:1; display:flex; flex-direction:column; gap:.6rem;">
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#475569; font-weight:700;"><i class="fa-solid fa-check" style="color:#22c55e; margin-top:2px; flex-shrink:0;"></i>Toàn bộ bài giảng & bài tập</li>
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#475569; font-weight:700;"><i class="fa-solid fa-check" style="color:#22c55e; margin-top:2px; flex-shrink:0;"></i>AI Hint (5 lần/ngày)</li>
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#475569; font-weight:700;"><i class="fa-solid fa-check" style="color:#22c55e; margin-top:2px; flex-shrink:0;"></i>Biểu đồ tiến độ</li>
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#475569; font-weight:700;"><i class="fa-solid fa-check" style="color:#22c55e; margin-top:2px; flex-shrink:0;"></i>Ôn luyện lỗi sai</li>
-                </ul>
-                <button onclick="closePricing(); window.location='/Package?plan=standard'" class="btn-pricing"
-                        style="background:white; color:#4338ca; border:2px solid #6366f1;">
-                    Chọn Standard
-                </button>
-            </div>
-
-            <!-- Premium -->
-            <div class="pricing-card" style="border:2px solid #FB923C; background:white; position:relative; overflow:hidden; transform:translateY(-8px);">
-                <div style="position:absolute; top:0; right:0; background:linear-gradient(135deg,#f97316,#ef4444); color:white; font-size:.6rem; font-weight:900; padding:.3rem .85rem; border-radius:0 1.5rem 0 .75rem; letter-spacing:.06em;">
-                    <i class="fa-solid fa-star mr-1"></i> KHUYÊN DÙNG
-                </div>
-                <span style="display:inline-block; background:#FEF3C7; color:#d97706; font-size:.6rem; font-weight:900; padding:.2rem .65rem; border-radius:.4rem; margin-bottom:1rem; text-transform:uppercase; letter-spacing:.08em; margin-top:.5rem;">Nâng cao</span>
-                <h3 style="font-family:'Nunito',sans-serif; font-size:1.2rem; font-weight:900; color:#1E293B; margin-bottom:.25rem;">Premium</h3>
-                <p style="font-size:.75rem; color:#94a3b8; font-weight:700; margin-bottom:1rem;">Tối ưu điểm số với AI Tutor.</p>
-                <div style="margin-bottom:1.25rem;">
-                    <span class="price-val" data-month="249k" data-year="1,749k"
-                          style="font-family:'Nunito',sans-serif; font-size:2.25rem; font-weight:900; color:#f97316;">249k</span>
-                    <span class="price-period" style="font-size:.85rem; color:#94a3b8; font-weight:700;">/tháng</span>
-                </div>
-                <ul style="list-style:none; padding:0; margin:0 0 1.5rem; flex:1; display:flex; flex-direction:column; gap:.6rem;">
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#1E293B; font-weight:700;"><i class="fa-solid fa-check" style="color:#f97316; margin-top:2px; flex-shrink:0;"></i>AI Hint không giới hạn</li>
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#1E293B; font-weight:700;"><i class="fa-solid fa-check" style="color:#f97316; margin-top:2px; flex-shrink:0;"></i>Lộ trình cá nhân hóa</li>
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#1E293B; font-weight:700;"><i class="fa-solid fa-check" style="color:#f97316; margin-top:2px; flex-shrink:0;"></i>AI Assessment</li>
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#1E293B; font-weight:700;"><i class="fa-solid fa-check" style="color:#f97316; margin-top:2px; flex-shrink:0;"></i>Hỗ trợ ưu tiên</li>
-                </ul>
-                <button onclick="closePricing(); window.location='/Package?plan=premium'" class="btn-pricing"
-                        style="background:linear-gradient(135deg,#f97316,#ef4444); color:white; box-shadow:0 8px 24px rgba(249,115,22,.35);">
-                    Đăng ký Premium
-                </button>
-            </div>
-
-            <!-- Gói Năm -->
-            <div class="pricing-card" style="background:#0F172A; color:white; border:none; position:relative; overflow:hidden;">
-                <div style="position:absolute; top:-40px; right:-40px; width:140px; height:140px; background:#6366f1; border-radius:50%; filter:blur(60px); opacity:.2;"></div>
-                <span style="display:inline-block; background:rgba(99,102,241,.2); color:#818cf8; font-size:.6rem; font-weight:900; padding:.2rem .65rem; border-radius:.4rem; margin-bottom:1rem; text-transform:uppercase; letter-spacing:.08em; border:1px solid rgba(99,102,241,.3);">Tiết kiệm nhất</span>
-                <h3 style="font-family:'Nunito',sans-serif; font-size:1.2rem; font-weight:900; color:white; margin-bottom:.25rem;">Gói Năm</h3>
-                <p style="font-size:.75rem; color:#64748b; font-weight:700; margin-bottom:1rem;">Cam kết đồng hành dài hạn.</p>
-                <div style="margin-bottom:.5rem;">
-                    <span style="font-family:'Nunito',sans-serif; font-size:2.25rem; font-weight:900; color:white;">1,990k</span>
-                    <span style="font-size:.85rem; color:#64748b; font-weight:700;">/năm</span>
-                </div>
-                <p style="font-size:.75rem; color:#4ade80; font-weight:900; margin-bottom:1.25rem;">Tiết kiệm ~1 triệu đồng</p>
-                <ul style="list-style:none; padding:0; margin:0 0 1.5rem; flex:1; display:flex; flex-direction:column; gap:.6rem;">
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#94a3b8; font-weight:700;"><i class="fa-solid fa-check" style="color:#facc15; margin-top:2px; flex-shrink:0;"></i>Tất cả quyền lợi Premium</li>
-                    <li style="display:flex; gap:.5rem; font-size:.8rem; color:#94a3b8; font-weight:700;"><i class="fa-solid fa-check" style="color:#facc15; margin-top:2px; flex-shrink:0;"></i>Lộ trình ôn thi học kỳ</li>
-                </ul>
-                <button onclick="closePricing(); window.location='/Package?plan=year'" class="btn-pricing"
-                        style="background:white; color:#0F172A;">
-                    Mua gói Năm
-                </button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
 <script>
-    // Progress bar animation
     window.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.progress-fill').forEach(el => {
             const w = el.style.width;
@@ -572,14 +435,12 @@
         });
     });
 
-    // ── Show more / less chapters ─────────────────────────────────
     let expanded = false;
     function toggleChapters() {
         expanded = !expanded;
         const extras  = document.querySelectorAll('.ch-extra');
         const btnText = document.getElementById('btn-text');
         const btnIcon = document.getElementById('btn-icon');
-
         extras.forEach((el, i) => {
             if (expanded) {
                 el.style.display = 'flex';
@@ -592,32 +453,7 @@
                 el.style.display = 'none';
             }
         });
-
         btnText.textContent = expanded ? 'Thu gọn' : `Xem thêm ${extras.length} chương`;
         btnIcon.className   = expanded ? 'fa-solid fa-chevron-up text-[10px]' : 'fa-solid fa-chevron-down text-[10px]';
-    }
-
-    // ── Pricing Modal ─────────────────────────────────────────────
-    function openPricing() {
-        document.getElementById('pricing-modal').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-    function closePricing() {
-        document.getElementById('pricing-modal').style.display = 'none';
-        document.body.style.overflow = '';
-    }
-
-    // Switch tháng / năm
-    function switchPricing(mode) {
-        const isYear = mode === 'year';
-        document.getElementById('pbtn-month').style.color = isYear ? '#94a3b8' : '#1E293B';
-        document.getElementById('pbtn-year').style.color  = isYear ? '#1E293B' : '#94a3b8';
-        document.getElementById('ptoggle-bg').style.transform = isYear ? 'translateX(100%)' : 'translateX(0)';
-        document.querySelectorAll('.price-val').forEach(el => {
-            el.textContent = isYear ? el.dataset.year : el.dataset.month;
-        });
-        document.querySelectorAll('.price-period').forEach(el => {
-            el.textContent = isYear ? '/năm' : '/tháng';
-        });
     }
 </script>

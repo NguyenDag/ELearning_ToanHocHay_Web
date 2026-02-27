@@ -29,7 +29,7 @@ namespace ToanHocHay.WebApp.Controllers
         public IActionResult Login()
         {
             if (User.Identity?.IsAuthenticated == true)
-                return RedirectToAction("Index", "Course");
+                return RedirectToAction("Index", "Home");
 
             ViewBag.Mode = "login";
             return View();
@@ -61,7 +61,8 @@ namespace ToanHocHay.WebApp.Controllers
                 new Claim(ClaimTypes.NameIdentifier, data.UserId.ToString()),
                 new Claim(ClaimTypes.Name, data.FullName ?? ""),
                 new Claim(ClaimTypes.Email, data.Email ?? ""),
-                new Claim(ClaimTypes.Role, data.UserType.ToString())
+                new Claim(ClaimTypes.Role, data.UserType.ToString()),
+                new Claim("Token", data.Token), // THÊM DÒNG NÀY
             };
 
             if (data.StudentId.HasValue) claims.Add(new Claim("StudentId", data.StudentId.Value.ToString()));
