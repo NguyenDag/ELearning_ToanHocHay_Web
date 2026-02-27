@@ -76,7 +76,7 @@ namespace ToanHocHay.WebApp.Controllers
             });
 
             _logger.LogInformation("User {Email} đăng nhập thành công.", email);
-            return RedirectToAction("Index", "Course");
+            return RedirectToAction("Index", "Home");
         }
 
         // ================= REGISTER =================
