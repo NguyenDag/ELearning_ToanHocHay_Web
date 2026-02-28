@@ -43,6 +43,26 @@ namespace ToanHocHay.WebApp.Services
             }
             catch { return null; }
         }
+        public async Task<CurrentSubscriptionDto?> GetCurrentSubscriptionAsync(int studentId)
+        {
+            try
+            {
+                var token = _httpContextAccessor.HttpContext?.Session.GetString("Token")
+                         ?? _httpContextAccessor.HttpContext?.User.FindFirst("Token")?.Value;
+                if (string.IsNullOrEmpty(token)) return null;
+
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token.Trim());
+
+                var response = await _httpClient.GetAsync($"student/{studentId}/subscription/current");
+                if (!response.IsSuccessStatusCode) return null;
+
+                var wrapper = await response.Content
+                    .ReadFromJsonAsync<ApiResponse<CurrentSubscriptionDto>>(_jsonOptions);
+                return wrapper?.Success == true ? wrapper.Data : null;
+            }
+            catch { return null; }
+        }
 
         /// <summary>
         /// Kiểm tra trạng thái subscription

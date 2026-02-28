@@ -5,6 +5,11 @@
     var package = (ToanHocHay.WebApp.Models.DTOs.PackageDto)ViewData["Package"]!;
     var subId = (int)ViewData["SubscriptionId"]!;
     var qrUrl = (string)ViewData["QrUrl"]!;
+    var stuName = ViewData["StudentName"]?.ToString() ?? "";
+    var stuId = ViewData["StudentId"]?.ToString() ?? "";
+
+    // Nội dung chuyển khoản chuẩn SePay — format: THH + subId
+    var transferContent = $"THH{subId:D6}";
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -22,12 +27,6 @@
         border-radius: 2rem;
         border: 1px solid #F1F5F9;
         box-shadow: 0 4px 24px rgba(0,0,0,0.05);
-    }
-
-    @@keyframes spin-slow {
-        to {
-            transform: rotate(360deg);
-        }
     }
 
     @@keyframes pulse-ring {
@@ -56,10 +55,6 @@
             transform: scale(1);
             opacity: 1;
         }
-    }
-
-    .spinner {
-        animation: spin-slow 1.2s linear infinite;
     }
 
     .pulse-ring {
@@ -93,6 +88,16 @@
         flex-shrink: 0;
     }
 
+    .copy-btn {
+        cursor: pointer;
+        transition: all .2s;
+    }
+
+        .copy-btn:hover {
+            background: #EEF2FF;
+            color: #6366f1;
+        }
+
     #success-panel {
         display: none;
     }
@@ -109,57 +114,137 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            <!-- LEFT: QR + Hướng dẫn -->
-            <div class="glass p-8 flex flex-col items-center">
+            <!-- LEFT: QR + Thông tin NH -->
+            <div class="space-y-6">
+                <div class="glass p-8 flex flex-col items-center">
 
-                <!-- Trạng thái polling -->
-                <div id="status-badge" class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full mb-6">
-                    <div class="relative w-4 h-4">
-                        <div class="pulse-ring"></div>
-                        <div class="w-4 h-4 rounded-full bg-amber-400"></div>
+                    <!-- Status badge -->
+                    <div id="status-badge" class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full mb-6">
+                        <div class="relative w-4 h-4">
+                            <div class="pulse-ring"></div>
+                            <div class="w-4 h-4 rounded-full bg-amber-400"></div>
+                        </div>
+                        <span class="text-xs font-black text-amber-700 uppercase tracking-widest">Chờ thanh toán...</span>
                     </div>
-                    <span class="text-xs font-black text-amber-700 uppercase tracking-widest">Chờ thanh toán...</span>
+
+                    <!-- QR -->
+                    <div id="qr-section" class="text-center">
+                        <img src="@qrUrl" alt="QR Thanh toán" class="qr-img w-64 h-64 object-contain mx-auto mb-4" />
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Mã QR hết hạn sau</p>
+                        <p class="text-2xl font-black text-indigo-600" id="countdown">15:00</p>
+                    </div>
+
+                    <!-- Success -->
+                    <div id="success-panel" class="text-center py-4">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fa-solid fa-check text-4xl text-green-500 check-pop"></i>
+                        </div>
+                        <h3 class="text-2xl font-black text-green-600 mb-2">Thanh toán thành công!</h3>
+                        <p class="text-slate-400 font-bold mb-6">Gói <b class="text-slate-700">@package.PackageName</b> đã được kích hoạt.</p>
+                        <a href="/Dashboard" class="px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl text-sm uppercase hover:bg-indigo-700 transition inline-block">
+                            Vào học ngay <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
                 </div>
 
-                <!-- QR Code -->
-                <div id="qr-section">
-                    <img src="@qrUrl" alt="QR Thanh toán" class="qr-img w-56 h-56 object-contain mx-auto mb-6" />
-                    <p class="text-center text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest">Mã QR hết hạn sau</p>
-                    <p class="text-center text-2xl font-black text-indigo-600" id="countdown">15:00</p>
-                </div>
+                <!-- Thông tin tài khoản ngân hàng -->
+                <div class="glass p-6">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-5 border-b pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-building-columns text-indigo-400"></i>
+                        Thông tin chuyển khoản
+                    </h3>
 
-                <!-- Success panel (ẩn, hiện khi thanh toán xong) -->
-                <div id="success-panel" class="text-center py-4">
-                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fa-solid fa-check text-4xl text-green-500 check-pop"></i>
+                    <div class="space-y-3">
+                        <!-- Ngân hàng -->
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngân hàng</p>
+                                <p class="font-black text-slate-800">MB Bank (Quân Đội)</p>
+                            </div>
+                            <img src="https://api.vietqr.io/img/MB.png" alt="MB Bank" class="h-8 w-auto object-contain" onerror="this.style.display='none'" />
+                        </div>
+
+                        <!-- Số tài khoản -->
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số tài khoản</p>
+                                <p class="font-black text-slate-800 text-lg" id="bank-account">0979361794</p>
+                            </div>
+                            <button onclick="copyText('0979361794', this)"
+                                    class="copy-btn px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-black text-slate-500 flex items-center gap-1.5">
+                                <i class="fa-regular fa-copy"></i> Sao chép
+                            </button>
+                        </div>
+
+                        <!-- Tên tài khoản -->
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Chủ tài khoản</p>
+                                <p class="font-black text-slate-800">NGUYEN VAN LINH</p>
+                            </div>
+                            <button onclick="copyText('NGUYEN VAN LINH', this)"
+                                    class="copy-btn px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-black text-slate-500 flex items-center gap-1.5">
+                                <i class="fa-regular fa-copy"></i> Sao chép
+                            </button>
+                        </div>
+
+                        <!-- Số tiền -->
+                        <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <div>
+                                <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Số tiền</p>
+                                <p class="font-black text-indigo-700 text-lg">@package.Price.ToString("N0") đ</p>
+                            </div>
+                            <button onclick="copyText('@package.Price.ToString("N0")', this)"
+                                    class="copy-btn px-3 py-1.5 bg-indigo-100 rounded-xl text-xs font-black text-indigo-500 flex items-center gap-1.5">
+                                <i class="fa-regular fa-copy"></i> Sao chép
+                            </button>
+                        </div>
+
+                        <!-- Nội dung CK — QUAN TRỌNG -->
+                        <div class="flex items-center justify-between p-3 bg-amber-50 rounded-xl border-2 border-amber-200">
+                            <div>
+                                <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> Nội dung CK (bắt buộc)
+                                </p>
+                                <p class="font-black text-amber-800 text-lg tracking-widest" id="transfer-content">@transferContent</p>
+                            </div>
+                            <button onclick="copyText('@transferContent', this)"
+                                    class="copy-btn px-3 py-1.5 bg-amber-100 rounded-xl text-xs font-black text-amber-600 flex items-center gap-1.5">
+                                <i class="fa-regular fa-copy"></i> Sao chép
+                            </button>
+                        </div>
                     </div>
-                    <h3 class="text-2xl font-black text-green-600 mb-2">Thanh toán thành công!</h3>
-                    <p class="text-slate-400 font-bold mb-6">Gói <b class="text-slate-700">@package.PackageName</b> đã được kích hoạt.</p>
-                    <a href="/Dashboard" class="px-8 py-4 bg-indigo-600 text-white font-black rounded-2xl text-sm uppercase hover:bg-indigo-700 transition inline-block">
-                        Vào học ngay <i class="fa-solid fa-arrow-right ml-2"></i>
-                    </a>
+
+                    <p class="text-[10px] text-red-500 font-black mt-4 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Nhập đúng nội dung <b>@transferContent</b> để hệ thống tự động kích hoạt gói.
+                    </p>
                 </div>
 
                 <!-- Hướng dẫn -->
-                <div class="w-full mt-8 space-y-3">
-                    @{
-                        var steps = new[] {
-                                        ("1", "Mở app ngân hàng bất kỳ", "fa-mobile-screen"),
-                                        ("2", "Chọn QR Pay / Quét mã", "fa-qrcode"),
-                                        ("3", "Quét mã QR bên trên", "fa-camera"),
-                                        ("4", "Xác nhận & chuyển khoản", "fa-check-double"),
-                                        };
-                    }
-                    @foreach (var (num, text, icon) in steps)
-                    {
-                        <div class="flex items-center gap-3">
-                            <div class="step-dot bg-indigo-100 text-indigo-600">@num</div>
-                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
-                                <i class="fa-solid @icon text-indigo-400 w-4 text-center"></i>
-                                @text
+                <div class="glass p-6">
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Hướng dẫn thanh toán</h3>
+                    <div class="space-y-3">
+                        @{
+                            var steps = new[] {
+                                                ("1", "Mở app ngân hàng bất kỳ",         "fa-mobile-screen"),
+                                                ("2", "Chọn QR Pay / Quét mã QR",         "fa-qrcode"),
+                                                ("3", "Quét mã QR hoặc nhập STK thủ công","fa-camera"),
+                                                ("4", "Kiểm tra nội dung chuyển khoản",   "fa-file-lines"),
+                                                ("5", "Xác nhận & hoàn tất thanh toán",   "fa-check-double"),
+                                                };
+                        }
+                        @foreach (var (num, text, icon) in steps)
+                        {
+                            <div class="flex items-center gap-3">
+                                <div class="step-dot bg-indigo-100 text-indigo-600">@num</div>
+                                <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                    <i class="fa-solid @icon text-indigo-400 w-4 text-center"></i>
+                                    @text
+                                </div>
                             </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
             </div>
 
@@ -172,7 +257,7 @@
 
                     <div class="flex items-center gap-4 mb-6">
                         <div class="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center text-2xl">
-                            @(package.PackageName.Contains("Premium") ? "⭐" : package.PackageName.Contains("Standard") ? "🎯" : "🆓")
+                            @(package.PackageName.Contains("Premium") ? "⭐" : package.PackageName.Contains("Standard") || package.PackageName.Contains("chuẩn") ? "🎯" : "📚")
                         </div>
                         <div>
                             <p class="font-black text-slate-800 text-lg">@package.PackageName</p>
@@ -182,10 +267,19 @@
 
                     <!-- Features -->
                     <div class="space-y-2 mb-6">
+                        <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                            <i class="fa-solid fa-check text-green-500"></i> Toàn bộ bài giảng & bài tập
+                        </div>
                         @if (package.UnlimitedAiHint)
                         {
                             <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
                                 <i class="fa-solid fa-check text-green-500"></i> AI Hint không giới hạn
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
+                                <i class="fa-solid fa-check text-green-500"></i> AI Hint (5 lần/ngày)
                             </div>
                         }
                         @if (package.PersonalizedPath)
@@ -200,12 +294,6 @@
                                 <i class="fa-solid fa-check text-green-500"></i> Ôn luyện lỗi sai
                             </div>
                         }
-                        @if (package.SmartReminder)
-                        {
-                            <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
-                                <i class="fa-solid fa-check text-green-500"></i> Nhắc nhở thông minh
-                            </div>
-                        }
                         @if (package.PrioritySupport)
                         {
                             <div class="flex items-center gap-2 text-sm font-bold text-slate-600">
@@ -217,12 +305,10 @@
                     <!-- Tổng tiền -->
                     <div class="border-t pt-4 space-y-2">
                         <div class="flex justify-between text-sm font-bold text-slate-500">
-                            <span>Giá gói</span>
-                            <span>@package.Price.ToString("N0") đ</span>
+                            <span>Giá gói</span><span>@package.Price.ToString("N0") đ</span>
                         </div>
                         <div class="flex justify-between text-sm font-bold text-slate-500">
-                            <span>Giảm giá</span>
-                            <span class="text-green-500">0 đ</span>
+                            <span>Giảm giá</span><span class="text-green-500">0 đ</span>
                         </div>
                         <div class="flex justify-between font-black text-slate-800 text-xl pt-2 border-t">
                             <span>Tổng thanh toán</span>
@@ -231,15 +317,29 @@
                     </div>
                 </div>
 
-                <!-- Mã đơn hàng -->
-                <div class="glass p-6 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Mã đơn hàng</p>
-                        <p class="font-black text-slate-800 text-lg">#SUB-@subId.ToString("D6")</p>
+                <!-- Mã đơn hàng + Thông tin học sinh -->
+                <div class="glass p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Mã đơn hàng</p>
+                            <p class="font-black text-slate-800 text-lg">#SUB-@subId.ToString("D6")</p>
+                        </div>
+                        <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
                     </div>
-                    <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-400">
-                        <i class="fa-solid fa-receipt"></i>
-                    </div>
+                    @if (!string.IsNullOrEmpty(stuName))
+                    {
+                        <div class="border-t pt-4 space-y-2">
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Thông tin học sinh</p>
+                            <div class="flex justify-between text-sm font-bold text-slate-600">
+                                <span>Họ tên</span><span class="text-slate-800">@stuName</span>
+                            </div>
+                            <div class="flex justify-between text-sm font-bold text-slate-600">
+                                <span>Mã học sinh</span><span class="text-slate-800">#@stuId</span>
+                            </div>
+                        </div>
+                    }
                 </div>
 
                 <!-- Lưu ý -->
@@ -247,13 +347,13 @@
                     <div class="flex gap-3">
                         <i class="fa-solid fa-circle-info text-blue-400 mt-0.5"></i>
                         <div class="text-sm text-slate-500 font-bold space-y-1">
-                            <p>Gói sẽ được kích hoạt <b class="text-slate-700">ngay sau khi thanh toán thành công</b>.</p>
-                            <p>Nếu đã thanh toán nhưng chưa kích hoạt sau 5 phút, vui lòng liên hệ hỗ trợ.</p>
+                            <p>Gói được kích hoạt <b class="text-slate-700">ngay sau khi thanh toán thành công</b>.</p>
+                            <p>Nhập đúng nội dung <b class="text-amber-600">@transferContent</b> để hệ thống nhận diện tự động.</p>
+                            <p>Nếu chưa kích hoạt sau 5 phút, vui lòng <a href="/Home/Contact" class="text-indigo-600 hover:underline">liên hệ hỗ trợ</a>.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Nút hủy -->
                 <a href="/Package" class="block text-center text-sm text-slate-400 font-bold hover:text-slate-600 transition py-2">
                     <i class="fa-solid fa-arrow-left mr-1"></i> Quay lại chọn gói khác
                 </a>
@@ -267,7 +367,7 @@
     let pollInterval;
     let countdownSeconds = 15 * 60;
 
-    // ── Countdown ────────────────────────────────────────────────
+    // Countdown
     const countdownEl = document.getElementById('countdown');
     const countdownTimer = setInterval(() => {
         if (countdownSeconds <= 0) {
@@ -286,28 +386,22 @@
         countdownSeconds--;
     }, 1000);
 
-    // ── Polling kiểm tra thanh toán ──────────────────────────────
+    // Polling
     async function checkPaymentStatus() {
         try {
-            const res = await fetch(`/Package/CheckStatus?subscriptionId=${subscriptionId}`);
+            const res  = await fetch(`/Package/CheckStatus?subscriptionId=${subscriptionId}`);
             const data = await res.json();
-
             if (data.status === 'Active') {
                 clearInterval(pollInterval);
                 clearInterval(countdownTimer);
-                showSuccess(data.endDate);
+                showSuccess();
             }
-        } catch (e) {
-            console.error('Polling error:', e);
-        }
+        } catch (e) { console.error('Polling error:', e); }
     }
 
-    function showSuccess(endDate) {
-        // Ẩn QR, hiện success
-        document.getElementById('qr-section').style.display = 'none';
+    function showSuccess() {
+        document.getElementById('qr-section').style.display    = 'none';
         document.getElementById('success-panel').style.display = 'block';
-
-        // Cập nhật badge
         document.getElementById('status-badge').innerHTML =
             `<i class="fa-solid fa-check text-green-500"></i>
              <span class="text-xs font-black text-green-700 uppercase tracking-widest">Đã thanh toán!</span>`;
@@ -315,8 +409,19 @@
             'flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full mb-6';
     }
 
-    // Poll mỗi 3 giây
+    // Copy to clipboard
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép';
+            btn.classList.add('bg-green-100', 'text-green-600');
+            setTimeout(() => {
+                btn.innerHTML = orig;
+                btn.classList.remove('bg-green-100', 'text-green-600');
+            }, 2000);
+        });
+    }
+
     pollInterval = setInterval(checkPaymentStatus, 3000);
-    // Check ngay lần đầu sau 2 giây
     setTimeout(checkPaymentStatus, 2000);
 </script>

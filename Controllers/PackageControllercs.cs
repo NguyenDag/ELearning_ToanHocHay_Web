@@ -1,5 +1,4 @@
 ﻿// ToanHocHay.WebApp/Controllers/PackageController.cs
-
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Models.DTOs;
@@ -18,15 +17,29 @@ namespace ToanHocHay.WebApp.Controllers
             _subscriptionService = subscriptionService;
         }
 
-        // GET /Package — Trang danh sách gói
+        // GET /Package
         public async Task<IActionResult> Index(string? plan)
         {
             var packages = await _packageService.GetAllPackagesAsync();
             ViewData["PreselectedPlan"] = plan ?? "";
+
+            // Lấy subscription hiện tại của user
+            if (User.Identity!.IsAuthenticated)
+            {
+                var studentIdClaim = User.FindFirst("StudentId");
+                if (studentIdClaim != null && int.TryParse(studentIdClaim.Value, out int studentId))
+                {
+                    var currentSub = await _subscriptionService.GetCurrentSubscriptionAsync(studentId);
+                    ViewData["CurrentPackageId"] = currentSub?.PackageId;
+                    ViewData["CurrentPackageName"] = currentSub?.PackageName ?? "";
+                    ViewData["SubEndDate"] = currentSub?.EndDate?.ToString("dd/MM/yyyy") ?? "";
+                }
+            }
+
             return View(packages);
         }
 
-        // GET /Package/Checkout/1 — Trang thanh toán gói cụ thể
+        // GET /Package/Checkout/1
         [HttpGet]
         public async Task<IActionResult> Checkout(int id)
         {
@@ -34,19 +47,14 @@ namespace ToanHocHay.WebApp.Controllers
                 return RedirectToAction("Login", "Account");
 
             var package = await _packageService.GetPackageByIdAsync(id);
-            if (package == null)
-                return RedirectToAction("Index");
+            if (package == null) return RedirectToAction("Index");
 
             var studentIdClaim = User.FindFirst("StudentId");
-            if (studentIdClaim == null)
-                return RedirectToAction("Index");
+            if (studentIdClaim == null) return RedirectToAction("Index");
 
             int studentId = int.Parse(studentIdClaim.Value);
 
-            // Tạo subscription + lấy QR
-            var result = await _subscriptionService.CreateSubscriptionAsync(
-                studentId, id, package.Price);
-
+            var result = await _subscriptionService.CreateSubscriptionAsync(studentId, id, package.Price);
             if (result == null)
             {
                 TempData["Error"] = "Không thể tạo đơn thanh toán. Vui lòng thử lại.";
@@ -56,22 +64,24 @@ namespace ToanHocHay.WebApp.Controllers
             ViewData["Package"] = package;
             ViewData["SubscriptionId"] = result.SubscriptionId;
             ViewData["QrUrl"] = result.QrUrl;
+            ViewData["StudentName"] = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
+            ViewData["StudentId"] = studentId;
+
             return View(package);
         }
 
-        // GET /Package/CheckStatus/11 — Polling từ JS
+        // GET /Package/CheckStatus?subscriptionId=11
         [HttpGet]
         public async Task<IActionResult> CheckStatus(int subscriptionId)
         {
             var status = await _subscriptionService.GetSubscriptionStatusAsync(subscriptionId);
-            if (status == null)
-                return Json(new { status = "error" });
+            if (status == null) return Json(new { status = "error" });
 
             return Json(new
             {
-                status = status.Status,           // "Pending" | "Active"
+                status = status.Status,
                 endDate = status.EndDate?.ToString("dd/MM/yyyy")
             });
         }
     }
-}   
+}

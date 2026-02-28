@@ -3,6 +3,10 @@
     ViewData["Title"] = "Chọn gói học";
     Layout = "_Layout";
     var preselected = ViewData["PreselectedPlan"]?.ToString() ?? "";
+    var currentPackageId = ViewData["CurrentPackageId"] as int?;
+    var currentPackageName = ViewData["CurrentPackageName"]?.ToString() ?? "";
+    var subEndDate = ViewData["SubEndDate"]?.ToString() ?? "";
+    bool hasActiveSub = currentPackageId.HasValue;
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -73,6 +77,11 @@
                 transform: translateY(-14px);
             }
 
+        .pkg-card.active-plan {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 4px rgba(99,102,241,.15), 0 16px 40px rgba(99,102,241,.15) !important;
+        }
+
     .toggle-pill {
         display: inline-flex;
         background: #F1F5F9;
@@ -117,8 +126,30 @@
             <h1 class="text-4xl md:text-5xl font-black text-slate-800 mb-4 leading-tight">
                 Đầu tư cho tương lai<br><span class="text-indigo-600">Toán học của con</span>
             </h1>
-            <p class="text-slate-400 font-bold max-w-xl mx-auto">Chọn gói phù hợp để mở khóa <span class="text-indigo-600">AI Tutor</span>, lộ trình cá nhân hóa và biểu đồ phân tích.</p>
+            <p class="text-slate-400 font-bold max-w-xl mx-auto">
+                Chọn gói phù hợp để mở khóa <span class="text-indigo-600">AI Tutor</span>, lộ trình cá nhân hóa và biểu đồ phân tích.
+            </p>
         </div>
+
+        <!-- Banner gói đang dùng -->
+        @if (hasActiveSub)
+        {
+            <div class="max-w-xl mx-auto mb-10 fade-up d1">
+                <div class="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 flex items-center gap-4">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid fa-crown text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="font-black text-indigo-800 text-sm">Bạn đang dùng <span class="text-indigo-600">@currentPackageName</span></p>
+                        @if (!string.IsNullOrEmpty(subEndDate))
+                        {
+                            <p class="text-xs text-indigo-500 font-bold">Hết hạn: @subEndDate</p>
+                        }
+                    </div>
+                    <a href="/Dashboard" class="ml-auto text-xs font-black text-indigo-600 hover:underline whitespace-nowrap">Vào học →</a>
+                </div>
+            </div>
+        }
 
         <!-- Toggle tháng/năm -->
         <div class="flex justify-center mb-12 fade-up d2">
@@ -137,9 +168,15 @@
         {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-@(Math.Min(Model.Count + 1, 4)) gap-6 items-start fade-up d3">
 
-                <!-- Free card (luôn hiện) -->
-                <div class="pkg-card p-8">
-                    <span class="inline-block bg-slate-100 text-slate-500 text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest mb-6">Trải nghiệm</span>
+                <!-- Free card -->
+                <div class="pkg-card @(!hasActiveSub ? "active-plan" : "") p-8">
+                    @if (!hasActiveSub)
+                    {
+                        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);background:#6366f1;color:white;font-size:.6rem;font-weight:900;padding:.3rem .85rem;border-radius:0 0 .75rem .75rem;letter-spacing:.06em;white-space:nowrap;">
+                            ✓ ĐANG DÙNG
+                        </div>
+                    }
+                    <span class="inline-block bg-slate-100 text-slate-500 text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest mb-6 @(!hasActiveSub ? "mt-4" : "")">Trải nghiệm</span>
                     <h3 class="text-2xl font-black text-slate-800 mb-1">Miễn phí</h3>
                     <p class="text-sm text-slate-400 font-bold mb-6">Dành cho học sinh muốn làm quen.</p>
                     <div class="mb-8">
@@ -151,8 +188,9 @@
                         <li class="flex gap-3 text-sm font-bold text-slate-600"><i class="fa-solid fa-check text-green-500 mt-0.5 flex-shrink-0"></i>Bài tập cơ bản</li>
                     </ul>
                     <a href="@(User.Identity!.IsAuthenticated ? "/Dashboard" : "/Account/Login")"
-                       class="block w-full py-3.5 text-center bg-slate-100 text-slate-600 font-black rounded-2xl text-sm uppercase tracking-widest hover:bg-slate-200 transition">
-                        @(User.Identity!.IsAuthenticated ? "Đang dùng" : "Bắt đầu miễn phí")
+                       class="block w-full py-3.5 text-center font-black rounded-2xl text-sm uppercase tracking-widest transition
+                                  @(!hasActiveSub ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-slate-100 text-slate-500 hover:bg-slate-200")">
+                        @(!hasActiveSub ? "Đang dùng" : (User.Identity!.IsAuthenticated ? "Bắt đầu" : "Đăng ký miễn phí"))
                     </a>
                 </div>
 
@@ -160,30 +198,44 @@
                 @foreach (var pkg in Model.Where(p => p.IsActive))
                 {
                     bool isFeatured = pkg.PackageName.ToLower().Contains("premium");
+                    bool isActivePlan = currentPackageId.HasValue && currentPackageId.Value == pkg.PackageId;
                     string accentColor = isFeatured ? "#F97316" : "#6366F1";
                     string accentLight = isFeatured ? "#FFF7ED" : "#EEF2FF";
-                    string btnClass = isFeatured
+                    string btnStyle = isActivePlan
+                    ? "background:#6366f1;color:white;"
+                    : isFeatured
                     ? "background:linear-gradient(135deg,#f97316,#ef4444);color:white;box-shadow:0 8px 24px rgba(249,115,22,.3);"
                     : "background:#6366F1;color:white;box-shadow:0 8px 24px rgba(99,102,241,.2);";
 
-                    <div class="pkg-card @(isFeatured ? "featured" : "") p-8">
-                        @if (isFeatured)
+                    <div class="pkg-card @(isFeatured ? "featured" : "") @(isActivePlan ? "active-plan" : "") p-8">
+
+                        @* Badge góc trên phải *@
+                        @if (isActivePlan)
+                        {
+                            <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);background:#6366f1;color:white;font-size:.6rem;font-weight:900;padding:.3rem .85rem;border-radius:0 0 .75rem .75rem;letter-spacing:.06em;white-space:nowrap;">
+                                ✓ ĐANG DÙNG
+                            </div>
+                        }
+                        else if (isFeatured)
                         {
                             <div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,#f97316,#ef4444);color:white;font-size:.6rem;font-weight:900;padding:.35rem .9rem;border-radius:0 2rem 0 .75rem;letter-spacing:.06em;">
                                 <i class="fa-solid fa-star mr-1"></i> KHUYÊN DÙNG
                             </div>
                         }
-                        <span class="inline-block text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest mb-6"
-                              style="background:@accentLight;color:@accentColor;margin-top:@(isFeatured ? ".75rem" : "0")">
-                            @(pkg.PackageName.ToLower().Contains("standard") ? "Cơ bản" : pkg.PackageName.ToLower().Contains("premium") ? "Nâng cao" : "Gói học")
-                        </span>
+
+                    <span class="inline-block text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest mb-6"
+                          style="background:@accentLight;color:@accentColor;margin-top:@(isActivePlan || isFeatured ? ".75rem" : "0")">
+                        @(pkg.PackageName.ToLower().Contains("tiêu chuẩn") || pkg.PackageName.ToLower().Contains("standard") ? "Cơ bản"
+                                            : pkg.PackageName.ToLower().Contains("premium") ? "Nâng cao"
+                                            : "Gói học")
+                </span>
+
                         <h3 class="text-2xl font-black text-slate-800 mb-1">@pkg.PackageName</h3>
                         <p class="text-sm text-slate-400 font-bold mb-6">@(pkg.Description ?? $"{pkg.DurationDays} ngày sử dụng")</p>
 
                         <!-- Giá -->
                         <div class="mb-8">
-                            <span class="price-val text-4xl font-black"
-                                  style="color:@accentColor"
+                            <span class="price-val text-4xl font-black" style="color:@accentColor"
                                   data-month="@pkg.Price.ToString("N0")"
                                   data-year="@((pkg.Price * 10 * 0.7m).ToString("N0"))">
                                 @pkg.Price.ToString("N0")
@@ -197,66 +249,67 @@
                                 <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>
                                 Toàn bộ bài giảng & bài tập
                             </li>
-                            @if (pkg.UnlimitedAiHint)
+                    @if (pkg.UnlimitedAiHint)
                             {
                                 <li class="flex gap-3 text-sm font-bold text-slate-600">
-                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>
-                                    AI Hint không giới hạn
+                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>AI Hint không giới hạn
                                 </li>
                             }
                             else
                             {
                                 <li class="flex gap-3 text-sm font-bold text-slate-600">
-                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>
-                                    AI Hint (5 lần/ngày)
+                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>AI Hint (5 lần/ngày)
                                 </li>
                             }
                             @if (pkg.PersonalizedPath)
                             {
                                 <li class="flex gap-3 text-sm font-bold text-slate-600">
-                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>
-                                    Lộ trình cá nhân hóa
+                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>Lộ trình cá nhân hóa
                                 </li>
                             }
                             @if (pkg.MistakeRetry)
                             {
                                 <li class="flex gap-3 text-sm font-bold text-slate-600">
-                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>
-                                    Ôn luyện lỗi sai
+                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>Ôn luyện lỗi sai
                                 </li>
                             }
                             @if (pkg.PrioritySupport)
                             {
                                 <li class="flex gap-3 text-sm font-bold text-slate-600">
-                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>
-                                    Hỗ trợ ưu tiên
+                                    <i class="fa-solid fa-check mt-0.5 flex-shrink-0" style="color:@accentColor"></i>Hỗ trợ ưu tiên
                                 </li>
                             }
                         </ul>
 
-                        <a href="/Package/Checkout/@pkg.PackageId"
-                           class="block w-full py-3.5 text-center font-black rounded-2xl text-sm uppercase tracking-widest transition hover:opacity-90 hover:-translate-y-0.5"
-                           style="@btnClass">
-                            Chọn @pkg.PackageName
-                        </a>
+                        @if (isActivePlan)
+                        {
+                            <div class="block w-full py-3.5 text-center font-black rounded-2xl text-sm uppercase tracking-widest bg-indigo-50 text-indigo-600 border-2 border-indigo-200">
+                                <i class="fa-solid fa-circle-check mr-2"></i>Đang sử dụng
+                                @if (!string.IsNullOrEmpty(subEndDate))
+                                {
+                                    <span class="block text-[10px] font-bold text-indigo-400 normal-case mt-0.5">Hết hạn @subEndDate</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <a href="/Package/Checkout/@pkg.PackageId"
+                               class="block w-full py-3.5 text-center font-black rounded-2xl text-sm uppercase tracking-widest transition hover:opacity-90 hover:-translate-y-0.5"
+                               style="@btnStyle">
+                                Chọn @pkg.PackageName
+                            </a>
+                        }
                     </div>
                 }
             </div>
         }
-        else
-        {
-            <div class="text-center py-24 text-slate-300 font-black uppercase tracking-widest">
-                <i class="fa-solid fa-box-open text-5xl mb-4 block opacity-20"></i>
-                Chưa có gói nào khả dụng
-            </div>
-        }
 
-        <!-- FAQ nhỏ -->
+        <!-- FAQ -->
         <div class="mt-16 text-center fade-up d4">
             <p class="text-sm text-slate-400 font-bold">
                 Có thắc mắc? <a href="#" class="text-indigo-600 font-black hover:underline">Xem câu hỏi thường gặp</a>
                 &nbsp;hoặc&nbsp;
-                <a href="#" class="text-indigo-600 font-black hover:underline">Liên hệ hỗ trợ</a>
+                <a href="/Home/Contact" class="text-indigo-600 font-black hover:underline">Liên hệ hỗ trợ</a>
             </p>
         </div>
 
@@ -272,7 +325,6 @@
         document.getElementById('pill-bg').style.transform = isYear ? 'translateX(100%)' : 'translateX(0)';
         document.getElementById('btn-month').style.color = isYear ? '#94a3b8' : '#1E293B';
         document.getElementById('btn-year').style.color  = isYear ? '#1E293B' : '#94a3b8';
-
         document.querySelectorAll('.price-val').forEach(el => {
             el.textContent = isYear ? el.dataset.year : el.dataset.month;
         });
@@ -281,28 +333,15 @@
         });
     }
 
-    // Highlight card được preselect từ ?plan=
+    // Scroll & highlight card preselect
     const plan = "@preselected".toLowerCase();
     if (plan) {
         window.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.pkg-card').forEach(card => {
                 const name = card.querySelector('h3')?.textContent?.toLowerCase() ?? '';
-                const isPremiumPlan = plan.includes('premium') && name.includes('premium');
-                const isStandardPlan = plan.includes('standard') && name.includes('standard');
-                const isYearPlan = plan.includes('year') && (name.includes('year') || name.includes('năm'));
-
-                if (isPremiumPlan || isStandardPlan || isYearPlan) {
-                    // Highlight viền
-                    card.style.boxShadow = '0 0 0 3px #6366f1, 0 20px 48px rgba(99,102,241,.25)';
-                    card.style.borderColor = '#6366f1';
-
-                    // Thêm badge "Đang xem"
-                    const badge = document.createElement('div');
-                    badge.style.cssText = 'position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:#6366f1;color:white;font-size:.6rem;font-weight:900;padding:.3rem .85rem;border-radius:0 0 .75rem .75rem;letter-spacing:.06em;white-space:nowrap;';
-                    badge.innerHTML = '👆 Được đề xuất';
-                    card.appendChild(badge);
-
-                    // Scroll vào
+                if ((plan.includes('premium') && name.includes('premium')) ||
+                    (plan.includes('standard') && (name.includes('standard') || name.includes('tiêu chuẩn'))) ||
+                    (plan.includes('year') && name.includes('năm'))) {
                     setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
                 }
             });
