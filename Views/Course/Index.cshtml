@@ -6,8 +6,16 @@
     var filterType = Context.Request.Query["type"].ToString();
 }
 
-@* --- 1. HERO SECTION --- *@
+<!-- TÍCH HỢP MATHJAX ĐỂ RENDER CÔNG THỨC TRONG TÊN BÀI -->
+<script>
+    window.MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], processEscapes: true },
+        options: { processHtmlClass: 'mathjax-render' }
+    };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
+@* --- 1. HERO SECTION --- *@
 <section class="relative bg-gradient-to-br from-blue-700 via-indigo-700 to-purple-800 text-white py-16 overflow-hidden">
     <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
     <div class="absolute -top-24 -right-24 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px] animate-pulse"></div>
@@ -15,21 +23,20 @@
     <div class="container mx-auto px-4 relative z-10">
         <div class="max-w-4xl mx-auto text-center">
             <span class="inline-block bg-white/20 backdrop-blur-sm text-white text-xs font-black px-4 py-2 rounded-full mb-6 border border-white/30 tracking-widest uppercase">
-                <i class="fa-solid fa-graduation-cap mr-2"></i> @(Model?.CurriculumName ?? "Hệ sinh thái ToanHocHay")
+                <i class="fa-solid fa-graduation-cap mr-2"></i> @(Model?.CurriculumName ?? "Toán 6 - Kết nối tri thức")
             </span>
             <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">
                 Chinh phục Toán học <br />
-                <span class="text-yellow-300">Theo lộ trình riêng</span>
+                <span class="text-yellow-300">Kết nối tri thức</span>
             </h1>
             <p class="text-lg md:text-xl text-blue-100 max-w-2xl leading-relaxed font-medium mx-auto">
-                <span class="text-300">Hệ thống bài giảng AI cá nhân hóa giúp bạn lấp đầy lỗ hổng kiến thức và tối ưu hóa thời gian học tập.</span>
+                Hệ thống bài giảng bám sát chương trình mới, giúp học sinh nắm vững kiến thức căn bản và nâng cao.
             </p>
         </div>
     </div>
 </section>
 
-@* --- 2. THANH ĐIỀU KHIỂN (Search & Sort) --- *@
-
+@* --- 2. THANH ĐIỀU KHIỂN (Search) --- *@
 <section class="bg-white border-b border-gray-100 sticky top-[64px] z-40 shadow-sm transition-all duration-300">
     <div class="container mx-auto px-4 py-4">
         <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -40,11 +47,9 @@
             </div>
         </div>
     </div>
-
-
 </section>
 
-<section class="container mx-auto px-4 py-12">
+<section class="container mx-auto px-4 py-12 mathjax-render">
     <div class="flex flex-col lg:flex-row gap-10">
 
         @* --- 3. BỘ LỌC SIDEBAR --- *@
@@ -102,7 +107,7 @@
                     <div>
                         <p class="text-[10px] font-black text-blue-600 uppercase tracking-[0.1em]">Kết quả học tập</p>
                         <p class="text-sm text-slate-700 font-bold">
-                            Chương trình có <span class="text-blue-600">@Model.Chapters.Count</span> chương và
+                            Chương trình có <span class="text-blue-600">@(Model?.Chapters?.Count ?? 0)</span> chương và
                             <span id="found-count" class="text-blue-600">0</span> bài học
                         </p>
                     </div>
@@ -116,17 +121,18 @@
                     {
                         var chapterId = $"chapter-{chapter.ChapterId}";
                         <div class="chapter-block bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-gray-100 mb-10 overflow-hidden group">
+
                             @* Header của Chương *@
                             <div class="bg-white p-8 cursor-pointer border-b border-gray-50 hover:bg-slate-50 transition" onclick="toggleChapter('@chapterId')">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-6">
-                                        <div class="w-16 h-16 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-2xl shadow-lg shadow-blue-200">
-                                            <i class="fa-solid fa-layer-group"></i>
+                                        <div class="w-16 h-16 bg-blue-600 text-white rounded-3xl flex items-center justify-center text-2xl font-black shadow-lg shadow-blue-200">
+                                            @chapter.OrderIndex
                                         </div>
                                         <div>
                                             <h3 class="text-2xl font-black text-slate-900 tracking-tight">@chapter.ChapterName</h3>
                                             <p class="text-sm text-slate-400 font-bold mt-1">
-                                                @(chapter.Topics?.Count() ?? 0) bài học
+                                                @(chapter.Topics?.Count() ?? 0) chủ đề
                                             </p>
                                         </div>
                                     </div>
@@ -135,7 +141,7 @@
                             </div>
 
                             @* Danh sách bài học bên trong Chương *@
-                            <div id="@chapterId" class="divide-y divide-gray-50 lesson-list" style="display:none">
+                            <div id="@chapterId" class="divide-y divide-gray-50 lesson-list" style="display:block">
                                 @if (chapter.Topics != null && chapter.Topics.Any())
                                 {
                                     @foreach (var topic in chapter.Topics.OrderBy(t => t.OrderIndex))
@@ -143,7 +149,6 @@
                                         <div class="bg-slate-50/80 px-8 py-3 text-[10px] font-black text-blue-500 uppercase tracking-widest border-y border-gray-100">
                                             <i class="fa-solid fa-book-open mr-2"></i> CHỦ ĐỀ: @topic.TopicName
                                         </div>
-                                        @* CHỈ HIỂN THỊ CHỦ ĐỀ NẾU CÓ BÀI HỌC BÊN TRONG *@
                                         @if (topic.Lessons != null && topic.Lessons.Any())
                                         {
                                             @foreach (var lesson in topic.Lessons.OrderBy(l => l.OrderIndex))
@@ -163,7 +168,10 @@
                                                             <p class="text-[11px] font-black text-green-500 uppercase">CƠ BẢN</p>
                                                         </div>
                                                     </div>
-                                                    <a href="/Course/Learning/@lesson.LessonId" class="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase opacity-0 group-hover/lesson:opacity-100 transition-all shadow-lg hover:scale-105">Học ngay</a>
+                                                    <a href="/Course/Learning/@lesson.LessonId"
+                                                       class="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase opacity-0 group-hover/lesson:opacity-100 transition-all shadow-lg hover:scale-105">
+                                                        Học ngay
+                                                    </a>
                                                 </div>
                                             }
                                         }
@@ -196,8 +204,6 @@
         function toggleChapter(chapterId) {
             const element = document.getElementById(chapterId);
             const icon = document.getElementById(chapterId + '-icon');
-
-            // Sử dụng max-height để tạo hiệu ứng mượt mà (nếu muốn) hoặc đơn giản là d-none
             if (element.style.display === 'none') {
                 element.style.display = 'block';
                 icon.style.transform = 'rotate(180deg)';
@@ -207,7 +213,7 @@
             }
         }
 
-                function filterLessons() {
+        function filterLessons() {
             const searchQuery = document.getElementById('lessonSearch').value.toLowerCase();
             const checkedBoxes = document.querySelectorAll('.difficulty-checkbox:checked');
             const selectedDifficulties = Array.from(checkedBoxes).map(cb => cb.value);
@@ -220,7 +226,7 @@
 
                 lessons.forEach(lesson => {
                     const name = (lesson.getAttribute('data-name') || "").toLowerCase();
-                    const difficulty = lesson.getAttribute('data-difficulty') || "Easy"; // Lấy difficulty từ attr
+                    const difficulty = lesson.getAttribute('data-difficulty') || "Easy";
 
                     const matchSearch = name.includes(searchQuery);
                     const matchDifficulty = selectedDifficulties.length === 0 || selectedDifficulties.includes(difficulty);
@@ -233,15 +239,10 @@
                         lesson.style.display = 'none';
                     }
                 });
-
-                // Hiện/Ẩn chương dựa trên bài học tìm thấy
-                // chapter.style.display = chapterVisibleLessons > 0 ? 'block' : 'none';
             });
 
             document.getElementById('found-count').innerText = totalFound;
         }
-
-        
 
         function resetFilters() {
             document.getElementById('lessonSearch').value = '';
@@ -251,11 +252,8 @@
             filterLessons();
         }
 
-        // Tự động chạy khi trang web tải xong
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             filterLessons();
         });
     </script>
-}
-
 }
