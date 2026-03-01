@@ -141,7 +141,7 @@
                             </div>
 
                             @* Danh sách bài học bên trong Chương *@
-                            <div id="@chapterId" class="divide-y divide-gray-50 lesson-list" style="display:block">
+                            <div id="@chapterId" class="divide-y divide-gray-50 lesson-list" style="display:none">
                                 @if (chapter.Topics != null && chapter.Topics.Any())
                                 {
                                     @foreach (var topic in chapter.Topics.OrderBy(t => t.OrderIndex))
