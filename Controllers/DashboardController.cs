@@ -1,25 +1,26 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// FILE: ToanHocHay.WebApp/Controllers/DashboardController.cs
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using System.Linq;
-using ToanHocHay.WebApp.Models.DTOs; // Đã sửa: Sử dụng namespace phẳng để khớp với DTO của bạn
+using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
 
 namespace ToanHocHay.WebApp.Controllers
 {
-    /// <summary>
-    /// Controller xử lý dữ liệu bảng điều khiển (Dashboard) cho học sinh.
-    /// Logic tại đây giúp làm sạch dữ liệu thô từ API trước khi hiển thị.
-    /// </summary>
     [Authorize]
     public class DashboardController : Controller
     {
         private readonly IDashboardApiService _apiService;
+        private readonly SubscriptionApiService _subscriptionService;
         private readonly ILogger<DashboardController> _logger;
 
-        public DashboardController(IDashboardApiService apiService, ILogger<DashboardController> logger)
+        public DashboardController(
+            IDashboardApiService apiService,
+            SubscriptionApiService subscriptionService,
+            ILogger<DashboardController> logger)
         {
             _apiService = apiService;
+            _subscriptionService = subscriptionService;
             _logger = logger;
         }
 
@@ -27,28 +28,51 @@ namespace ToanHocHay.WebApp.Controllers
         {
             try
             {
-                // 1. Lấy StudentId từ Claims (Được AccountController lưu khi login thành công)
                 var studentIdClaim = User.FindFirst("StudentId")?.Value;
-
                 if (string.IsNullOrEmpty(studentIdClaim))
                 {
-                    _logger.LogWarning("User đăng nhập nhưng không tìm thấy StudentId trong Claims.");
+                    _logger.LogWarning("Không tìm thấy StudentId trong Claims.");
                     return RedirectToAction("Login", "Account");
                 }
 
                 int studentId = int.Parse(studentIdClaim);
 
-                // 2. Gọi API lấy dữ liệu thật từ dự án Control
+                // 1. Lấy dashboard data
                 var data = await _apiService.GetStudentDashboardAsync(studentId);
-
                 if (data == null)
                 {
                     _logger.LogError("API trả về NULL cho StudentId: {Id}", studentId);
-                    // Trả về một Object trống để View không bị crash
                     data = new CoreDashboardDto();
                 }
 
-                // 3. LOGIC LÀM SẠCH (GroupBy để xóa bài lặp LessonId 3)
+                // 2. Nếu backend chưa trả SubscriptionInfo (PackageType = 0, IsActive = false)
+                //    → gọi riêng subscription endpoint để lấy đúng gói
+                bool subInfoMissing = data.SubscriptionInfo == null
+                                   || (!data.SubscriptionInfo.IsActive && data.SubscriptionInfo.PackageType == 0);
+
+                if (subInfoMissing)
+                {
+                    var sub = await _subscriptionService.GetCurrentSubscriptionAsync(studentId);
+                    if (sub != null)
+                    {
+                        data.SubscriptionInfo = sub;
+                        // Đồng bộ PackageType ở root DTO để tương thích backward
+                        data.PackageType = sub.PackageType;
+                    }
+                    else
+                    {
+                        // Không có subscription → Free
+                        data.SubscriptionInfo ??= new SubscriptionInfoDto
+                        {
+                            PackageType = 0,
+                            PackageName = "Free",
+                            IsActive = false,
+                            AiHintLimitDaily = 0,
+                        };
+                    }
+                }
+
+                // 3. Xóa bài tập lặp (GroupBy LessonId)
                 if (data.RecentLessons != null)
                 {
                     data.RecentLessons = data.RecentLessons
@@ -58,13 +82,11 @@ namespace ToanHocHay.WebApp.Controllers
                         .ToList();
                 }
 
-                // FIX LỖI VIEW NOT FOUND: 
-                // Sử dụng đường dẫn tuyệt đối (bắt đầu bằng ~/) để tìm đúng file trong thư mục Student.
                 return View("~/Views/Student/Dashboard.cshtml", data);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi xảy ra khi xử lý Dashboard");
+                _logger.LogError(ex, "Lỗi Dashboard");
                 return View("Error");
             }
         }

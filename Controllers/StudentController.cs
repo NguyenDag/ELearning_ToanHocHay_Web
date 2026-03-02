@@ -1,56 +1,61 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// FILE: ToanHocHay.WebApp/Controllers/StudentController.cs
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using ToanHocHay.WebApp.Services;
 using ToanHocHay.WebApp.Models.DTOs;
 using System.Security.Claims;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace ToanHocHay.WebApp.Controllers
 {
-    [Authorize] // Bắt buộc đăng nhập để vào hồ sơ
+    [Authorize]
     public class StudentController : Controller
     {
         private readonly AuthApiService _authApiService;
-
         private readonly CourseApiService _courseApiService;
+        private readonly HttpClient _httpClient;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public StudentController(AuthApiService authApiService, CourseApiService courseApiService)
+        public StudentController(
+            AuthApiService authApiService,
+            CourseApiService courseApiService,
+            IHttpClientFactory httpClientFactory,
+            IHttpContextAccessor httpContextAccessor)
         {
             _authApiService = authApiService;
             _courseApiService = courseApiService;
+            _httpClient = httpClientFactory.CreateClient("ApiClient");
+            _httpContextAccessor = httpContextAccessor;
         }
+
         public async Task<IActionResult> Dashboard()
         {
-            // Lấy StudentId từ Claims (Đã được AccountController lưu lúc Login)
             var studentIdClaim = User.FindFirst("StudentId")?.Value;
             int studentId = string.IsNullOrEmpty(studentIdClaim) ? 5 : int.Parse(studentIdClaim);
-
-            // Gọi Service với kiểu dữ liệu CoreDashboardDto mới
             var stats = await _courseApiService.GetStudentDashboardStatsAsync(studentId);
-
-            // Truyền sang View (Đảm bảo View cũng sử dụng @model CoreDashboardDto)
             return View(stats ?? new CoreDashboardDto());
         }
 
-        // URL: /Student/Profile
         public async Task<IActionResult> Profile()
         {
-            // 1. Lấy ID người dùng từ Claims
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null) return RedirectToAction("Login", "Account");
 
             int userId = int.Parse(userIdClaim.Value);
-
-            // 2. Gọi API để lấy thông tin (Quan trọng: phải có dữ liệu trả về)
             var userProfile = await _authApiService.GetProfileAsync(userId);
-
-            // 3. Kiểm tra nếu Service trả về null thì phải khởi tạo một Object rỗng 
-            // để tránh lỗi "Object reference not set..." tại View
             if (userProfile == null)
-            {
                 userProfile = new UserDto { FullName = "Học sinh", Email = "" };
+
+            // Lấy danh sách phụ huynh đã kết nối
+            var studentIdClaim = User.FindFirst("StudentId")?.Value;
+            if (!string.IsNullOrEmpty(studentIdClaim))
+            {
+                var parents = await GetConnectedParentsAsync(int.Parse(studentIdClaim));
+                ViewData["ConnectedParents"] = parents;
             }
 
-            return View(userProfile); // Truyền userProfile sang View
+            return View(userProfile);
         }
 
         [HttpPost]
@@ -58,10 +63,8 @@ namespace ToanHocHay.WebApp.Controllers
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
-
             var result = await _authApiService.UpdateProfileAsync(int.Parse(userIdStr), model);
-            if (result.Success) return Ok(result);
-            return BadRequest(result);
+            return result.Success ? Ok(result) : BadRequest(result);
         }
 
         [HttpPost]
@@ -69,9 +72,76 @@ namespace ToanHocHay.WebApp.Controllers
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
-
             var result = await _authApiService.ChangePasswordAsync(int.Parse(userIdStr), model);
             return Json(result);
         }
+
+        // POST /Student/ConnectParent — học sinh nhập mã phụ huynh
+        [HttpPost]
+        public async Task<IActionResult> ConnectParent([FromBody] ConnectParentDto model)
+        {
+            var studentIdStr = User.FindFirst("StudentId")?.Value;
+            if (string.IsNullOrEmpty(studentIdStr))
+                return Unauthorized(new { success = false, message = "Không xác định được học sinh" });
+
+            try
+            {
+                var token = _httpContextAccessor.HttpContext?.Session.GetString("Token")
+                         ?? _httpContextAccessor.HttpContext?.User.FindFirst("Token")?.Value;
+
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token?.Trim() ?? "");
+
+                var response = await _httpClient.PostAsJsonAsync(
+                    $"student/{studentIdStr}/connect-parent",
+                    new { connectionCode = model.ConnectionCode });
+
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<JsonElement>(json);
+
+                if (response.IsSuccessStatusCode)
+                    return Ok(new { success = true, message = "Kết nối thành công!" });
+
+                var msg = result.TryGetProperty("message", out var m) ? m.GetString() : "Mã không hợp lệ";
+                return BadRequest(new { success = false, message = msg });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = ex.Message });
+            }
+        }
+
+        // GET danh sách phụ huynh đã kết nối
+        private async Task<List<ConnectedParentDto>> GetConnectedParentsAsync(int studentId)
+        {
+            try
+            {
+                var token = _httpContextAccessor.HttpContext?.Session.GetString("Token")
+                         ?? _httpContextAccessor.HttpContext?.User.FindFirst("Token")?.Value;
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token?.Trim() ?? "");
+
+                var response = await _httpClient.GetAsync($"student/{studentId}/parents");
+                if (!response.IsSuccessStatusCode) return new();
+
+                var wrapper = await response.Content
+                    .ReadFromJsonAsync<ApiResponse<List<ConnectedParentDto>>>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return wrapper?.Data ?? new();
+            }
+            catch { return new(); }
+        }
+    }
+
+    public class ConnectParentDto
+    {
+        public string ConnectionCode { get; set; } = "";
+    }
+
+    public class ConnectedParentDto
+    {
+        public int ParentId { get; set; }
+        public string FullName { get; set; } = "";
+        public string Relationship { get; set; } = "";
     }
 }

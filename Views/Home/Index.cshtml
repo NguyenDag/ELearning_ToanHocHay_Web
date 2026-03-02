@@ -1,4 +1,5 @@
-﻿@{
+﻿@using ToanHocHay.WebApp.Models.DTOs
+@{
     ViewData["Title"] = "Trang chủ";
 }
 
@@ -33,6 +34,10 @@
 
 <section class="container mx-auto px-4 py-12">
     <div class="flex flex-col lg:flex-row gap-10">
+        @{
+            var chapters = ViewData["Chapters"] as List<ToanHocHay.WebApp.Models.DTOs.ChapterDto>;
+            string[] accentColors = { "blue", "indigo", "purple", "violet", "fuchsia", "pink" };
+        }
         <aside class="w-full lg:w-1/4 bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-gray-100 overflow-hidden self-start sticky top-24">
             <div class="bg-gradient-to-r from-slate-50 to-white p-6 border-b border-gray-100">
                 <h3 class="font-black text-slate-800 flex items-center gap-2">
@@ -43,31 +48,41 @@
                 </h3>
             </div>
             <div class="divide-y divide-gray-50 text-sm">
-                <a href="#" class="block p-6 hover:bg-blue-50/50 transition-all group relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="font-black text-slate-700 group-hover:text-blue-600 transition-colors">Chương 1: Số tự nhiên</span>
-                        <i class="fa-solid fa-arrow-right-long text-xs text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all"></i>
-                    </div>
-                    <p class="text-xs text-slate-400 group-hover:text-slate-500 transition-colors">Tập hợp, Lũy thừa, Số nguyên tố...</p>
-                </a>
-                <a href="#" class="block p-6 hover:bg-indigo-50/50 transition-all group relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="font-black text-slate-700 group-hover:text-indigo-600 transition-colors">Chương 2: Số nguyên</span>
-                        <i class="fa-solid fa-arrow-right-long text-xs text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all"></i>
-                    </div>
-                    <p class="text-xs text-slate-400 group-hover:text-slate-500 transition-colors">Phép cộng trừ nhân chia số nguyên...</p>
-                </a>
-                <a href="#" class="block p-6 hover:bg-purple-50/50 transition-all group relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-purple-600 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="font-black text-slate-700 group-hover:text-purple-600 transition-colors">Chương 3: Hình học</span>
-                        <i class="fa-solid fa-arrow-right-long text-xs text-slate-300 group-hover:text-purple-600 group-hover:translate-x-1 transition-all"></i>
-                    </div>
-                    <p class="text-xs text-slate-400 group-hover:text-slate-500 transition-colors">Tam giác đều, Lục giác đều...</p>
-                </a>
-                <a href="#" class="block p-5 text-center text-blue-600 font-black bg-blue-50/30 hover:bg-blue-600 hover:text-white transition-all text-[11px] uppercase tracking-widest">
+                @if (chapters != null && chapters.Any())
+                {
+                    @foreach (var (ch, i) in chapters.Select((c, i) => (c, i)))
+                    {
+                        var color = accentColors[i % accentColors.Length];
+                        <a href="/Course/Index#chapter-@ch.ChapterId"
+                           class="block p-5 hover:bg-@(color)-50/50 transition-all group relative overflow-hidden">
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-@(color)-600 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="font-black text-slate-700 group-hover:text-@(color)-600 transition-colors text-sm leading-tight">
+                                    @ch.ChapterName
+                                </span>
+                                <i class="fa-solid fa-arrow-right-long text-xs text-slate-300 group-hover:text-@(color)-600 group-hover:translate-x-1 transition-all flex-shrink-0 ml-2"></i>
+                            </div>
+                            <p class="text-xs text-slate-400 group-hover:text-slate-500 transition-colors">
+                                @(ch.Topics?.Count ?? 0) chủ đề
+                            </p>
+                        </a>
+                    }
+                }
+                else
+                {
+                    @* Fallback nếu API lỗi *@
+                    <a href="/Course/Index" class="block p-5 hover:bg-blue-50/50 transition-all group relative overflow-hidden">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-600 transform -translate-x-full group-hover:translate-x-0 transition-transform"></div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="font-black text-slate-700 group-hover:text-blue-600 transition-colors text-sm">Chương trình Toán 6</span>
+                            <i class="fa-solid fa-arrow-right-long text-xs text-slate-300 group-hover:text-blue-600 transition-all"></i>
+                        </div>
+                        <p class="text-xs text-slate-400">Kết Nối Tri Thức</p>
+                    </a>
+                }
+
+                <a href="/Course/Index"
+                   class="block p-4 text-center text-blue-600 font-black bg-blue-50/30 hover:bg-blue-600 hover:text-white transition-all text-[11px] uppercase tracking-widest">
                     Xem toàn bộ chương trình <i class="fa-solid fa-grid-2 ml-1"></i>
                 </a>
             </div>

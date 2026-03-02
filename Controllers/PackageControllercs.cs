@@ -1,4 +1,4 @@
-﻿// ToanHocHay.WebApp/Controllers/PackageController.cs
+﻿// FILE: ToanHocHay.WebApp/Controllers/PackageController.cs
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Models.DTOs;
@@ -23,16 +23,30 @@ namespace ToanHocHay.WebApp.Controllers
             var packages = await _packageService.GetAllPackagesAsync();
             ViewData["PreselectedPlan"] = plan ?? "";
 
-            // Lấy subscription hiện tại của user
             if (User.Identity!.IsAuthenticated)
             {
                 var studentIdClaim = User.FindFirst("StudentId");
                 if (studentIdClaim != null && int.TryParse(studentIdClaim.Value, out int studentId))
                 {
-                    var currentSub = await _subscriptionService.GetCurrentSubscriptionAsync(studentId);
-                    ViewData["CurrentPackageId"] = currentSub?.PackageId;
-                    ViewData["CurrentPackageName"] = currentSub?.PackageName ?? "";
-                    ViewData["SubEndDate"] = currentSub?.EndDate?.ToString("dd/MM/yyyy") ?? "";
+                    var sub = await _subscriptionService.GetCurrentSubscriptionAsync(studentId);
+
+                    if (sub != null && sub.IsActive)
+                    {
+                        // Map PackageType (0=Free,1=Standard,2=Premium) → PackageId thực trong DB
+                        int? matchedPackageId = null;
+                        if (packages != null)
+                        {
+                            matchedPackageId = packages.FirstOrDefault(p =>
+                                (sub.PackageType == 2 && p.PackageName.ToLower().Contains("premium")) ||
+                                (sub.PackageType == 1 && (p.PackageName.ToLower().Contains("standard")
+                                                       || p.PackageName.ToLower().Contains("tiêu chuẩn")))
+                            )?.PackageId;
+                        }
+
+                        ViewData["CurrentPackageId"] = matchedPackageId;
+                        ViewData["CurrentPackageName"] = sub.PackageName;
+                        ViewData["SubEndDate"] = sub.EndDate?.ToString("dd/MM/yyyy") ?? "";
+                    }
                 }
             }
 
@@ -51,7 +65,6 @@ namespace ToanHocHay.WebApp.Controllers
 
             var studentIdClaim = User.FindFirst("StudentId");
             if (studentIdClaim == null) return RedirectToAction("Index");
-
             int studentId = int.Parse(studentIdClaim.Value);
 
             var result = await _subscriptionService.CreateSubscriptionAsync(studentId, id, package.Price);
@@ -76,7 +89,6 @@ namespace ToanHocHay.WebApp.Controllers
         {
             var status = await _subscriptionService.GetSubscriptionStatusAsync(subscriptionId);
             if (status == null) return Json(new { status = "error" });
-
             return Json(new
             {
                 status = status.Status,

@@ -1,10 +1,8 @@
-﻿// ============================================================
-// FILE: ToanHocHay.WebApp/Services/DashboardApiService.cs
-// ============================================================
+﻿// FILE: ToanHocHay.WebApp/Services/DashboardApiService.cs
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Security.Claims;
 using System.Text.Json;
+using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 
 namespace ToanHocHay.WebApp.Services
@@ -38,19 +36,12 @@ namespace ToanHocHay.WebApp.Services
             var ctx = _httpContextAccessor.HttpContext;
             if (ctx == null) return null;
 
-            // Ưu tiên 1: Session (nhanh, còn thì dùng)
             var sessionToken = ctx.Session.GetString("Token")
                             ?? ctx.Session.GetString("JWT");
-            if (!string.IsNullOrEmpty(sessionToken))
-                return sessionToken;
+            if (!string.IsNullOrEmpty(sessionToken)) return sessionToken;
 
-            // Ưu tiên 2: Cookie claim "Token" (không bao giờ mất trừ khi logout)
-            var claimToken = ctx.User.FindFirst("Token")?.Value
-                          ?? ctx.User.FindFirst("jwt")?.Value;
-            if (!string.IsNullOrEmpty(claimToken))
-                return claimToken;
-
-            return null;
+            return ctx.User.FindFirst("Token")?.Value
+                ?? ctx.User.FindFirst("jwt")?.Value;
         }
 
         public async Task<CoreDashboardDto?> GetStudentDashboardAsync(int studentId)
@@ -58,7 +49,6 @@ namespace ToanHocHay.WebApp.Services
             try
             {
                 var token = GetToken();
-
                 if (string.IsNullOrEmpty(token))
                 {
                     SetStatus("TOKEN_MISSING");
@@ -68,7 +58,10 @@ namespace ToanHocHay.WebApp.Services
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token.Trim());
 
-                var response = await _httpClient.GetAsync($"student/{studentId}/dashboard");
+                // FIX: thêm ApiConstant.apiBaseUrl — trước đây thiếu nên request fail im lặng
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard");
+
                 SetStatus(((int)response.StatusCode).ToString());
 
                 if (!response.IsSuccessStatusCode)
@@ -87,9 +80,7 @@ namespace ToanHocHay.WebApp.Services
                     return null;
                 }
 
-                // Ghi lại session để lần sau dùng nhanh hơn
                 _httpContextAccessor.HttpContext?.Session.SetString("Token", token);
-
                 return apiResponse.Data;
             }
             catch (Exception ex)
