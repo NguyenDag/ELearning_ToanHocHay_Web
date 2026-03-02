@@ -1,0 +1,377 @@
+﻿@* FILE: Views/Parent/Connection.cshtml *@
+@{
+    Layout = null;
+    var parentName = ViewData["ParentName"]?.ToString() ?? "Phụ huynh";
+    var connectionCode = ViewData["ConnectionCode"]?.ToString() ?? "--------";
+    // Format: ABCD1234 → hiển thị ABCD - 1234
+    var codePart1 = connectionCode.Length >= 4 ? connectionCode[..4] : connectionCode;
+    var codePart2 = connectionCode.Length >= 8 ? connectionCode[4..8] : "";
+    var connectedStudents = ViewData["ConnectedStudents"] as List<dynamic> ?? new List<dynamic>();
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mã kết nối - ToanHocHay</title>
+    <link rel="icon" type="image/x-icon" href="/logo_header.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: #F4F7FE;
+        }
+
+        @@keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-up {
+            animation: fadeUp .5s ease both;
+        }
+
+        .d1 {
+            animation-delay: .05s;
+        }
+
+        .d2 {
+            animation-delay: .12s;
+        }
+
+        .d3 {
+            animation-delay: .19s;
+        }
+
+        /* Code display */
+        .code-hero {
+            background: linear-gradient(135deg, #312e81 0%, #4c1d95 50%, #1e1b4b 100%);
+            border-radius: 2rem;
+            padding: 3rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .code-hero::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(circle at 30% 50%, rgba(165,180,252,.15) 0%, transparent 60%), radial-gradient(circle at 70% 50%, rgba(196,181,253,.1) 0%, transparent 60%);
+            }
+
+        .code-text {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 900;
+            letter-spacing: .15em;
+            color: white;
+            text-shadow: 0 0 30px rgba(165,180,252,.6), 0 2px 4px rgba(0,0,0,.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .code-separator {
+            color: rgba(165,180,252,.6);
+            margin: 0 .5rem;
+        }
+
+        @@keyframes glow-pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(165,180,252,.3);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(165,180,252,.6);
+            }
+        }
+
+        .glow {
+            animation: glow-pulse 2s ease infinite;
+        }
+
+        .glass {
+            background: white;
+            border-radius: 2rem;
+            border: 1px solid #F1F5F9;
+            box-shadow: 0 4px 24px rgba(0,0,0,.05);
+        }
+
+        /* Student card */
+        .student-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border-radius: 1rem;
+            background: linear-gradient(135deg,#f0f9ff,#e0f2fe);
+            border: 2px solid #bae6fd;
+            transition: all .2s;
+        }
+
+            .student-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(14,165,233,.15);
+            }
+
+        /* Sidebar */
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .75rem 1rem;
+            border-radius: .75rem;
+            color: #64748b;
+            font-weight: 700;
+            font-size: .875rem;
+            transition: all .2s;
+            cursor: pointer;
+        }
+
+            .sidebar-link:hover {
+                background: #F1F5F9;
+                color: #1e293b;
+                transform: translateX(4px);
+            }
+
+            .sidebar-link.active {
+                background: linear-gradient(135deg,#EEF2FF,#E0E7FF);
+                color: #4f46e5;
+            }
+
+                .sidebar-link.active::before {
+                    display: none;
+                }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="h-16 bg-white shadow-sm flex items-center justify-between px-4 lg:px-8 sticky top-0 z-20 border-b border-gray-100">
+        <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition" onclick="window.location.href='/'">
+            <img src="/logo_header.ico" alt="Logo" class="w-8 h-8 object-contain">
+            <span class="text-xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">ToanHocHay</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-slate-600 font-bold hidden md:block">@parentName</span>
+            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-black">
+                @parentName.FirstOrDefault()
+            </div>
+        </div>
+    </header>
+
+    <div class="flex min-h-[calc(100vh-4rem)]">
+
+        <!-- Sidebar -->
+        <aside class="hidden lg:flex flex-col w-64 bg-white border-r border-gray-100 p-4 gap-1 shadow-sm">
+            <div class="px-3 py-2 mb-2">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Menu phụ huynh</p>
+            </div>
+            <a href="/Parent/Dashboard" class="sidebar-link"><i class="fa-solid fa-chart-pie w-5 text-center"></i> Tổng quan</a>
+            <a href="/Parent/Report" class="sidebar-link"><i class="fa-solid fa-chart-line w-5 text-center"></i> Báo cáo chi tiết</a>
+            <a href="/Parent/Connection" class="sidebar-link active"><i class="fa-solid fa-link w-5 text-center"></i> Mã kết nối</a>
+            <div class="border-t border-gray-100 mt-auto pt-4">
+                <a href="/Account/Logout" class="sidebar-link text-red-500 hover:text-red-600 hover:bg-red-50">
+                    <i class="fa-solid fa-right-from-bracket w-5 text-center"></i> Đăng xuất
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="flex-1 p-6 lg:p-10 max-w-4xl">
+
+            <!-- Breadcrumb -->
+            <nav class="flex items-center gap-2 text-sm text-slate-400 font-bold mb-8 fade-up d1">
+                <a href="/Parent/Dashboard" class="hover:text-indigo-600 transition">Tổng quan</a>
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                <span class="text-slate-600">Mã kết nối</span>
+            </nav>
+
+            <!-- Page title -->
+            <div class="mb-8 fade-up d1">
+                <h1 class="text-3xl font-black text-slate-800 mb-1">Mã kết nối</h1>
+                <p class="text-slate-400 font-bold">Chia sẻ mã này cho con để liên kết tài khoản</p>
+            </div>
+
+            <!-- Code Hero Card -->
+            <div class="code-hero glow mb-8 fade-up d2">
+                <div class="relative z-10">
+                    <!-- Icon -->
+                    <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/20">
+                        <i class="fa-solid fa-qrcode text-white text-2xl"></i>
+                    </div>
+
+                    <p class="text-indigo-200 font-black text-xs uppercase tracking-[.3em] mb-4">Mã kết nối của bạn</p>
+
+                    <!-- Mã hiển thị lớn -->
+                    <div class="code-text mb-6">
+                        <span>@codePart1</span>
+                        <span class="code-separator">—</span>
+                        <span>@codePart2</span>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button onclick="copyCode()"
+                                id="copy-btn"
+                                class="flex items-center justify-center gap-2 px-8 py-3 bg-white text-indigo-700 font-black rounded-2xl text-sm hover:bg-indigo-50 transition shadow-lg">
+                            <i class="fa-regular fa-copy" id="copy-icon"></i>
+                            <span id="copy-text">Sao chép mã</span>
+                        </button>
+                        <button onclick="shareCode()"
+                                class="flex items-center justify-center gap-2 px-8 py-3 bg-white/10 text-white font-black rounded-2xl text-sm hover:bg-white/20 transition backdrop-blur-sm border border-white/20">
+                            <i class="fa-solid fa-share-nodes"></i> Chia sẻ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Decorative circles -->
+                <div class="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full translate-x-1/2 -translate-y-1/2"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/10 rounded-full -translate-x-1/2 translate-y-1/2"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Học sinh đã kết nối -->
+                <div class="glass p-6 fade-up d3">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-black text-slate-800 flex items-center gap-2">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fa-solid fa-child text-blue-600 text-sm"></i>
+                            </div>
+                            Con đã kết nối
+                        </h3>
+                        @if (connectedStudents.Any())
+                        {
+                            <span class="text-xs bg-green-100 text-green-700 font-black px-2.5 py-1 rounded-full">
+                                @connectedStudents.Count học sinh
+                            </span>
+                        }
+                    </div>
+
+                    @if (connectedStudents.Any())
+                    {
+                        <div class="space-y-3">
+                            @foreach (var s in connectedStudents)
+                            {
+                                <div class="student-card">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-sky-500 rounded-xl flex items-center justify-center font-black text-white">
+                                            @(((string)s.FullName).FirstOrDefault())
+                                        </div>
+                                        <div>
+                                            <p class="font-black text-slate-800 text-sm">@s.FullName</p>
+                                            <p class="text-[10px] text-slate-400 font-bold">Lớp @s.GradeLevel</p>
+                                        </div>
+                                    </div>
+                                    <i class="fa-solid fa-circle-check text-sky-500 text-lg"></i>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="py-10 text-center">
+                            <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                <i class="fa-solid fa-user-plus text-slate-300 text-2xl"></i>
+                            </div>
+                            <p class="font-black text-slate-400 text-sm">Chưa có học sinh nào kết nối</p>
+                            <p class="text-xs text-slate-300 font-bold mt-1">Chia sẻ mã cho con để bắt đầu</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Hướng dẫn -->
+                <div class="glass p-6 fade-up d3">
+                    <h3 class="font-black text-slate-800 mb-5 flex items-center gap-2">
+                        <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-circle-info text-amber-600 text-sm"></i>
+                        </div>
+                        Cách kết nối
+                    </h3>
+                    <ol class="space-y-4">
+                        @{
+                            var steps = new[] {
+                                                ("Sao chép mã", "Nhấn nút Sao chép mã bên trên", "fa-copy", "indigo"),
+                                                ("Gửi cho con", "Gửi mã qua tin nhắn hoặc nói trực tiếp", "fa-paper-plane", "blue"),
+                                                ("Con nhập mã", "Con vào Hồ sơ → Kết nối phụ huynh → nhập mã", "fa-keyboard", "purple"),
+                                                ("Kết nối xong", "Bạn sẽ thấy tên con xuất hiện ở bên trái", "fa-circle-check", "green"),
+                                                };
+                            int stepNum = 1;
+                        }
+                        @foreach (var (title, desc, icon, color) in steps)
+                        {
+                            <li class="flex items-start gap-3">
+                                <div class="w-8 h-8 bg-@(color)-100 text-@(color)-600 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 mt-0.5">
+                                    @(stepNum++)
+                                </div>
+                                <div>
+                                    <p class="font-black text-slate-700 text-sm">@title</p>
+                                    <p class="text-xs text-slate-400 font-bold">@desc</p>
+                                </div>
+                            </li>
+                        }
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Note -->
+            <div class="mt-6 glass p-5 border border-amber-100 bg-amber-50/30 fade-up d3">
+                <div class="flex gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-0.5 flex-shrink-0"></i>
+                    <div class="text-sm text-slate-600 font-bold space-y-1">
+                        <p>Mã kết nối của bạn là <b class="text-indigo-700 tracking-widest">@connectionCode</b> — mỗi tài khoản có một mã riêng và cố định.</p>
+                        <p>Chỉ chia sẻ mã với con của bạn. Không chia sẻ với người khác.</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const CODE = '@connectionCode';
+
+        function copyCode() {
+            navigator.clipboard.writeText(CODE).then(() => {
+                const btn  = document.getElementById('copy-btn');
+                const icon = document.getElementById('copy-icon');
+                const text = document.getElementById('copy-text');
+                const orig = text.textContent;
+
+                icon.className = 'fa-solid fa-check';
+                text.textContent = 'Đã sao chép!';
+                btn.classList.add('bg-green-50', 'text-green-700');
+                btn.classList.remove('bg-white','text-indigo-700');
+
+                setTimeout(() => {
+                    icon.className = 'fa-regular fa-copy';
+                    text.textContent = orig;
+                    btn.classList.remove('bg-green-50','text-green-700');
+                    btn.classList.add('bg-white','text-indigo-700');
+                }, 2000);
+            });
+        }
+
+        function shareCode() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Mã kết nối ToanHocHay',
+                    text: `Mã kết nối phụ huynh của ba/mẹ trên ToanHocHay: ${CODE}\nVào Hồ sơ → Kết nối phụ huynh để nhập mã.`,
+                });
+            } else {
+                copyCode();
+            }
+        }
+    </script>
+</body>
+</html>
