@@ -364,7 +364,7 @@
 
                         <!-- 8 ô nhập ký tự -->
                         <div class="max-w-sm mx-auto">
-                            <div class="flex gap-2 mb-6" id="code-boxes">
+                            <div class="flex gap-2 mb-5" id="code-boxes">
                                 @for (int i = 0; i < 8; i++)
                                 {
                                     <input type="text" maxlength="1"
@@ -374,6 +374,32 @@
                                            onkeydown="onCodeKeydown(event, @i)"
                                            onpaste="onCodePaste(event)" />
                                 }
+                            </div>
+
+                            <!-- Chọn mối quan hệ -->
+                            <div class="mb-5">
+                                <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Mối quan hệ với phụ huynh này</p>
+                                <div class="grid grid-cols-4 gap-2">
+                                    <button type="button" onclick="selectRel(0, this)"
+                                            class="rel-btn py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex flex-col items-center gap-1">
+                                        <i class="fa-solid fa-mars text-base"></i> Bố
+                                    </button>
+                                    <button type="button" onclick="selectRel(1, this)"
+                                            class="rel-btn py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex flex-col items-center gap-1">
+                                        <i class="fa-solid fa-venus text-base"></i> Mẹ
+                                    </button>
+                                    <button type="button" onclick="selectRel(2, this)"
+                                            class="rel-btn py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex flex-col items-center gap-1">
+                                        <i class="fa-solid fa-user-shield text-base"></i> Giám hộ
+                                    </button>
+                                    <button type="button" onclick="selectRel(3, this)"
+                                            class="rel-btn py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex flex-col items-center gap-1">
+                                        <i class="fa-solid fa-ellipsis text-base"></i> Khác
+                                    </button>
+                                </div>
+                                <p id="rel-error" class="text-red-500 text-xs font-bold mt-1.5 hidden">
+                                    <i class="fa-solid fa-circle-xmark mr-1"></i>Vui lòng chọn mối quan hệ
+                                </p>
                             </div>
 
                             <button onclick="connectParent()" id="connect-btn"
@@ -460,23 +486,45 @@
         }
 
         // Connect parent
+        // Relationship selection
+        let selectedRel = '';
+        function selectRel(rel, btn) {
+            selectedRel = rel;
+            document.querySelectorAll('.rel-btn').forEach(b => {
+                b.classList.remove('border-indigo-500','bg-indigo-50','text-indigo-700');
+                b.classList.add('border-slate-200','text-slate-500');
+            });
+            btn.classList.remove('border-slate-200','text-slate-500');
+            btn.classList.add('border-indigo-500','bg-indigo-50','text-indigo-700');
+            document.getElementById('rel-error')?.classList.add('hidden');
+        }
+
         async function connectParent() {
             const code = getCode();
             if (code.length !== 8) { showConnectError('Vui lòng nhập đủ 8 ký tự'); return; }
+            if (!selectedRel) {
+                document.getElementById('rel-error')?.classList.remove('hidden');
+                return;
+            }
             const btn = document.getElementById('connect-btn');
             const orig = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<div class="spinner mr-2"></div> Đang kết nối...';
+            btn.innerHTML = '<div class="spinner mr-2 inline-block"></div>Đang kết nối...';
             try {
                 const res = await fetch('/Student/ConnectParent', {
                     method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({connectionCode: code})
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ connectionCode: code, relationship: selectedRel })
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
                     showConnectSuccess(data.message || 'Kết nối thành công!');
                     document.querySelectorAll('.code-char').forEach(b => { b.value=''; b.classList.remove('filled'); });
+                    selectedRel = '';
+                    document.querySelectorAll('.rel-btn').forEach(b => {
+                        b.classList.remove('border-indigo-500','bg-indigo-50','text-indigo-700');
+                        b.classList.add('border-slate-200','text-slate-500');
+                    });
                     setTimeout(() => location.reload(), 1500);
                 } else {
                     showConnectError(data.message || 'Mã không hợp lệ hoặc không tồn tại');
