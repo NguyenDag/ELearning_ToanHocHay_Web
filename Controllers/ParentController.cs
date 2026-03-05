@@ -104,7 +104,7 @@ namespace ToanHocHay.WebApp.Controllers
             {
                 var client = CreateAuthClient();
                 var res = await client.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard");
+                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/overview");
 
                 if (!res.IsSuccessStatusCode)
                     return Json(new { success = false, message = "Không tải được dữ liệu" });
