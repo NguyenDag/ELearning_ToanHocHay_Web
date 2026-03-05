@@ -1,11 +1,12 @@
 ﻿// FILE: ToanHocHay.WebApp/Controllers/StudentController.cs
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using ToanHocHay.WebApp.Services;
-using ToanHocHay.WebApp.Models.DTOs;
-using System.Security.Claims;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ToanHocHay.WebApp.Common.Constants;
+using ToanHocHay.WebApp.Models.DTOs;
+using ToanHocHay.WebApp.Services;
 
 namespace ToanHocHay.WebApp.Controllers
 {
@@ -93,8 +94,8 @@ namespace ToanHocHay.WebApp.Controllers
                     new AuthenticationHeaderValue("Bearer", token?.Trim() ?? "");
 
                 var response = await _httpClient.PostAsJsonAsync(
-                    $"student/{studentIdStr}/connect-parent",
-                    new { connectionCode = model.ConnectionCode });
+                    $"{ApiConstant.apiBaseUrl}/api/student-parent/connect",
+                    new { connectionCode = model.ConnectionCode, relationship = model.Relationship });
 
                 var json = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<JsonElement>(json);
@@ -136,6 +137,7 @@ namespace ToanHocHay.WebApp.Controllers
     public class ConnectParentDto
     {
         public string ConnectionCode { get; set; } = "";
+        public int Relationship { get; set; } = 2; // 0=Father,1=Mother,2=Guardian,3=Other
     }
 
     public class ConnectedParentDto

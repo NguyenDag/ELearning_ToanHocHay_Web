@@ -3,8 +3,9 @@
 @{
     Layout = null;
     var user = Model ?? new UserDto { FullName = "Học sinh", Email = "" };
+    var connectedParents = ViewData["ConnectedParents"] as List<ToanHocHay.WebApp.Controllers.ConnectedParentDto>
+                        ?? new List<ToanHocHay.WebApp.Controllers.ConnectedParentDto>();
 }
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -14,24 +15,10 @@
     <link rel="icon" type="image/x-icon" href="/logo_header.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #2563EB;
-            --primary-hover: #1D4ED8;
-            --success-color: #10B981;
-            --error-color: #EF4444;
-            --warning-color: #F59E0B;
-        }
-
         body {
             font-family: 'Nunito', sans-serif;
-        }
-
-        /* Animations */
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
         }
 
         @@keyframes fadeIn {
@@ -46,20 +33,39 @@
             }
         }
 
-        /* Navigation Active State */
+        .fade-in {
+            animation: fadeIn .3s ease both;
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,.3);
+            border-top-color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin .8s linear infinite;
+            display: inline-block;
+        }
+
         .nav-item {
             position: relative;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all .3s cubic-bezier(.4,0,.2,1);
         }
 
             .nav-item:hover:not(.active) {
-                background-color: #F3F4F6;
+                background: #F3F4F6;
                 transform: translateX(4px);
             }
 
             .nav-item.active {
-                background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
-                color: var(--primary-color);
+                background: linear-gradient(135deg,#EFF6FF,#DBEAFE);
+                color: #2563EB;
                 font-weight: 700;
             }
 
@@ -70,11 +76,10 @@
                     top: 0;
                     bottom: 0;
                     width: 4px;
-                    background: linear-gradient(180deg, var(--primary-color) 0%, #60A5FA 100%);
+                    background: linear-gradient(180deg,#2563EB,#60A5FA);
                     border-radius: 0 4px 4px 0;
                 }
 
-        /* Avatar Hover Effect */
         .avatar-container {
             position: relative;
             cursor: pointer;
@@ -83,102 +88,104 @@
         .avatar-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0,0,0,.5);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity .3s;
         }
 
         .avatar-container:hover .avatar-overlay {
             opacity: 1;
         }
 
-        /* Input Focus States */
         .input-field {
-            transition: all 0.3s ease;
+            transition: all .3s;
         }
 
             .input-field:focus {
-                border-color: var(--primary-color);
-                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+                border-color: #2563EB;
+                box-shadow: 0 0 0 3px rgba(37,99,235,.1);
             }
 
-        /* Button Styles */
         .btn-primary {
-            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-            transition: all 0.3s ease;
+            background: linear-gradient(135deg,#3B82F6,#2563EB);
+            transition: all .3s;
         }
 
             .btn-primary:hover {
-                background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+                background: linear-gradient(135deg,#2563EB,#1D4ED8);
                 transform: translateY(-2px);
-                box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+                box-shadow: 0 10px 25px -5px rgba(37,99,235,.4);
             }
 
-            .btn-primary:active {
-                transform: translateY(0);
+        /* Code input boxes */
+        .code-char {
+            width: 100%;
+            aspect-ratio: 1;
+            text-align: center;
+            font-weight: 900;
+            font-size: 1.25rem;
+            text-transform: uppercase;
+            border: 2px solid #e2e8f0;
+            border-radius: .75rem;
+            outline: none;
+            background: white;
+            transition: all .2s;
+        }
+
+            .code-char:focus {
+                border-color: #6366f1;
+                box-shadow: 0 0 0 3px rgba(99,102,241,.2);
+                transform: scale(1.05);
             }
 
-        /* Loading Spinner */
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @@keyframes spin {
-            to {
-                transform: rotate(360deg);
+            .code-char.filled {
+                border-color: #a5b4fc;
+                background: #eef2ff;
+                color: #4f46e5;
             }
+
+        .parent-card {
+            background: linear-gradient(135deg,#f0fdf4,#dcfce7);
+            border: 2px solid #bbf7d0;
+            border-radius: 1rem;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all .2s;
         }
 
-        /* Card Hover Effect */
-        .card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-            .card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
+            .parent-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(16,185,129,.15);
             }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="h-16 bg-white shadow-md flex items-center justify-between px-4 lg:px-8 shrink-0 sticky top-0 z-20 backdrop-blur-sm bg-white/95">
+    <header class="h-16 bg-white shadow-md flex items-center justify-between px-4 lg:px-8 shrink-0 sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
         <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition" onclick="window.location.href='/'">
             <img src="/logo_header.ico" alt="Logo" class="w-8 h-8 object-contain">
             <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">ToanHocHay</span>
         </div>
-
         <div class="flex items-center gap-4">
-            <div class="h-8 w-[1px] bg-gray-300 hidden md:block"></div>
+            <div class="h-8 w-px bg-gray-300 hidden md:block"></div>
             <div class="flex items-center gap-3">
                 <span class="text-gray-700 font-semibold hidden md:block">@user.FullName</span>
-                <img id="header-avatar-small"
-                     src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=@user.FullName"
-                     alt="Avatar"
-                     class="w-10 h-10 rounded-full border-2 border-blue-200 bg-blue-50 shadow-sm hover:border-blue-400 transition">
+                <img id="header-avatar-small" src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=@user.FullName"
+                     alt="Avatar" class="w-10 h-10 rounded-full border-2 border-blue-200 bg-blue-50 shadow-sm hover:border-blue-400 transition">
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="flex-1 container mx-auto p-4 md:p-8 max-w-6xl">
-
-        <!-- Breadcrumb -->
-        <nav class="mb-8 flex items-center text-sm text-gray-600" aria-label="Breadcrumb">
-            <a href="/" class="hover:text-blue-600 transition flex items-center gap-1">
-                <i class="fa-solid fa-house"></i>
-                <span>Trang chủ</span>
-            </a>
+        <nav class="mb-8 flex items-center text-sm text-gray-600">
+            <a href="/" class="hover:text-blue-600 transition flex items-center gap-1"><i class="fa-solid fa-house"></i><span>Trang chủ</span></a>
             <i class="fa-solid fa-chevron-right mx-2 text-xs"></i>
             <span class="text-gray-800 font-semibold">Hồ sơ cá nhân</span>
         </nav>
@@ -187,575 +194,447 @@
 
             <!-- Sidebar -->
             <aside class="w-full lg:w-72 bg-white rounded-2xl shadow-lg h-fit overflow-hidden border border-gray-200">
-
-                <!-- Profile Header -->
                 <div class="p-6 text-center border-b border-gray-200 bg-gradient-to-br from-blue-50 via-white to-blue-50">
                     <div class="avatar-container w-28 h-28 mx-auto mb-4" onclick="openAvatarModal()">
-                        <img id="current-avatar"
-                             src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=@user.FullName"
-                             alt="Avatar"
-                             class="w-full h-full rounded-full border-4 border-white shadow-lg">
-                        <div class="avatar-overlay">
-                            <i class="fa-solid fa-camera text-white text-2xl"></i>
-                        </div>
+                        <img id="current-avatar" src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=@user.FullName"
+                             alt="Avatar" class="w-full h-full rounded-full border-4 border-white shadow-lg">
+                        <div class="avatar-overlay"><i class="fa-solid fa-camera text-white text-2xl"></i></div>
                     </div>
                     <h2 class="text-xl font-bold text-gray-800 mb-1">@user.FullName</h2>
-                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">
-                        Học sinh
-                    </span>
+                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">Học sinh</span>
                 </div>
-
-                <!-- Navigation Menu -->
-                <nav class="p-3" role="navigation">
-                    <ul class="space-y-2">
+                <nav class="p-3">
+                    <ul class="space-y-1">
                         <li>
-                            <button onclick="switchTab('general')"
-                                    id="nav-general"
-                                    class="nav-item active w-full text-left px-4 py-3 rounded-xl text-gray-600 flex items-center gap-3"
-                                    aria-label="Thông tin chung">
-                                <i class="fa-solid fa-user-circle w-5 text-lg"></i>
-                                <span>Thông tin chung</span>
+                            <button onclick="switchTab('general')" id="nav-general"
+                                    class="nav-item active w-full text-left px-4 py-3 rounded-xl text-gray-600 flex items-center gap-3">
+                                <i class="fa-solid fa-user-circle w-5 text-lg"></i><span>Thông tin chung</span>
                             </button>
                         </li>
                         <li>
-                            <button onclick="switchTab('security')"
-                                    id="nav-security"
-                                    class="nav-item w-full text-left px-4 py-3 rounded-xl text-gray-600 flex items-center gap-3"
-                                    aria-label="Bảo mật">
-                                <i class="fa-solid fa-shield-halved w-5 text-lg"></i>
-                                <span>Bảo mật</span>
+                            <button onclick="switchTab('security')" id="nav-security"
+                                    class="nav-item w-full text-left px-4 py-3 rounded-xl text-gray-600 flex items-center gap-3">
+                                <i class="fa-solid fa-shield-halved w-5 text-lg"></i><span>Bảo mật</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchTab('parent')" id="nav-parent"
+                                    class="nav-item w-full text-left px-4 py-3 rounded-xl text-gray-600 flex items-center gap-3">
+                                <i class="fa-solid fa-link w-5 text-lg"></i>
+                                <span>Kết nối phụ huynh</span>
+                                @if (connectedParents.Any())
+                                {
+                                    <span class="ml-auto bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full">@connectedParents.Count</span>
+                                }
                             </button>
                         </li>
                     </ul>
-
-                    <!-- Logout Button -->
                     <div class="border-t border-gray-200 mt-3 pt-3">
-                        <button onclick="handleLogout()"
-                                class="w-full text-left px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition flex items-center gap-3 font-semibold">
-                            <i class="fa-solid fa-right-from-bracket w-5 text-lg"></i>
-                            <span>Đăng xuất</span>
+                        <button onclick="handleLogout()" class="w-full text-left px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition flex items-center gap-3 font-semibold">
+                            <i class="fa-solid fa-right-from-bracket w-5 text-lg"></i><span>Đăng xuất</span>
                         </button>
                     </div>
                 </nav>
             </aside>
 
-            <!-- Main Content Area -->
+            <!-- Content -->
             <div class="flex-1 bg-white rounded-2xl shadow-lg p-6 md:p-10 min-h-[500px] border border-gray-200">
 
-                <!-- Tab 1: General Information -->
+                <!-- Tab: Thông tin chung -->
                 <div id="tab-general" class="fade-in">
                     <div class="flex items-center gap-3 mb-8">
                         <div class="w-1 h-8 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
                         <h3 class="text-2xl font-bold text-gray-800">Thông tin cá nhân</h3>
                     </div>
-
                     <form id="form-update-profile" class="space-y-6 max-w-2xl">
-                        <!-- Full Name -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="fullName">
-                                Họ và tên <span class="text-red-500">*</span>
-                            </label>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Họ và tên <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input type="text"
-                                       id="fullName"
-                                       name="FullName"
-                                       value="@user.FullName"
-                                       required
-                                       class="input-field w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl outline-none transition"
-                                       placeholder="Nhập họ và tên đầy đủ">
+                                <input type="text" id="fullName" name="FullName" value="@user.FullName" required
+                                       class="input-field w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl outline-none transition" placeholder="Nhập họ và tên đầy đủ">
                             </div>
                         </div>
-
-                        <!-- Email (Disabled) -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                                Email tài khoản
-                            </label>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Email tài khoản</label>
                             <div class="relative">
                                 <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input type="email"
-                                       id="email"
-                                       value="@user.Email"
-                                       disabled
-                                       class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 bg-gray-100 text-gray-500 rounded-xl cursor-not-allowed"
-                                       placeholder="email@example.com">
+                                <input type="email" value="@user.Email" disabled class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 bg-gray-100 text-gray-500 rounded-xl cursor-not-allowed">
                             </div>
-                            <p class="text-xs text-gray-500 mt-2 ml-1">
-                                <i class="fa-solid fa-circle-info mr-1"></i>
-                                Email không thể thay đổi
-                            </p>
+                            <p class="text-xs text-gray-500 mt-2 ml-1"><i class="fa-solid fa-circle-info mr-1"></i>Email không thể thay đổi</p>
                         </div>
-
-                        <!-- Submit Button -->
                         <div class="pt-6 border-t border-gray-200 flex justify-end">
-                            <button type="submit"
-                                    id="btn-update-profile"
-                                    class="btn-primary text-white font-bold py-3 px-8 rounded-xl transition shadow-lg flex items-center gap-3">
-                                <i class="fa-solid fa-check"></i>
-                                <span>Cập nhật thông tin</span>
+                            <button type="submit" id="btn-update-profile" class="btn-primary text-white font-bold py-3 px-8 rounded-xl shadow-lg flex items-center gap-3">
+                                <i class="fa-solid fa-check"></i><span>Cập nhật thông tin</span>
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Tab 2: Security (Change Password) -->
+                <!-- Tab: Bảo mật -->
                 <div id="tab-security" class="hidden fade-in">
                     <div class="flex items-center gap-3 mb-8">
                         <div class="w-1 h-8 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full"></div>
                         <h3 class="text-2xl font-bold text-gray-800">Bảo mật tài khoản</h3>
                     </div>
-
                     <form id="form-change-password" class="space-y-6 max-w-lg">
-                        <!-- Old Password -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="oldPassword">
-                                Mật khẩu hiện tại <span class="text-red-500">*</span>
-                            </label>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Mật khẩu hiện tại <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input type="password"
-                                       id="oldPassword"
-                                       name="OldPassword"
-                                       required
-                                       class="input-field w-full pl-12 pr-12 py-3 border-2 border-gray-300 rounded-xl outline-none transition"
-                                       placeholder="Nhập mật khẩu hiện tại">
-                                <button type="button"
-                                        onclick="togglePassword('oldPassword')"
-                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
+                                <input type="password" id="oldPassword" name="OldPassword" required class="input-field w-full pl-12 pr-12 py-3 border-2 border-gray-300 rounded-xl outline-none transition" placeholder="Mật khẩu hiện tại">
+                                <button type="button" onclick="togglePwd('oldPassword')" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-eye"></i></button>
                             </div>
                         </div>
-
-                        <!-- New Password -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="newPassword">
-                                Mật khẩu mới <span class="text-red-500">*</span>
-                            </label>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Mật khẩu mới <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <i class="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input type="password"
-                                       id="newPassword"
-                                       name="NewPassword"
-                                       required
-                                       minlength="6"
-                                       class="input-field w-full pl-12 pr-12 py-3 border-2 border-gray-300 rounded-xl outline-none transition"
-                                       placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)">
-                                <button type="button"
-                                        onclick="togglePassword('newPassword')"
-                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
+                                <input type="password" id="newPassword" name="NewPassword" required minlength="6" class="input-field w-full pl-12 pr-12 py-3 border-2 border-gray-300 rounded-xl outline-none transition" placeholder="Tối thiểu 6 ký tự">
+                                <button type="button" onclick="togglePwd('newPassword')" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-eye"></i></button>
                             </div>
                         </div>
-
-                        <!-- Confirm Password -->
-                        <div class="form-group">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">
-                                Xác nhận mật khẩu <span class="text-red-500">*</span>
-                            </label>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <i class="fa-solid fa-shield-halved absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                                <input type="password"
-                                       id="confirmPassword"
-                                       name="ConfirmPassword"
-                                       required
-                                       class="input-field w-full pl-12 pr-12 py-3 border-2 border-gray-300 rounded-xl outline-none transition"
-                                       placeholder="Nhập lại mật khẩu mới">
-                                <button type="button"
-                                        onclick="togglePassword('confirmPassword')"
-                                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">
-                                    <i class="fa-solid fa-eye"></i>
-                                </button>
+                                <input type="password" id="confirmPassword" name="ConfirmPassword" required class="input-field w-full pl-12 pr-12 py-3 border-2 border-gray-300 rounded-xl outline-none transition" placeholder="Nhập lại mật khẩu mới">
+                                <button type="button" onclick="togglePwd('confirmPassword')" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><i class="fa-solid fa-eye"></i></button>
                             </div>
                         </div>
-
-                        <!-- Password Requirements -->
                         <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                            <p class="text-sm font-semibold text-blue-800 mb-2">
-                                <i class="fa-solid fa-circle-info mr-2"></i>Yêu cầu mật khẩu:
-                            </p>
-                            <ul class="text-sm text-blue-700 space-y-1 ml-6">
-                                <li class="list-disc">Tối thiểu 6 ký tự</li>
-                                <li class="list-disc">Nên kết hợp chữ, số và ký tự đặc biệt</li>
-                                <li class="list-disc">Không sử dụng mật khẩu quá đơn giản</li>
+                            <p class="text-sm font-semibold text-blue-800 mb-2"><i class="fa-solid fa-circle-info mr-2"></i>Yêu cầu:</p>
+                            <ul class="text-sm text-blue-700 space-y-1 ml-6 list-disc">
+                                <li>Tối thiểu 6 ký tự</li>
+                                <li>Nên kết hợp chữ, số và ký tự đặc biệt</li>
                             </ul>
                         </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit"
-                                id="btn-change-password"
-                                class="w-full bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-black text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span>Đổi mật khẩu</span>
+                        <button type="submit" id="btn-change-password" class="w-full bg-gradient-to-r from-slate-700 to-slate-900 text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-shield-halved"></i><span>Đổi mật khẩu</span>
                         </button>
                     </form>
+                </div>
+
+                <!-- Tab: Kết nối phụ huynh -->
+                <div id="tab-parent" class="hidden fade-in">
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-full"></div>
+                        <h3 class="text-2xl font-bold text-gray-800">Kết nối phụ huynh</h3>
+                    </div>
+
+                    @* Danh sách đã kết nối *@
+                    @if (connectedParents.Any())
+                    {
+                        <div class="mb-8">
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-green-500"></i>
+                                Đã kết nối — @connectedParents.Count phụ huynh
+                            </p>
+                            <div class="space-y-3">
+                                @foreach (var p in connectedParents)
+                                {
+                                    <div class="parent-card">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center font-black text-white text-lg shadow-md">
+                                                @p.FullName.FirstOrDefault()
+                                            </div>
+                                            <div>
+                                                <p class="font-black text-slate-800">@p.FullName</p>
+                                                <p class="text-xs text-slate-500 font-bold">@p.Relationship</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs bg-green-100 text-green-700 font-black px-3 py-1.5 rounded-full flex items-center gap-1">
+                                            <i class="fa-solid fa-circle-check text-[10px]"></i> Đã kết nối
+                                        </span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @* Form nhập mã *@
+                    <div class="bg-gradient-to-br from-slate-50 to-indigo-50/40 rounded-2xl border-2 border-dashed border-indigo-200 p-8">
+                        <div class="text-center mb-8">
+                            <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-solid fa-link text-indigo-600 text-2xl"></i>
+                            </div>
+                            <h4 class="font-black text-slate-800 text-lg mb-1">Nhập mã kết nối</h4>
+                            <p class="text-sm text-slate-500 font-bold max-w-xs mx-auto">Yêu cầu phụ huynh cung cấp mã 8 ký tự từ trang Mã kết nối của họ</p>
+                        </div>
+
+                        <!-- 8 ô nhập ký tự -->
+                        <div class="max-w-sm mx-auto">
+                            <div class="flex gap-2 mb-5" id="code-boxes">
+                                @for (int i = 0; i < 8; i++)
+                                {
+                                    <input type="text" maxlength="1"
+                                           class="code-char"
+                                           data-idx="@i"
+                                           oninput="onCodeInput(this, @i)"
+                                           onkeydown="onCodeKeydown(event, @i)"
+                                           onpaste="onCodePaste(event)" />
+                                }
+                            </div>
+
+                            <!-- Chọn mối quan hệ -->
+                            <div class="mb-5">
+                                <p class="text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Mối quan hệ với phụ huynh này</p>
+                                <div class="grid grid-cols-4 gap-2">
+                                    <button type="button" onclick="selectRel(0, this)"
+                                            class="rel-btn py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex flex-col items-center gap-1">
+                                        <i class="fa-solid fa-mars text-base"></i> Bố
+                                    </button>
+                                    <button type="button" onclick="selectRel(1, this)"
+                                            class="rel-btn py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex flex-col items-center gap-1">
+                                        <i class="fa-solid fa-venus text-base"></i> Mẹ
+                                    </button>
+                                    <button type="button" onclick="selectRel(2, this)"
+                                            class="rel-btn py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex flex-col items-center gap-1">
+                                        <i class="fa-solid fa-user-shield text-base"></i> Giám hộ
+                                    </button>
+                                    <button type="button" onclick="selectRel(3, this)"
+                                            class="rel-btn py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 font-black text-xs hover:border-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 transition flex flex-col items-center gap-1">
+                                        <i class="fa-solid fa-ellipsis text-base"></i> Khác
+                                    </button>
+                                </div>
+                                <p id="rel-error" class="text-red-500 text-xs font-bold mt-1.5 hidden">
+                                    <i class="fa-solid fa-circle-xmark mr-1"></i>Vui lòng chọn mối quan hệ
+                                </p>
+                            </div>
+
+                            <button onclick="connectParent()" id="connect-btn"
+                                    class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black rounded-xl text-sm uppercase tracking-widest hover:from-indigo-700 hover:to-purple-700 transition shadow-lg flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-link"></i> Kết nối ngay
+                            </button>
+
+                            <div id="connect-status" class="mt-4 hidden">
+                                <div id="connect-success" class="hidden items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-xl text-green-700 font-bold text-sm">
+                                    <i class="fa-solid fa-circle-check flex-shrink-0"></i>
+                                    <span id="success-msg">Kết nối thành công!</span>
+                                </div>
+                                <div id="connect-error" class="hidden items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 font-bold text-sm">
+                                    <i class="fa-solid fa-circle-xmark flex-shrink-0"></i>
+                                    <span id="error-msg">Mã không hợp lệ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hướng dẫn -->
+                    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
+                        <p class="text-sm font-black text-blue-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info"></i> Cách lấy mã kết nối:
+                        </p>
+                        <ol class="text-sm text-blue-700 font-bold space-y-2 ml-4 list-decimal">
+                            <li>Phụ huynh đăng nhập vào tài khoản ToanHocHay</li>
+                            <li>Vào menu <b>Mã kết nối</b> trong trang phụ huynh</li>
+                            <li>Sao chép mã 8 ký tự và gửi cho bạn</li>
+                            <li>Nhập vào ô bên trên và nhấn <b>Kết nối ngay</b></li>
+                        </ol>
+                    </div>
                 </div>
 
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="py-8 text-center text-gray-500 text-sm border-t border-gray-200 bg-white/50 backdrop-blur-sm">
-        <p class="mb-2">&copy; 2026 ToanHocHay - Nền tảng học toán thông minh</p>
-        <p class="text-xs text-gray-400">Phát triển bởi đội ngũ ToanHocHay</p>
+    <footer class="py-8 text-center text-gray-500 text-sm border-t border-gray-200 bg-white/50">
+        <p>&copy; 2026 ToanHocHay - Nền tảng học toán thông minh</p>
     </footer>
 
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-        // ==================== CONFIGURATION ====================
-        const API_ENDPOINTS = {
-            updateProfile: '/Student/UpdateProfile',
-            changePassword: '/Student/ChangePassword',
-            updateAvatar: '/Student/UpdateAvatar'
-        };
-
-        const AVATAR_STYLES = {
-            'adventurer': 'Phiêu lưu',
-            'avataaars': 'Đáng yêu',
-            'bottts': 'Robot',
-            'big-smile': 'Cười tươi',
-            'pixel-art': 'Pixel Art',
-            'fun-emoji': 'Emoji vui',
-            'lorelei': 'Lorelei',
-            'thumbs': 'Thumbs'
-        };
-
-        const STORAGE_KEYS = {
-            avatarStyle: 'user_avatar_style'
-        };
-
-        // ==================== INITIALIZATION ====================
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeAvatar();
-            initializeEventListeners();
-        });
-
-        function initializeAvatar() {
-            const savedStyle = localStorage.getItem(STORAGE_KEYS.avatarStyle);
-            if (savedStyle) {
-                const userName = "@user.FullName";
-                updateAvatarDisplay(savedStyle, userName);
-            }
-        }
-
-        function initializeEventListeners() {
-            // Profile update form
-            const updateForm = document.getElementById('form-update-profile');
-            if (updateForm) {
-                updateForm.addEventListener('submit', handleProfileUpdate);
-            }
-
-            // Password change form
-            const passwordForm = document.getElementById('form-change-password');
-            if (passwordForm) {
-                passwordForm.addEventListener('submit', handlePasswordChange);
-            }
-        }
-
-        // ==================== TAB SWITCHING ====================
-        function switchTab(tabName) {
-            // Update navigation active state
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
+        // Tab switching
+        function switchTab(name) {
+            ['general','security','parent'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).classList.remove('active');
             });
+            document.getElementById(`tab-${name}`).classList.remove('hidden');
+            document.getElementById(`nav-${name}`).classList.add('active');
+        }
 
-            const activeNav = document.getElementById(`nav-${tabName}`);
-            if (activeNav) {
-                activeNav.classList.add('active');
-            }
-
-            // Switch tab content
-            const tabs = ['general', 'security'];
-            tabs.forEach(tab => {
-                const content = document.getElementById(`tab-${tab}`);
-                if (content) {
-                    if (tab === tabName) {
-                        content.classList.remove('hidden');
-                        content.classList.add('fade-in');
-                    } else {
-                        content.classList.add('hidden');
-                    }
+        // Code boxes
+        function onCodeInput(el, idx) {
+            el.value = el.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(-1);
+            el.classList.toggle('filled', !!el.value);
+            if (el.value && idx < 7) document.querySelectorAll('.code-char')[idx+1].focus();
+        }
+        function onCodeKeydown(e, idx) {
+            if (e.key === 'Backspace') {
+                if (!e.target.value && idx > 0) {
+                    const prev = document.querySelectorAll('.code-char')[idx-1];
+                    prev.value = '';
+                    prev.classList.remove('filled');
+                    prev.focus();
                 }
+                e.target.classList.remove('filled');
+            }
+        }
+        function onCodePaste(e) {
+            e.preventDefault();
+            const text = (e.clipboardData||window.clipboardData).getData('text')
+                .replace(/[^A-Za-z0-9]/g,'').toUpperCase().slice(0,8);
+            const boxes = document.querySelectorAll('.code-char');
+            [...text].forEach((ch,i) => {
+                if (boxes[i]) { boxes[i].value = ch; boxes[i].classList.add('filled'); }
             });
+            boxes[Math.min(text.length, 7)].focus();
+        }
+        function getCode() {
+            return [...document.querySelectorAll('.code-char')].map(b => b.value).join('');
         }
 
-        // ==================== PROFILE UPDATE ====================
-        async function handleProfileUpdate(e) {
-            e.preventDefault();
+        // Connect parent
+        // Relationship selection
+        let selectedRel = '';
+        function selectRel(rel, btn) {
+            selectedRel = rel;
+            document.querySelectorAll('.rel-btn').forEach(b => {
+                b.classList.remove('border-indigo-500','bg-indigo-50','text-indigo-700');
+                b.classList.add('border-slate-200','text-slate-500');
+            });
+            btn.classList.remove('border-slate-200','text-slate-500');
+            btn.classList.add('border-indigo-500','bg-indigo-50','text-indigo-700');
+            document.getElementById('rel-error')?.classList.add('hidden');
+        }
 
-            const form = e.target;
-            const button = document.getElementById('btn-update-profile');
-            const originalContent = button.innerHTML;
-
-            // Validate
-            const fullName = form.querySelector('[name="FullName"]').value.trim();
-            if (!fullName) {
-                showAlert('error', 'Vui lòng nhập họ tên');
+        async function connectParent() {
+            const code = getCode();
+            if (code.length !== 8) { showConnectError('Vui lòng nhập đủ 8 ký tự'); return; }
+            if (!selectedRel) {
+                document.getElementById('rel-error')?.classList.remove('hidden');
                 return;
             }
-
-            // Show loading
-            setButtonLoading(button, true);
-
-            const data = {
-                fullName: fullName,
-                schoolName: "",
-                grade: 0
-            };
-
+            const btn = document.getElementById('connect-btn');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner mr-2 inline-block"></div>Đang kết nối...';
             try {
-                const response = await fetch(API_ENDPOINTS.updateProfile, {
+                const res = await fetch('/Student/ConnectParent', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ connectionCode: code, relationship: selectedRel })
                 });
-
-                const result = await response.json();
-
-                if (response.ok && result.success !== false) {
-                    showAlert('success', 'Cập nhật thông tin thành công!').then(() => {
-                        location.reload();
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showConnectSuccess(data.message || 'Kết nối thành công!');
+                    document.querySelectorAll('.code-char').forEach(b => { b.value=''; b.classList.remove('filled'); });
+                    selectedRel = '';
+                    document.querySelectorAll('.rel-btn').forEach(b => {
+                        b.classList.remove('border-indigo-500','bg-indigo-50','text-indigo-700');
+                        b.classList.add('border-slate-200','text-slate-500');
                     });
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    showAlert('error', result.message || 'Không thể cập nhật thông tin');
+                    showConnectError(data.message || 'Mã không hợp lệ hoặc không tồn tại');
                 }
-            } catch (error) {
-                console.error('Update profile error:', error);
-                showAlert('error', 'Lỗi kết nối đến máy chủ');
-            } finally {
-                setButtonLoading(button, false, originalContent);
-            }
+            } catch { showConnectError('Lỗi kết nối, vui lòng thử lại'); }
+            finally { btn.disabled = false; btn.innerHTML = orig; }
         }
 
-        // ==================== PASSWORD CHANGE ====================
-        async function handlePasswordChange(e) {
+        function showConnectSuccess(msg) {
+            document.getElementById('connect-status').classList.remove('hidden');
+            const s = document.getElementById('connect-success');
+            const er = document.getElementById('connect-error');
+            s.classList.remove('hidden'); s.classList.add('flex');
+            er.classList.add('hidden'); er.classList.remove('flex');
+            document.getElementById('success-msg').textContent = msg;
+        }
+        function showConnectError(msg) {
+            document.getElementById('connect-status').classList.remove('hidden');
+            const s = document.getElementById('connect-success');
+            const er = document.getElementById('connect-error');
+            er.classList.remove('hidden'); er.classList.add('flex');
+            s.classList.add('hidden'); s.classList.remove('flex');
+            document.getElementById('error-msg').textContent = msg;
+        }
+
+        // Profile update
+        document.getElementById('form-update-profile').addEventListener('submit', async e => {
             e.preventDefault();
-
-            const form = e.target;
-            const button = document.getElementById('btn-change-password');
-            const originalContent = button.innerHTML;
-
-            const oldPassword = form.querySelector('[name="OldPassword"]').value;
-            const newPassword = form.querySelector('[name="NewPassword"]').value;
-            const confirmPassword = form.querySelector('[name="ConfirmPassword"]').value;
-
-            // Validation
-            if (!oldPassword || !newPassword || !confirmPassword) {
-                showAlert('warning', 'Vui lòng điền đầy đủ thông tin');
-                return;
-            }
-
-            if (newPassword.length < 6) {
-                showAlert('warning', 'Mật khẩu mới phải có ít nhất 6 ký tự');
-                return;
-            }
-
-            if (newPassword !== confirmPassword) {
-                showAlert('warning', 'Mật khẩu xác nhận không khớp');
-                return;
-            }
-
-            if (oldPassword === newPassword) {
-                showAlert('warning', 'Mật khẩu mới phải khác mật khẩu cũ');
-                return;
-            }
-
-            // Show loading
-            setButtonLoading(button, true);
-
-            const data = {
-                oldPassword: oldPassword,
-                newPassword: newPassword,
-                confirmPassword: confirmPassword
-            };
-
+            const btn = document.getElementById('btn-update-profile');
+            const orig = btn.innerHTML;
+            setLoading(btn, true);
             try {
-                const response = await fetch(API_ENDPOINTS.changePassword, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                const res = await fetch('/Student/UpdateProfile', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({fullName: document.getElementById('fullName').value.trim(), schoolName:'', grade:0})
                 });
+                const r = await res.json();
+                if (res.ok && r.success !== false) showAlert('success','Cập nhật thành công!').then(() => location.reload());
+                else showAlert('error', r.message || 'Không thể cập nhật');
+            } catch { showAlert('error','Lỗi kết nối'); }
+            finally { setLoading(btn, false, orig); }
+        });
 
-                const result = await response.json();
+        // Password change
+        document.getElementById('form-change-password').addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-change-password');
+            const orig = btn.innerHTML;
+            const np = document.getElementById('newPassword').value;
+            const cp = document.getElementById('confirmPassword').value;
+            if (np.length < 6) return showAlert('warning','Mật khẩu mới phải có ít nhất 6 ký tự');
+            if (np !== cp) return showAlert('warning','Mật khẩu xác nhận không khớp');
+            setLoading(btn, true);
+            try {
+                const res = await fetch('/Student/ChangePassword', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        oldPassword: document.getElementById('oldPassword').value,
+                        newPassword: np, confirmPassword: cp
+                    })
+                });
+                const r = await res.json();
+                if (r.success) { showAlert('success','Đổi mật khẩu thành công!'); e.target.reset(); }
+                else showAlert('error', r.message || 'Mật khẩu cũ không đúng');
+            } catch { showAlert('error','Lỗi kết nối'); }
+            finally { setLoading(btn, false, orig); }
+        });
 
-                if (result.success) {
-                    showAlert('success', 'Đổi mật khẩu thành công!');
-                    form.reset();
-                } else {
-                    showAlert('error', result.message || 'Mật khẩu cũ không đúng');
-                }
-            } catch (error) {
-                console.error('Change password error:', error);
-                showAlert('error', 'Lỗi kết nối đến máy chủ');
-            } finally {
-                setButtonLoading(button, false, originalContent);
-            }
-        }
-
-        // ==================== AVATAR MANAGEMENT ====================
+        // Avatar
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('user_avatar_style');
+            if (saved) updateAvatarDisplay(saved);
+        });
         async function openAvatarModal() {
-            const { value: selectedStyle } = await Swal.fire({
-                title: '<strong>Chọn phong cách Avatar</strong>',
-                html: '<p class="text-gray-600 text-sm mb-4">Chọn một phong cách để cập nhật ảnh đại diện của bạn</p>',
-                input: 'select',
-                inputOptions: AVATAR_STYLES,
-                inputPlaceholder: 'Chọn một phong cách',
-                showCancelButton: true,
-                confirmButtonText: '<i class="fa-solid fa-check mr-2"></i>Áp dụng',
-                cancelButtonText: '<i class="fa-solid fa-times mr-2"></i>Hủy',
-                confirmButtonColor: '#3B82F6',
-                cancelButtonColor: '#6B7280',
-                customClass: {
-                    popup: 'rounded-2xl',
-                    confirmButton: 'rounded-xl px-6',
-                    cancelButton: 'rounded-xl px-6'
-                }
+            const {value} = await Swal.fire({
+                title:'Chọn Avatar', input:'select',
+                inputOptions:{adventurer:'Phiêu lưu',avataaars:'Đáng yêu',bottts:'Robot','big-smile':'Cười tươi','pixel-art':'Pixel Art','fun-emoji':'Emoji vui'},
+                showCancelButton:true, confirmButtonColor:'#3B82F6'
             });
-
-            if (selectedStyle) {
-                await updateAvatar(selectedStyle);
-            }
+            if (value) { updateAvatarDisplay(value); localStorage.setItem('user_avatar_style',value); }
+        }
+        function updateAvatarDisplay(style) {
+            const url = `https://api.dicebear.com/7.x/${style}/svg?seed=@user.FullName`;
+            document.getElementById('current-avatar').src = url;
+            document.getElementById('header-avatar-small').src = url;
         }
 
-        async function updateAvatar(style) {
-            const userName = "@user.FullName";
-
-            // Update display immediately
-            updateAvatarDisplay(style, userName);
-
-            // Save to localStorage
-            localStorage.setItem(STORAGE_KEYS.avatarStyle, style);
-
-            // Update global avatar if function exists
-            if (typeof updateGlobalAvatar === 'function') {
-                updateGlobalAvatar(style, userName);
-            }
-
-            // Save to database
-            try {
-                const response = await fetch(API_ENDPOINTS.updateAvatar, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ avatarStyle: style })
-                });
-
-                if (response.ok) {
-                    showAlert('success', 'Cập nhật ảnh đại diện thành công!');
-                } else {
-                    throw new Error('Failed to save avatar');
-                }
-            } catch (error) {
-                console.error('Save avatar error:', error);
-                showAlert('warning', 'Đã cập nhật giao diện nhưng chưa lưu vào hệ thống');
-            }
+        function togglePwd(id) {
+            const inp = document.getElementById(id);
+            const icon = inp.nextElementSibling.querySelector('i');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            icon.classList.toggle('fa-eye'); icon.classList.toggle('fa-eye-slash');
         }
-
-        function updateAvatarDisplay(style, userName) {
-            const newUrl = `https://api.dicebear.com/7.x/${style}/svg?seed=${encodeURIComponent(userName)}`;
-
-            // Update large avatar
-            const currentAvatar = document.getElementById('current-avatar');
-            if (currentAvatar) currentAvatar.src = newUrl;
-
-            // Update header avatar
-            const headerAvatar = document.getElementById('header-avatar-small');
-            if (headerAvatar) headerAvatar.src = newUrl;
-        }
-
-        // ==================== PASSWORD VISIBILITY TOGGLE ====================
-        function togglePassword(inputId) {
-            const input = document.getElementById(inputId);
-            const button = input.nextElementSibling;
-            const icon = button.querySelector('i');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-
-        // ==================== LOGOUT ====================
         function handleLogout() {
-            Swal.fire({
-                title: 'Xác nhận đăng xuất?',
-                text: 'Bạn có chắc muốn đăng xuất khỏi tài khoản?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Đăng xuất',
-                cancelButtonText: 'Hủy',
-                confirmButtonColor: '#EF4444',
-                cancelButtonColor: '#6B7280',
-                customClass: {
-                    popup: 'rounded-2xl',
-                    confirmButton: 'rounded-xl px-6',
-                    cancelButton: 'rounded-xl px-6'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '/Account/Logout';
-                }
-            });
+            Swal.fire({title:'Xác nhận đăng xuất?',icon:'question',showCancelButton:true,
+                confirmButtonColor:'#EF4444',confirmButtonText:'Đăng xuất',cancelButtonText:'Hủy'})
+                .then(r => { if (r.isConfirmed) window.location.href='/Account/Logout'; });
+        }
+        function showAlert(type, msg) {
+            const titles = {success:'Thành công!',error:'Lỗi!',warning:'Cảnh báo!'};
+            return Swal.fire({title:titles[type],text:msg,icon:type,confirmButtonColor:'#3B82F6',customClass:{popup:'rounded-2xl'}});
+        }
+        function setLoading(btn, on, orig='') {
+            btn.disabled = on;
+            btn.innerHTML = on ? '<div class="spinner mr-2 inline-block"></div>Đang xử lý...' : orig;
+            btn.classList.toggle('opacity-75', on);
         }
 
-        // ==================== UTILITY FUNCTIONS ====================
-        function showAlert(type, message, title = '') {
-            const icons = {
-                success: 'success',
-                error: 'error',
-                warning: 'warning',
-                info: 'info'
-            };
-
-            const titles = {
-                success: title || 'Thành công!',
-                error: title || 'Lỗi!',
-                warning: title || 'Cảnh báo!',
-                info: title || 'Thông báo'
-            };
-
-            return Swal.fire({
-                title: titles[type],
-                text: message,
-                icon: icons[type],
-                confirmButtonText: 'Đóng',
-                confirmButtonColor: '#3B82F6',
-                customClass: {
-                    popup: 'rounded-2xl',
-                    confirmButton: 'rounded-xl px-6'
-                }
-            });
-        }
-
-        function setButtonLoading(button, isLoading, originalContent = '') {
-            if (isLoading) {
-                button.disabled = true;
-                button.innerHTML = '<div class="spinner mr-2"></div><span>Đang xử lý...</span>';
-                button.classList.add('opacity-75', 'cursor-not-allowed');
-            } else {
-                button.disabled = false;
-                button.innerHTML = originalContent;
-                button.classList.remove('opacity-75', 'cursor-not-allowed');
-            }
-        }
-
-        // ==================== ERROR HANDLING ====================
-        window.addEventListener('error', (event) => {
-            console.error('Global error:', event.error);
-        });
-
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('Unhandled promise rejection:', event.reason);
-        });
+        // Mở tab parent nếu có hash
+        if (window.location.hash === '#parent') switchTab('parent');
     </script>
 </body>
 </html>
