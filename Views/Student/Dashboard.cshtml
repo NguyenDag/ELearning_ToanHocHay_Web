@@ -205,6 +205,7 @@
         }
 
         <!-- QUICK STATS -->
+
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
             <div class="stat-card">
                 <p class="stat-label mb-2 text-left">Thời gian học</p>
@@ -216,11 +217,14 @@
             </div>
             <div class="stat-card">
                 <p class="stat-label mb-2 text-left">Điểm trung bình</p>
-                <p class="stat-value text-indigo-600 text-left">@(isDbConnected? Model!.Stats.AverageScore.ToString("F1") : "0.0")</p>
+                <div class="flex items-baseline gap-1">
+                    <p class="stat-value text-indigo-600 text-left">@(isDbConnected? Model!.Stats.AverageScore.ToString("F1") : "0.0")</p>
+                    <span class="text-lg font-bold text-slate-300">/10</span>
+                </div>
                 <p class="text-[10px] text-slate-400 font-bold mt-2 text-left uppercase tracking-widest">
                     @{
                         var avg = isDbConnected ? Model!.Stats.AverageScore : 0;
-                        var label = avg >= 85 ? "Xuất sắc" : avg >= 70 ? "Khá tốt" : avg >= 50 ? "Trung bình" : avg > 0 ? "Cần cố gắng" : "Chưa có dữ liệu";
+                        var label = avg >= 8.5 ? "Xuất sắc" : avg >= 7.0 ? "Khá tốt" : avg >= 5.0 ? "Trung bình" : avg > 0 ? "Cần cố gắng" : "Chưa có dữ liệu";
                     }
                     @label
                 </p>
