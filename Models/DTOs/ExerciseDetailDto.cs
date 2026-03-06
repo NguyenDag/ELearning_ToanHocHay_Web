@@ -14,6 +14,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
 
         [JsonPropertyName("questions")]
         public List<QuestionDto> Questions { get; set; } = new List<QuestionDto>();
+        public bool IsFree { get; set; } = true; // ← THÊM
     }
 
     

@@ -60,13 +60,14 @@ namespace ToanHocHay.WebApp.Controllers
             HttpContext.Session.SetString("UserFullName", data.FullName ?? "");
 
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, data.UserId.ToString()),
-                new Claim(ClaimTypes.Name, data.FullName ?? ""),
-                new Claim(ClaimTypes.Email, data.Email ?? ""),
-                new Claim(ClaimTypes.Role, data.UserType.ToString()),
-                new Claim("Token", data.Token),
-            };
+{
+    new Claim(ClaimTypes.NameIdentifier, data.UserId.ToString()),
+    new Claim(ClaimTypes.Name, data.FullName ?? ""),
+    new Claim(ClaimTypes.Email, data.Email ?? ""),
+    new Claim(ClaimTypes.Role, data.UserType.ToString()),
+    new Claim("Token", data.Token),
+    new Claim("PackageType", data.PackageType.ToString()), // ← THÊM
+};
 
             if (data.StudentId.HasValue) claims.Add(new Claim("StudentId", data.StudentId.Value.ToString()));
             if (data.ParentId.HasValue) claims.Add(new Claim("ParentId", data.ParentId.Value.ToString()));

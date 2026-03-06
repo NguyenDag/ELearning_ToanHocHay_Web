@@ -24,5 +24,6 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public string Token { get; set; } = null!;
         public DateTime TokenExpiration { get; set; }
         public string AvatarUrl { get; set; } = null!;
+        public int PackageType { get; set; } = 0; // ← THÊM
     }
 }

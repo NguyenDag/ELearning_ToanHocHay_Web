@@ -61,7 +61,7 @@ namespace ToanHocHay.WebApp.Services
 
                 // FIX: thêm ApiConstant.apiBaseUrl — trước đây thiếu nên request fail im lặng
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/overview");
+                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard");
 
                 SetStatus(((int)response.StatusCode).ToString());
 

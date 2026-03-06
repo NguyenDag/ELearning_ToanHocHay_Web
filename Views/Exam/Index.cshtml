@@ -209,19 +209,30 @@
                         </div>
 
                         <!-- CTA -->
-                        @if (exam.IsFree)
+                        @{
+                            var pkgClaim = User.FindFirst("PackageType")?.Value ?? "0";
+                            int userPkg = int.TryParse(pkgClaim, out var pk) ? pk : 0;
+                            bool canAccess = exam.IsFree || userPkg >= 2;
+                        }
+
+                        @if (canAccess)
                         {
                             <a asp-controller="Exam" asp-action="DoExam" asp-route-id="@exam.ExerciseId"
-                               class="w-full py-3 rounded-xl border-2 border-indigo-600 text-indigo-600 font-black text-xs uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition flex items-center justify-center gap-2">
+                               class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition flex items-center justify-center gap-2
+                      @(exam.IsFree ? "border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white" : "text-white")"
+                               style="@(!exam.IsFree ? "background:linear-gradient(135deg,#f97316,#ef4444);" : "")">
                                 Thi ngay <i class="fa-solid fa-play text-[10px]"></i>
                             </a>
                         }
                         else
                         {
-                            <a asp-controller="Exam" asp-action="DoExam" asp-route-id="@exam.ExerciseId"
-                               class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition flex items-center justify-center gap-2 text-white"
-                               style="background:linear-gradient(135deg,#f97316,#ef4444); box-shadow:0 4px 16px rgba(249,115,22,.25);">
-                                Thi ngay <i class="fa-solid fa-lock-open text-[10px]"></i>
+                            <a asp-controller="Package" asp-action="Index"
+                               class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest text-white flex items-center justify-center gap-2 relative group"
+                               style="background:linear-gradient(135deg,#94a3b8,#64748b);">
+                                <i class="fa-solid fa-lock text-[10px]"></i> Yêu cầu Premium
+                                <span class="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] px-3 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition whitespace-nowrap">
+                                    Nâng cấp để mở khóa
+                                </span>
                             </a>
                         }
                     </div>

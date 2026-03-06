@@ -28,28 +28,39 @@ namespace ToanHocHay.WebApp.Controllers
         // 2. Trang làm bài thi (Dynamic Data)
         // URL: /Exam/DoExam/1
         [HttpGet]
+        [HttpGet]
         public async Task<IActionResult> DoExam(int id)
         {
-            if (id <= 0) return RedirectToAction("Index", new { msg = "Mã đề thi không hợp lệ." });
-
+            if (id <= 0) return RedirectToAction("Index");
             if (!User.Identity!.IsAuthenticated)
                 return RedirectToAction("Login", "Account");
 
             var studentIdClaim = User.FindFirst("StudentId");
             if (studentIdClaim == null)
-                return RedirectToAction("Index", new { msg = "Tài khoản không phải học sinh." });
+                return RedirectToAction("Index");
 
             var exam = await _examService.GetExerciseById(id);
             if (exam == null)
-                return RedirectToAction("Index", new { msg = "Không tìm thấy đề thi." });
+                return RedirectToAction("Index");
+
+            // ← THÊM ĐOẠN NÀY
+            if (!exam.IsFree)
+            {
+                var packageClaim = User.FindFirst("PackageType")?.Value ?? "0";
+                int packageType = int.TryParse(packageClaim, out var p) ? p : 0;
+                if (packageType < 2)
+                {
+                    TempData["UpgradeMsg"] = "Đề thi này yêu cầu gói Premium!";
+                    return RedirectToAction("Index", "Package");
+                }
+            }
 
             int studentId = int.Parse(studentIdClaim.Value);
             var (attemptId, error) = await _examService.StartExercise(id, studentId);
 
             if (attemptId == 0)
             {
-                // Thay vì BadRequest, ta quay về trang danh sách và đính kèm thông báo lỗi
-                TempData["ErrorMessage"] = error ?? "Lỗi dữ liệu không hợp lệ (ExerciseType).";
+                TempData["ErrorMessage"] = error ?? "Lỗi dữ liệu không hợp lệ.";
                 return RedirectToAction("Index");
             }
 
