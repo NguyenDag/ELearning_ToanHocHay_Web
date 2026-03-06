@@ -10,6 +10,7 @@ namespace ToanHocHay.WebApp.Services
     public interface IDashboardApiService
     {
         Task<CoreDashboardDto?> GetStudentDashboardAsync(int studentId);
+        Task<List<ChapterScoreDto>?> GetChapterScoreComparisonAsync(int studentId);
     }
 
     public class DashboardApiService : IDashboardApiService
@@ -89,5 +90,31 @@ namespace ToanHocHay.WebApp.Services
                 return null;
             }
         }
+
+        public async Task<List<ChapterScoreDto>?> GetChapterScoreComparisonAsync(int studentId)
+        {
+            try
+            {
+                var token = GetToken();
+                if (string.IsNullOrEmpty(token)) return null;
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token.Trim());
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/chapter-score-comparison");
+                if (!response.IsSuccessStatusCode) return null;
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<List<ChapterScoreDto>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return result;
+            }
+            catch { return null; }
+        }
+    }
+
+    public class ChapterScoreDto
+    {
+        public int ChapterId { get; set; }
+        public string ChapterName { get; set; } = "";
+        public decimal AverageScore { get; set; }
     }
 }

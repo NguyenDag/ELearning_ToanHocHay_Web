@@ -90,5 +90,20 @@ namespace ToanHocHay.WebApp.Controllers
                 return View("Error");
             }
         }
+
+        // GET /Dashboard/ChartData — AJAX cho biểu đồ Standard+
+        [HttpGet]
+        public async Task<IActionResult> ChartData()
+        {
+            var studentIdClaim = User.FindFirst("StudentId")?.Value;
+            if (string.IsNullOrEmpty(studentIdClaim))
+                return Unauthorized();
+
+            int studentId = int.Parse(studentIdClaim);
+            var data = await _apiService.GetChapterScoreComparisonAsync(studentId);
+            if (data == null)
+                return Json(new { success = false });
+            return Json(new { success = true, data });
+        }
     }
 }
