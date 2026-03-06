@@ -83,7 +83,7 @@ namespace ToanHocHay.WebApp.Controllers
             return data.UserType switch
             {
                 UserType.Parent => RedirectToAction("Dashboard", "Parent"),
-                UserType.Student => RedirectToAction("Index", "Dashboard"),
+                UserType.Student => RedirectToAction("Index", "Home"),
                 _ => RedirectToAction("Index", "Home")
             };
         }
