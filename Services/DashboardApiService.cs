@@ -112,7 +112,7 @@ namespace ToanHocHay.WebApp.Services
             }
             catch { return null; }
         }
-
+    
         public async Task<AIInsightResponse?> GetAIInsightAsync(int studentId) 
             => await GetAIAssessmentAsync(studentId);
 

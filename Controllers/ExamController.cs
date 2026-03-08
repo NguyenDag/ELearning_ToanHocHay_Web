@@ -110,18 +110,6 @@ namespace ToanHocHay.WebApp.Controllers
             // Truyền dữ liệu thật vào View
             return View(result);
         }
-
-        // 5. Trang xem lại chi tiết bài làm
-        [HttpGet]
-        public async Task<IActionResult> Review(int attemptId)
-        {
-            var result = await _examService.GetExerciseResult(attemptId);
-            if (result == null)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-            return View(result);
-        }
         // 5. Gọi AI Gợi ý
         [HttpPost]
         public async Task<IActionResult> GetHint([FromBody] AIHintRequestDto payload)

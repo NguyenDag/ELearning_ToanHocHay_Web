@@ -14,7 +14,6 @@ namespace ToanHocHay.WebApp.Models.DTOs
 
         // ── THÊM MỚI ──────────────────────────────────────────────
         public SubscriptionInfoDto SubscriptionInfo { get; set; } = new();
-        public AIInsightResponse? AIInsight { get; set; }
         // ────────────────────────────────────────────────────────────
     }
 

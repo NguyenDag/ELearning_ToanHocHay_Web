@@ -106,40 +106,22 @@ namespace ToanHocHay.WebApp.Controllers
             return Json(new { success = true, data });
         }
 
-        // GET /Dashboard/AIInsightData — AJAX cho AI Insight Premium (Legacy)
-        [HttpGet]
-        public async Task<IActionResult> AIInsightData()
-        {
-            var studentIdClaim = User.FindFirst("StudentId")?.Value;
-            if (string.IsNullOrEmpty(studentIdClaim)) return Unauthorized();
-
-            int studentId = int.Parse(studentIdClaim);
-            var data = await _apiService.GetAIAssessmentAsync(studentId);
-            return data == null ? Json(new { success = false }) : Json(new { success = true, data });
-        }
-
-        // GET /Dashboard/AIAssessmentData
         [HttpGet]
         public async Task<IActionResult> AIAssessmentData()
         {
-            var studentIdClaim = User.FindFirst("StudentId")?.Value;
-            if (string.IsNullOrEmpty(studentIdClaim)) return Unauthorized();
-
-            int studentId = int.Parse(studentIdClaim);
-            var data = await _apiService.GetAIAssessmentAsync(studentId);
-            return data == null ? Json(new { success = false }) : Json(new { success = true, data });
+            var idClaim = User.FindFirst("StudentId")?.Value;
+            if (idClaim == null) return Unauthorized();
+            var data = await _apiService.GetAIAssessmentAsync(int.Parse(idClaim));
+            return Json(new { success = (data != null), data });
         }
 
-        // GET /Dashboard/AIRoadmapData
         [HttpGet]
         public async Task<IActionResult> AIRoadmapData()
         {
-            var studentIdClaim = User.FindFirst("StudentId")?.Value;
-            if (string.IsNullOrEmpty(studentIdClaim)) return Unauthorized();
-
-            int studentId = int.Parse(studentIdClaim);
-            var data = await _apiService.GetAIRoadmapAsync(studentId);
-            return data == null ? Json(new { success = false }) : Json(new { success = true, data });
+            var idClaim = User.FindFirst("StudentId")?.Value;
+            if (idClaim == null) return Unauthorized();
+            var data = await _apiService.GetAIRoadmapAsync(int.Parse(idClaim));
+            return Json(new { success = (data != null), data });
         }
     }
 }
