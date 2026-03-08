@@ -1,4 +1,4 @@
-﻿// FILE: ToanHocHay.WebApp/Controllers/DashboardController.cs
+// FILE: ToanHocHay.WebApp/Controllers/DashboardController.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
@@ -103,6 +103,23 @@ namespace ToanHocHay.WebApp.Controllers
             var data = await _apiService.GetChapterScoreComparisonAsync(studentId);
             if (data == null)
                 return Json(new { success = false });
+            return Json(new { success = true, data });
+        }
+
+        // GET /Dashboard/AIInsightData — AJAX cho AI Insight Premium
+        [HttpGet]
+        public async Task<IActionResult> AIInsightData()
+        {
+            var studentIdClaim = User.FindFirst("StudentId")?.Value;
+            if (string.IsNullOrEmpty(studentIdClaim))
+                return Unauthorized();
+
+            int studentId = int.Parse(studentIdClaim);
+            var data = await _apiService.GetAIInsightAsync(studentId);
+            
+            if (data == null)
+                return Json(new { success = false, message = "Không thể lấy dữ liệu phân tích AI." });
+
             return Json(new { success = true, data });
         }
     }

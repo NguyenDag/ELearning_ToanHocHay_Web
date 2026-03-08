@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 namespace ToanHocHay.WebApp.Models.DTOs
 {
@@ -14,6 +14,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
 
         // ── THÊM MỚI ──────────────────────────────────────────────
         public SubscriptionInfoDto SubscriptionInfo { get; set; } = new();
+        public AIInsightResponse? AIInsight { get; set; }
         // ────────────────────────────────────────────────────────────
     }
 

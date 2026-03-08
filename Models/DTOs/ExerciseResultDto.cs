@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace ToanHocHay.WebApp.Models.DTOs
 {
@@ -32,5 +32,10 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public double PointsEarned { get; set; }
         public double MaxScores { get; set; }
         public string Explanation { get; set; }
+
+        // AI Feedback fields
+        public string? FullSolution { get; set; }
+        public string? MistakeAnalysis { get; set; }
+        public string? ImprovementAdvice { get; set; }
     }
 }

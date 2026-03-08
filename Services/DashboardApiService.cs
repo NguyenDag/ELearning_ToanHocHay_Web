@@ -1,4 +1,4 @@
-﻿// FILE: ToanHocHay.WebApp/Services/DashboardApiService.cs
+// FILE: ToanHocHay.WebApp/Services/DashboardApiService.cs
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -11,6 +11,7 @@ namespace ToanHocHay.WebApp.Services
     {
         Task<CoreDashboardDto?> GetStudentDashboardAsync(int studentId);
         Task<List<ChapterScoreDto>?> GetChapterScoreComparisonAsync(int studentId);
+        Task<AIInsightResponse?> GetAIInsightAsync(int studentId);
     }
 
     public class DashboardApiService : IDashboardApiService
@@ -105,6 +106,27 @@ namespace ToanHocHay.WebApp.Services
                 var json = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<List<ChapterScoreDto>>(json,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return result;
+            }
+            catch { return null; }
+        }
+
+        public async Task<AIInsightResponse?> GetAIInsightAsync(int studentId)
+        {
+            try
+            {
+                var token = GetToken();
+                if (string.IsNullOrEmpty(token)) return null;
+
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token.Trim());
+
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/ai-insights");
+
+                if (!response.IsSuccessStatusCode) return null;
+
+                var result = await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);
                 return result;
             }
             catch { return null; }

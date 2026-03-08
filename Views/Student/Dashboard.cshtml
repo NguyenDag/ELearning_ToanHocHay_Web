@@ -1,4 +1,4 @@
-﻿@using ToanHocHay.WebApp.Models.DTOs
+@using ToanHocHay.WebApp.Models.DTOs
 @using System.Security.Claims
 @model ToanHocHay.WebApp.Models.DTOs.CoreDashboardDto
 @{
@@ -414,7 +414,7 @@
                 </div>
 
                 <!-- AI Assessment (locked nếu chưa Premium) -->
-                <div class="glass-card p-8 text-center bg-slate-900 text-white border-none shadow-2xl relative overflow-hidden">
+                <div class="glass-card p-8 text-center bg-slate-900 text-white border-none shadow-2xl relative overflow-hidden" id="ai-insight-card">
                     <div class="absolute inset-0 purple-gradient opacity-20"></div>
                     @if (!canAiAssessment)
                     {
@@ -430,14 +430,28 @@
                             </a>
                         </div>
                     }
-                    <div class="relative z-10">
+                    <div class="relative z-10" id="ai-insight-content">
                         <div class="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center mx-auto mb-6 text-indigo-400 shadow-inner">
                             <i class="fa-solid fa-brain text-3xl"></i>
                         </div>
-                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-3">AI Assessment</p>
+                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-3" id="ai-insight-title">AI Assessment</p>
+                        
+                        <div id="ai-insight-result" class="hidden text-left mb-6 space-y-4">
+                            <div class="bg-white/5 p-4 rounded-2xl">
+                                <p class="text-xs font-bold text-indigo-300 uppercase mb-2">Nhận xét tổng quát</p>
+                                <p id="ai-summary" class="text-sm text-slate-300 leading-relaxed"></p>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-indigo-300 uppercase mb-2">Kế hoạch học tập</p>
+                                <ul id="ai-concepts" class="text-xs text-slate-300 space-y-1 ml-4 list-disc"></ul>
+                            </div>
+                        </div>
+
                         @if (canAiAssessment)
                         {
-                            <button class="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl text-[10px] uppercase shadow-lg hover:bg-indigo-700 transition">Phân tích ngay</button>
+                            <button onclick="runAiAssessment()" id="btn-ai-assess" class="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl text-[10px] uppercase shadow-lg hover:bg-indigo-700 transition">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Phân tích ngay
+                            </button>
                         }
                     </div>
                 </div>
@@ -607,5 +621,45 @@
 
         loadChart();
     })();
+
+    async function runAiAssessment() {
+        const btn = document.getElementById('btn-ai-assess');
+        const resultBox = document.getElementById('ai-insight-result');
+        const summary = document.getElementById('ai-summary');
+        const list = document.getElementById('ai-concepts');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang phân tích...';
+        
+        try {
+            const res = await fetch('/Dashboard/AIInsightData');
+            const json = await res.json();
+            
+            if (json.success && json.data) {
+                const data = json.data;
+                summary.textContent = data.summary || data.Summary;
+                
+                list.innerHTML = '';
+                const concepts = data.conceptsToReview || data.ConceptsToReview || [];
+                concepts.forEach(c => {
+                    const li = document.createElement('li');
+                    li.textContent = c;
+                    list.appendChild(li);
+                });
+                
+                resultBox.classList.remove('hidden');
+                btn.innerHTML = '<i class="fa-solid fa-rotate mr-2"></i> Phân tích lại';
+            } else {
+                alert(json.message || "Không thể lấy dữ liệu AI.");
+                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Thử lại';
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Lỗi kết nối server.");
+            btn.innerHTML = 'Thử lại';
+        } finally {
+            btn.disabled = false;
+        }
+    }
 </script>
 

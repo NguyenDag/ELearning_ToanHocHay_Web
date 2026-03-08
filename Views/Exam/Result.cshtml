@@ -1,4 +1,4 @@
-﻿@using ToanHocHay.WebApp.Models.DTOs
+@using ToanHocHay.WebApp.Models.DTOs
 @model ExerciseResultDto
 @{
     Layout = null;
@@ -157,11 +157,49 @@
                             </div>
                         </div>
 
-                        @if (!string.IsNullOrEmpty(detail.Explanation))
+                        @if (!string.IsNullOrEmpty(detail.Explanation) || !string.IsNullOrEmpty(detail.FullSolution))
                         {
-                            <div class="mt-4 p-4 bg-blue-600 text-white rounded-2xl text-sm leading-relaxed font-medium">
-                                <i class="fa-solid fa-lightbulb mr-2 text-yellow-300"></i>
-                                <strong>Giải thích từ hệ thống:</strong> @detail.Explanation
+                            <div class="mt-6 space-y-3">
+                                @if (!string.IsNullOrEmpty(detail.FullSolution))
+                                {
+                                    <div class="p-5 bg-indigo-600 text-white rounded-[1.5rem] shadow-lg shadow-indigo-100">
+                                        <div class="flex items-center gap-2 mb-2 text-indigo-200">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">Lời giải chi tiết từ AI</span>
+                                        </div>
+                                        <p class="text-sm leading-relaxed">@detail.FullSolution</p>
+                                    </div>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(detail.MistakeAnalysis))
+                                {
+                                    <div class="p-5 bg-red-50 border border-red-100 rounded-[1.5rem]">
+                                        <div class="flex items-center gap-2 mb-2 text-red-600">
+                                            <i class="fa-solid fa-triangle-exclamation"></i>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">Phân tích lỗi sai</span>
+                                        </div>
+                                        <p class="text-sm text-red-800 leading-relaxed">@detail.MistakeAnalysis</p>
+                                    </div>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(detail.ImprovementAdvice))
+                                {
+                                    <div class="p-5 bg-green-50 border border-green-100 rounded-[1.5rem]">
+                                        <div class="flex items-center gap-2 mb-2 text-green-600">
+                                            <i class="fa-solid fa-lightbulb"></i>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">Lời khuyên cải thiện</span>
+                                        </div>
+                                        <p class="text-sm text-green-800 leading-relaxed">@detail.ImprovementAdvice</p>
+                                    </div>
+                                }
+
+                                @if (string.IsNullOrEmpty(detail.FullSolution) && !string.IsNullOrEmpty(detail.Explanation))
+                                {
+                                    <div class="p-4 bg-slate-100 text-slate-700 rounded-2xl text-sm leading-relaxed">
+                                        <i class="fa-solid fa-info-circle mr-2 text-slate-400"></i>
+                                        <strong>Giải thích:</strong> @detail.Explanation
+                                    </div>
+                                }
                             </div>
                         }
                     </div>
