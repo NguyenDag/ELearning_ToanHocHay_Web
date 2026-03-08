@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Models.DTOs;
@@ -108,6 +108,18 @@ namespace ToanHocHay.WebApp.Controllers
             }
 
             // Truyền dữ liệu thật vào View
+            return View(result);
+        }
+
+        // 5. Trang xem lại chi tiết bài làm
+        [HttpGet]
+        public async Task<IActionResult> Review(int attemptId)
+        {
+            var result = await _examService.GetExerciseResult(attemptId);
+            if (result == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
             return View(result);
         }
         // 5. Gọi AI Gợi ý

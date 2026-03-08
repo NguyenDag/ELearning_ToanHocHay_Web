@@ -1,8 +1,16 @@
-﻿@{
+@using ToanHocHay.WebApp.Models.DTOs
+@model ExerciseResultDto
+@{
     Layout = null;
-    var title = "Đề kiểm tra giữa học kỳ 1 - Toán 6";
-    var score = "8.5";
-    var time = "25:30";
+    if (Model == null) return;
+
+    var title = Model.ExerciseName;
+    var score = Model.TotalScore.ToString("0.##");
+    var totalQs = Model.TotalQuestions;
+    var correctCount = Model.CorrectAnswers;
+    var wrongCount = Model.WrongAnswers;
+    var skippedCount = totalQs - (correctCount + wrongCount);
+    var time = $"{(int)Model.Duration.TotalMinutes}:{Model.Duration.Seconds:D2}";
 }
 
 <!DOCTYPE html>
@@ -10,7 +18,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết đáp án - ToanHocHay</title>
+    <title>Review: @title - ToanHocHay</title>
     <link rel="icon" type="image/x-icon" href="/logo_header.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -18,219 +26,168 @@
 
     <style>
         body { font-family: 'Nunito', sans-serif; }
-
-        /* Custom scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Trạng thái câu hỏi trong lưới */
-        .q-status-correct { background-color: #52B986; color: white; border: none; } /* Xanh Mint đậm */
-        .q-status-wrong { background-color: #E15554; color: white; border: none; }   /* Đỏ mềm */
-        .q-status-skipped { background-color: white; color: #6B7280; border: 1px solid #E5E7EB; } /* Trắng viền xám */
-
-        /* Smooth scroll behavior */
+        .q-status-correct { background-color: #52B986; color: white; border: none; }
+        .q-status-wrong { background-color: #E15554; color: white; border: none; }
+        .q-status-skipped { background-color: white; color: #6B7280; border: 1px solid #E5E7EB; }
         html { scroll-behavior: smooth; }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#2563EB',
-                        correct: '#52B986',
-                        wrong: '#E15554',
-                    }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-[#E0E7FF] h-screen flex items-center justify-center p-4 md:p-6">
+<body class="bg-[#E0E7FF] h-screen flex items-center justify-center p-4 md:p-6 overflow-hidden">
 
     <div class="w-full max-w-[1400px] h-[90vh] flex gap-6">
 
-        <!-- 1. LEFT SIDEBAR (Danh sách câu hỏi & Điều hướng) -->
+        <!-- 1. LEFT SIDEBAR (Question Navigation) -->
         <aside class="w-80 bg-white rounded-2xl shadow-xl flex flex-col overflow-hidden border border-blue-100 shrink-0 hidden lg:flex z-20">
-
-            <!-- Header -->
             <div class="p-5 border-b border-blue-50 bg-blue-50/30 text-center">
                 <h3 class="text-blue-800 font-extrabold text-lg flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-table-cells text-primary"></i> Danh sách câu hỏi
+                    <i class="fa-solid fa-table-cells text-blue-600"></i> Danh sách câu hỏi
                 </h3>
             </div>
 
             <div class="p-6 flex-1 overflow-y-auto custom-scroll">
-
-                <!-- Summary Boxes -->
                 <div class="grid grid-cols-3 gap-2 mb-6">
                     <div class="bg-green-50 p-2 rounded-xl border border-green-100 text-center">
-                        <span class="block text-[#52B986] font-black text-xl">3</span>
+                        <span class="block text-[#52B986] font-black text-xl">@correctCount</span>
                         <span class="text-[9px] text-[#52B986] font-bold uppercase">Đúng</span>
                     </div>
                     <div class="bg-red-50 p-2 rounded-xl border border-red-100 text-center">
-                        <span class="block text-[#E15554] font-black text-xl">1</span>
+                        <span class="block text-[#E15554] font-black text-xl">@wrongCount</span>
                         <span class="text-[9px] text-[#E15554] font-bold uppercase">Sai</span>
                     </div>
                     <div class="bg-gray-50 p-2 rounded-xl border border-gray-200 text-center">
-                        <span class="block text-gray-500 font-black text-xl">1</span>
-                        <span class="text-[9px] text-gray-500 font-bold uppercase">Chưa làm</span>
+                        <span class="block text-gray-500 font-black text-xl">@skippedCount</span>
+                        <span class="text-[9px] text-gray-500 font-bold uppercase">Bỏ qua</span>
                     </div>
                 </div>
 
                 <hr class="border-gray-100 mb-6">
 
-                <!-- Question Grid -->
                 <div class="grid grid-cols-5 gap-2">
-                    <a href="#q1" class="q-status-correct w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm hover:opacity-90 transition">1</a>
-                    <a href="#q2" class="q-status-wrong w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm hover:opacity-90 transition">2</a>
-                    <a href="#q3" class="q-status-skipped w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm hover:bg-gray-50 transition text-gray-600">3</a>
-                    <a href="#" class="q-status-correct w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm">4</a>
-                    <a href="#" class="q-status-correct w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm">5</a>
+                    @for (int i = 0; i < Model.AnswerDetails.Count; i++)
+                    {
+                        var detail = Model.AnswerDetails[i];
+                        bool isSkipped = detail.StudentAnswer == "Bạn chưa trả lời câu hỏi này";
+                        var statusClass = isSkipped ? "q-status-skipped" : (detail.IsCorrect ? "q-status-correct" : "q-status-wrong");
+                        <a href="#q@(i+1)" class="@statusClass w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm hover:opacity-90 transition">@(i + 1)</a>
+                    }
                 </div>
             </div>
 
-            <!-- Footer: Nút Thoát -->
             <div class="p-4 border-t border-gray-100 bg-white">
-                <!-- Đã đổi link về trang Result -->
-                <a href="/Exam/Result" class="flex items-center justify-center gap-2 w-full py-2 text-gray-500 font-bold text-sm hover:text-gray-800 transition">
+                <a href="/Exam/Result?attemptId=@Model.AttemptId" class="flex items-center justify-center gap-2 w-full py-2 text-gray-500 font-bold text-sm hover:text-gray-800 transition">
                     <i class="fa-solid fa-arrow-left"></i> Thoát về Kết quả
                 </a>
             </div>
         </aside>
 
-        <!-- 2. MAIN CONTENT (Nội dung bài thi) -->
+        <!-- 2. MAIN CONTENT (Review Questions) -->
         <main class="flex-1 flex flex-col gap-4 overflow-hidden">
-
-            <!-- Top Bar Info -->
             <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-3 px-6 flex justify-between items-center shrink-0">
                 <div class="flex items-center gap-4">
-                    <!-- Score Box Nổi Bật -->
-                    <div class="bg-blue-600 text-white rounded-xl p-2 min-w-[64px] text-center shadow-lg shadow-blue-200 transform hover:scale-105 transition">
+                    <div class="bg-blue-600 text-white rounded-xl p-2 min-w-[64px] text-center shadow-lg shadow-blue-200">
                         <span class="block text-xl font-black leading-none">@score</span>
                         <span class="text-[10px] font-medium opacity-90">Điểm</span>
                     </div>
-
                     <div>
                         <h1 class="text-lg font-bold text-gray-800 leading-tight">@title</h1>
                         <div class="flex items-center gap-2 mt-1">
-                            <span class="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-100">
-                                <i class="fa-solid fa-check-circle mr-1"></i> Đạt yêu cầu
+                            <span class="text-[10px] font-bold @(Model.IsPassed ? "text-green-600 bg-green-50 border-green-100" : "text-red-600 bg-red-50 border-red-100") px-2 py-0.5 rounded border">
+                                <i class="fa-solid @(Model.IsPassed ? "fa-check-circle" : "fa-triangle-exclamation") mr-1"></i> @(Model.IsPassed ? "Đạt yêu cầu" : "Chưa đạt")
                             </span>
-                            <span class="text-[10px] text-gray-400 font-semibold">Mã đề: #MATH6-GK1</span>
                         </div>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-3 bg-slate-50 text-slate-600 px-4 py-2 rounded-lg text-sm font-bold border border-slate-100">
                     <i class="fa-regular fa-clock text-blue-500"></i>
                     <span>Thời gian: @time</span>
                 </div>
             </div>
 
-            <!-- Questions Scroll Area -->
             <div class="flex-1 bg-white rounded-3xl shadow-xl border border-blue-50 relative overflow-hidden">
-
                 <div class="h-full overflow-y-auto custom-scroll p-8 md:p-12 scroll-smooth" id="questions-container">
+                    @for (int i = 0; i < Model.AnswerDetails.Count; i++)
+                    {
+                        var detail = Model.AnswerDetails[i];
+                        bool isSkipped = detail.StudentAnswer == "Bạn chưa trả lời câu hỏi này" || string.IsNullOrEmpty(detail.StudentAnswer);
+                        
+                        <div id="q@(i+1)" class="mb-12 scroll-mt-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex gap-3">
+                                    <span class="@(isSkipped ? "bg-gray-400" : (detail.IsCorrect ? "bg-[#52B986]" : "bg-[#E15554]")) text-white font-black text-sm px-2.5 py-1 rounded shadow-sm h-fit">Q@(i+1)</span>
+                                    <h2 class="text-lg font-bold text-gray-800 leading-relaxed">@detail.QuestionText</h2>
+                                </div>
+                                <span class="@(isSkipped ? "text-gray-500 bg-gray-50 border-gray-100" : (detail.IsCorrect ? "text-[#52B986] bg-green-50 border-green-100" : "text-[#E15554] bg-red-50 border-red-100")) text-xs font-bold px-2 py-1 rounded border shrink-0">
+                                    <i class="fa-solid @(isSkipped ? "fa-minus" : (detail.IsCorrect ? "fa-check" : "fa-xmark")) mr-1"></i> @(isSkipped ? "Bỏ qua" : (detail.IsCorrect ? "Đúng" : "Sai")) (+@detail.PointsEarned/@detail.MaxScores đ)
+                                </span>
+                            </div>
 
-                    <!-- QUESTION 1 -->
-                    <div id="q1" class="mb-12 scroll-mt-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex gap-3">
-                                <span class="bg-[#52B986] text-white font-black text-sm px-2.5 py-1 rounded shadow-sm h-fit">Q1</span>
-                                <h2 class="text-lg font-bold text-gray-800 leading-relaxed">
-                                    Tập hợp các số tự nhiên lớn hơn 3 và nhỏ hơn 7 là?
-                                </h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                    <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Đáp án của bạn</p>
+                                    <p class="font-bold @(isSkipped ? "text-gray-400 italic" : (detail.IsCorrect ? "text-green-600" : "text-red-600"))">@detail.StudentAnswer</p>
+                                </div>
+                                <div class="p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                                    <p class="text-[10px] font-black text-blue-400 uppercase mb-1">Đáp án đúng</p>
+                                    <p class="font-bold text-blue-700">@detail.CorrectAnswer</p>
+                                </div>
                             </div>
-                            <span class="text-[#52B986] text-xs font-bold bg-green-50 px-2 py-1 rounded border border-green-100 shrink-0">
-                                <i class="fa-solid fa-check mr-1"></i> Đúng (+0.25)
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div class="p-3 rounded-xl border-2 border-[#52B986] bg-green-50 flex items-center gap-3 relative">
-                                <div class="w-8 h-8 rounded-lg bg-[#52B986] text-white flex items-center justify-center font-bold text-xs">A</div>
-                                <span class="text-gray-800 font-medium">{ 4; 5; 6 }</span>
-                                <i class="fa-solid fa-circle-check text-[#52B986] text-xl absolute right-3"></i>
-                            </div>
-                            <div class="p-3 rounded-xl border border-gray-200 opacity-60"><span class="font-bold mr-2">B.</span> { 3; 4; 5; 6; 7 }</div>
-                            <div class="p-3 rounded-xl border border-gray-200 opacity-60"><span class="font-bold mr-2">C.</span> { 4; 5; 6; 7 }</div>
-                            <div class="p-3 rounded-xl border border-gray-200 opacity-60"><span class="font-bold mr-2">D.</span> { 3; 4; 5; 6 }</div>
-                        </div>
-                        <div class="mt-4 bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-3">
-                            <i class="fa-solid fa-robot text-blue-500 mt-1"></i>
-                            <div>
-                                <p class="text-xs font-bold text-blue-600 uppercase mb-1">AI giải thích</p>
-                                <p class="text-sm text-gray-700">Số tự nhiên lớn hơn 3 là bắt đầu từ 4. Nhỏ hơn 7 là kết thúc ở 6. Vậy tập hợp là {4; 5; 6}.</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    <hr class="border-dashed border-gray-200 my-8">
+                            <!-- AI Feedback Area -->
+                            <div class="mt-6 space-y-3">
+                                @if (!string.IsNullOrEmpty(detail.FullSolution))
+                                {
+                                    <div class="p-5 bg-indigo-600 text-white rounded-[1.5rem] shadow-lg shadow-indigo-100">
+                                        <div class="flex items-center gap-2 mb-2 text-indigo-200">
+                                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">Lời giải chi tiết AI</span>
+                                        </div>
+                                        <div class="text-sm leading-relaxed prose prose-invert overflow-x-auto">@detail.FullSolution</div>
+                                    </div>
+                                }
+                                else if (!detail.IsCorrect && !isSkipped)
+                                {
+                                    <div class="p-4 bg-amber-50 border border-amber-100 rounded-2xl flex items-center gap-3">
+                                        <i class="fa-solid fa-robot fa-bounce text-amber-500"></i>
+                                        <p class="text-xs font-bold text-amber-700">AI đang phân tích lỗi của bạn... Bạn hãy đợi vài giây rồi thử tải lại trang nhé!</p>
+                                    </div>
+                                }
 
-                    <!-- QUESTION 2 -->
-                    <div id="q2" class="mb-12 scroll-mt-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex gap-3">
-                                <span class="bg-[#E15554] text-white font-black text-sm px-2.5 py-1 rounded shadow-sm h-fit">Q2</span>
-                                <h2 class="text-lg font-bold text-gray-800 leading-relaxed">
-                                    Kết quả của phép tính $2^3 . 2^2$ là?
-                                </h2>
-                            </div>
-                            <span class="text-[#E15554] text-xs font-bold bg-red-50 px-2 py-1 rounded border border-red-100 shrink-0">
-                                <i class="fa-solid fa-xmark mr-1"></i> Sai (0đ)
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div class="p-3 rounded-xl border border-gray-200 opacity-60"><span class="font-bold mr-2">A.</span> $2^6$</div>
-                            <div class="p-3 rounded-xl border-2 border-[#52B986] bg-white text-green-700 relative">
-                                <span class="font-bold mr-2">B.</span> $2^5$
-                                <span class="absolute -top-3 -right-3 bg-[#52B986] text-white text-[10px] px-2 py-1 rounded-bl-lg shadow-sm">Đáp án đúng</span>
-                            </div>
-                            <div class="p-3 rounded-xl border-2 border-[#E15554] bg-red-50 flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-[#E15554] text-white flex items-center justify-center font-bold text-xs">C</div>
-                                <span class="text-red-800 font-medium">$4^5$</span>
-                                <span class="text-[10px] text-[#E15554] font-bold ml-auto">Bạn chọn</span>
-                            </div>
-                            <div class="p-3 rounded-xl border border-gray-200 opacity-60"><span class="font-bold mr-2">D.</span> $4^6$</div>
-                        </div>
-                        <div class="mt-4 bg-yellow-50 p-4 rounded-xl border border-yellow-200 flex gap-3">
-                            <div class="w-6 h-6 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center shrink-0 text-xs"><i class="fa-solid fa-lightbulb"></i></div>
-                            <div>
-                                <p class="text-xs font-bold text-yellow-700 uppercase mb-1">Gợi ý sửa sai</p>
-                                <p class="text-sm text-gray-700">
-                                    Nhân hai lũy thừa cùng cơ số: $a^m . a^n = a^{m+n}$. <br>
-                                    Ở đây $2^3 . 2^2 = 2^{3+2} = 2^5$. Bạn đã nhầm sang nhân cơ số ($2.2=4$) đấy!
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                                @if (!string.IsNullOrEmpty(detail.MistakeAnalysis))
+                                {
+                                    <div class="p-5 bg-red-50 border border-red-100 rounded-[1.5rem]">
+                                        <div class="flex items-center gap-2 mb-2 text-red-600">
+                                            <i class="fa-solid fa-triangle-exclamation"></i>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">Phân tích lỗi sai</span>
+                                        </div>
+                                        <p class="text-sm text-red-800">@detail.MistakeAnalysis</p>
+                                    </div>
+                                }
 
-                    <hr class="border-dashed border-gray-200 my-8">
-
-                    <!-- QUESTION 3 -->
-                    <div id="q3" class="mb-12 scroll-mt-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="flex gap-3">
-                                <span class="bg-gray-400 text-white font-black text-sm px-2.5 py-1 rounded shadow-sm h-fit">Q3</span>
-                                <h2 class="text-lg font-bold text-gray-800 leading-relaxed">
-                                    Trong hình chữ nhật, khẳng định nào sau đây là SAI?
-                                </h2>
+                                @if (!string.IsNullOrEmpty(detail.ImprovementAdvice))
+                                {
+                                    <div class="p-5 bg-green-50 border border-green-100 rounded-[1.5rem]">
+                                        <div class="flex items-center gap-2 mb-2 text-green-600">
+                                            <i class="fa-solid fa-lightbulb"></i>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">Lời khuyên cải thiện</span>
+                                        </div>
+                                        <p class="text-sm text-green-800">@detail.ImprovementAdvice</p>
+                                    </div>
+                                }
+                                
+                                @if (string.IsNullOrEmpty(detail.FullSolution) && !string.IsNullOrEmpty(detail.Explanation))
+                                {
+                                    <div class="p-4 bg-slate-50 border border-gray-100 rounded-xl text-xs text-gray-500">
+                                        <strong>Gợi ý từ hệ thống:</strong> @detail.Explanation
+                                    </div>
+                                }
                             </div>
-                            <span class="text-gray-500 text-xs font-bold bg-gray-100 px-2 py-1 rounded border border-gray-200 shrink-0">
-                                <i class="fa-solid fa-minus mr-1"></i> Bỏ qua
-                            </span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div class="p-3 rounded-xl border border-gray-200 text-gray-500"><span class="font-bold mr-2">A.</span> Hai đường chéo bằng nhau</div>
-                            <div class="p-3 rounded-xl border border-[#52B986] bg-green-50/50 text-green-700"><span class="font-bold mr-2">B.</span> Hai đường chéo vuông góc (Đáp án đúng)</div>
-                            <div class="p-3 rounded-xl border border-gray-200 text-gray-500"><span class="font-bold mr-2">C.</span> Các cạnh đối bằng nhau</div>
-                            <div class="p-3 rounded-xl border border-gray-200 text-gray-500"><span class="font-bold mr-2">D.</span> Các góc bằng nhau</div>
-                        </div>
-                    </div>
-
+                        @if (i < Model.AnswerDetails.Count - 1) { <hr class="border-dashed border-gray-100 my-8"> }
+                    }
                     <div class="h-20"></div>
-
                 </div>
             </div>
         </main>

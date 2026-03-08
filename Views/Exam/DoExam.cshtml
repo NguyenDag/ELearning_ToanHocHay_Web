@@ -1,4 +1,4 @@
-﻿@model ToanHocHay.WebApp.Models.DTOs.ExerciseDetailDto
+@model ToanHocHay.WebApp.Models.DTOs.ExerciseDetailDto
 @{
     Layout = null;
 }
@@ -233,6 +233,20 @@
         </main>
     </div>
 
+    <!-- ── SUBMISSION LOADING OVERLAY ──────────────── -->
+    <div id="submitting-overlay" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center text-center p-6">
+        <div class="bg-white rounded-3xl p-10 max-w-sm w-full shadow-2xl scale-in-center">
+            <div class="mb-6 relative">
+                <div class="w-24 h-24 border-8 border-blue-100 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fa-solid fa-robot text-3xl text-blue-600 animate-bounce"></i>
+                </div>
+            </div>
+            <h2 class="text-2xl font-black text-slate-800 mb-2">Đang chấm bài...</h2>
+            <p class="text-slate-500 font-medium">AI đang phân tích bài làm của bạn để đưa ra nhận xét chi tiết. Vui lòng đợi trong giây lát!</p>
+        </div>
+    </div>
+
     @Html.AntiForgeryToken()
 
     <script>
@@ -357,6 +371,10 @@
 
             if (!force && !confirm(`Bạn đã làm ${answeredCount}/${totalQuestions} câu. Bạn có chắc chắn muốn nộp bài?`)) return;
 
+            // HIỆN OVERLAY CHỜ
+            const overlay = document.getElementById('submitting-overlay');
+            overlay.classList.remove('hidden');
+
             // Build payload — gửi đủ cả selectedOptionId VÀ answerText
             const payload = {
                 attemptId: parseInt(attemptId),
@@ -366,8 +384,6 @@
                     answerText:       userAnswers[key].answerText ?? null
                 }))
             };
-
-            console.log("📤 Nộp bài:", JSON.stringify(payload, null, 2));
 
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
@@ -386,10 +402,12 @@
                 } else {
                     const err = await response.json();
                     alert("Lỗi: " + (err.message || "Không thể nộp bài."));
+                    overlay.classList.add('hidden');
                 }
             } catch (error) {
                 console.error("Submit error:", error);
                 alert("Mất kết nối với máy chủ khi đang nộp bài.");
+                overlay.classList.add('hidden');
             }
         }
 
