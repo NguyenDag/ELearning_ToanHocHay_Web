@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () {
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const chatSendBtn = document.getElementById('chat-send-btn');
@@ -186,6 +186,15 @@
             });
             chatMessages.appendChild(optionsContainer);
         }
+
+        // --- HIỂN THỊ FORM (type: "form") ---
+        const type = (res && (res.Type || res.type)) || data.Type || data.type;
+        const formFields = (res && (res.FormFields || res.form_fields)) || data.FormFields || data.form_fields || [];
+
+        if (type === 'form' && formFields.length > 0) {
+            renderLeadForm(formFields);
+        }
+
         scrollToBottom();
     }
 
@@ -204,11 +213,11 @@
             : '';
 
         msgWrapper.innerHTML = `
-            ${avatarHtml}
-            <div class="${contentClass}">
-                ${text.toString().replace(/\n/g, '<br>')}
-            </div>
-        `;
+                ${avatarHtml}
+                <div class="${contentClass}">
+                    ${text.toString().replace(/\n/g, '<br>')}
+                </div>
+            `;
 
         chatMessages.appendChild(msgWrapper);
         scrollToBottom();
@@ -216,6 +225,77 @@
 
     function scrollToBottom() {
         chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+    }
+
+    // --- 5. RENDER FORM THU THẬP THÔNG TIN LEAD ---
+    function renderLeadForm(fields) {
+        const formWrapper = document.createElement('div');
+        formWrapper.className = 'flex gap-3 mb-4 animate-fade-in';
+
+        const avatarHtml = `<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg flex-shrink-0"><i class="fa-solid fa-robot text-sm"></i></div>`;
+
+        // Xây dựng các input dựa trên tên field từ Python
+        const inputsHtml = fields.map((fieldLabel, idx) => {
+            const isRequired = fieldLabel.toLowerCase().includes('bắt buộc');
+            const isEmail = fieldLabel.toLowerCase().includes('email');
+            const isPhone = fieldLabel.toLowerCase().includes('điện thoại') || fieldLabel.toLowerCase().includes('phone');
+            const inputType = isEmail ? 'email' : isPhone ? 'tel' : 'text';
+            const placeholder = fieldLabel.replace(/\s*\(.*?\)/g, '').trim();
+            return `
+                    <div style="margin-bottom:8px;">
+                        <label style="display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:3px;">
+                            ${placeholder}${isRequired ? ' <span style="color:#ef4444;">*</span>' : ''}
+                        </label>
+                        <input
+                            type="${inputType}"
+                            data-field="field_${idx}"
+                            placeholder="${placeholder}"
+                            ${isRequired ? 'required' : ''}
+                            style="width:100%;padding:7px 10px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12px;outline:none;transition:border-color 0.2s;"
+                            onfocus="this.style.borderColor='#2563EB';"
+                            onblur="this.style.borderColor='#cbd5e1';"
+                        />
+                    </div>`;
+        }).join('');
+
+        const formHtml = `
+                <form id="chatbot-lead-form" style="background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.07);min-width:220px;max-width:280px;">
+                    ${inputsHtml}
+                    <button
+                        type="submit"
+                        style="width:100%;margin-top:4px;padding:8px;background:linear-gradient(135deg,#2563EB,#4f46e5);color:#fff;font-size:12px;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:opacity 0.2s;"
+                        onmouseover="this.style.opacity='0.88';"
+                        onmouseout="this.style.opacity='1';"
+                    >Gửi thông tin</button>
+                    <p id="chatbot-form-msg" style="margin-top:6px;font-size:11px;color:#16a34a;display:none;text-align:center;"></p>
+                </form>`;
+
+        formWrapper.innerHTML = `${avatarHtml}<div>${formHtml}</div>`;
+        chatMessages.appendChild(formWrapper);
+        scrollToBottom();
+
+        // Xử lý submit form - chỉ cảm ơn, không gọi API
+        const form = formWrapper.querySelector('#chatbot-lead-form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const inputs = form.querySelectorAll('input');
+            let valid = true;
+
+            inputs.forEach(input => {
+                if (input.required && !input.value.trim()) {
+                    input.style.borderColor = '#ef4444';
+                    valid = false;
+                } else {
+                    input.style.borderColor = '#cbd5e1';
+                }
+            });
+
+            if (!valid) return;
+
+            // Ẩn form, hiện cảm ơn
+            formWrapper.remove();
+            appendMessage('Cảm ơn anh/chị! 🎉 Đội ngũ ToánHọcHay sẽ liên hệ để hướng dẫn học thử sớm nhất.', 'bot');
+        });
     }
 
     if (chatSendBtn) chatSendBtn.addEventListener('click', () => sendMessage(chatInput.value));
