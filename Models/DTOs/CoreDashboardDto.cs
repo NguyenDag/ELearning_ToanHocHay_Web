@@ -61,7 +61,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public int ChapterId { get; set; }
         public string ChapterName { get; set; }
         public int OrderIndex { get; set; }
-        public int CompletionPercentage { get; set; }
+        public decimal CompletionPercentage { get; set; }
         public int CompletedTopics { get; set; }
         public int TotalTopics { get; set; }
         public bool IsLocked { get; set; }
