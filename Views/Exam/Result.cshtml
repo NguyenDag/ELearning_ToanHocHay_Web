@@ -159,9 +159,44 @@
 
                         @if (!string.IsNullOrEmpty(detail.Explanation))
                         {
-                            <div class="mt-4 p-4 bg-blue-600 text-white rounded-2xl text-sm leading-relaxed font-medium">
-                                <i class="fa-solid fa-lightbulb mr-2 text-yellow-300"></i>
-                                <strong>Giải thích từ hệ thống:</strong> @detail.Explanation
+                            <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-2xl text-sm leading-relaxed font-medium">
+                                <strong class="text-gray-700">Lời giải chi tiết:</strong> @detail.Explanation
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(detail.FullSolution) || !string.IsNullOrEmpty(detail.MistakeAnalysis) || !string.IsNullOrEmpty(detail.ImprovementAdvice))
+                        {
+                            <div class="mt-4 space-y-3">
+                                <div class="p-4 bg-blue-50 border border-blue-100 rounded-2xl text-sm leading-relaxed font-medium text-blue-800">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <i class="fa-solid fa-robot text-blue-500 text-lg"></i>
+                                        <strong class="text-blue-900 text-base">AI phân tích và hướng dẫn</strong>
+                                    </div>
+                                    
+                                    @if (!string.IsNullOrEmpty(detail.MistakeAnalysis))
+                                    {
+                                        <div class="mt-2 p-3 bg-red-50 border border-red-100 rounded-xl text-red-700">
+                                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                                            <strong>Phân tích lỗi:</strong> <span style="white-space: pre-line">@detail.MistakeAnalysis</span>
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(detail.FullSolution))
+                                    {
+                                        <div class="mt-2 p-3 bg-white border border-blue-100 rounded-xl text-blue-900">
+                                            <i class="fa-solid fa-lightbulb mr-1 text-yellow-500"></i>
+                                            <strong>Lời giải hoàn chỉnh:</strong> <span style="white-space: pre-line">@detail.FullSolution</span>
+                                        </div>
+                                    }
+
+                                    @if (!string.IsNullOrEmpty(detail.ImprovementAdvice))
+                                    {
+                                        <div class="mt-2 p-3 bg-green-50 border border-green-100 rounded-xl text-green-800">
+                                            <i class="fa-solid fa-arrow-trend-up mr-1 text-green-500"></i>
+                                            <strong>Lời khuyên:</strong> <span style="white-space: pre-line">@detail.ImprovementAdvice</span>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         }
                     </div>
