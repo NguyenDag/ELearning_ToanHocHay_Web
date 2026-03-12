@@ -11,9 +11,6 @@ namespace ToanHocHay.WebApp.Services
     {
         Task<CoreDashboardDto?> GetStudentDashboardAsync(int studentId);
         Task<List<ChapterScoreDto>?> GetChapterScoreComparisonAsync(int studentId);
-        Task<AIInsightResponse?> GetAIInsightAsync(int studentId);
-        Task<AIInsightResponse?> GetAIAssessmentAsync(int studentId);
-        Task<AIInsightResponse?> GetAIRoadmapAsync(int studentId);
     }
 
     public class DashboardApiService : IDashboardApiService
@@ -64,7 +61,7 @@ namespace ToanHocHay.WebApp.Services
 
                 // FIX: thêm ApiConstant.apiBaseUrl — trước đây thiếu nên request fail im lặng
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/overview");
+                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard");
 
                 SetStatus(((int)response.StatusCode).ToString());
 
@@ -105,41 +102,12 @@ namespace ToanHocHay.WebApp.Services
                 var response = await _httpClient.GetAsync(
                     $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/chapter-score-comparison");
                 if (!response.IsSuccessStatusCode) return null;
-                var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<List<ChapterScoreDto>>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                return result;
-            }
-            catch { return null; }
-        }
-    
-        public async Task<AIInsightResponse?> GetAIInsightAsync(int studentId) 
-            => await GetAIAssessmentAsync(studentId);
 
-        public async Task<AIInsightResponse?> GetAIAssessmentAsync(int studentId)
-        {
-            try
-            {
-                var token = GetToken();
-                if (string.IsNullOrEmpty(token)) return null;
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Trim());
-                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/ai-assessment");
-                if (!response.IsSuccessStatusCode) return null;
-                return await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);
-            }
-            catch { return null; }
-        }
-
-        public async Task<AIInsightResponse?> GetAIRoadmapAsync(int studentId)
-        {
-            try
-            {
-                var token = GetToken();
-                if (string.IsNullOrEmpty(token)) return null;
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Trim());
-                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/ai-roadmap");
-                if (!response.IsSuccessStatusCode) return null;
-                return await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);
+                // FIX: unwrap ApiResponse wrapper
+                var wrapper = await response.Content
+                    .ReadFromJsonAsync<ApiResponse<List<ChapterScoreDto>>>(
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return wrapper?.Success == true ? wrapper.Data : null;
             }
             catch { return null; }
         }

@@ -1,11 +1,13 @@
 ﻿// FILE: ToanHocHay.WebApp/Controllers/PackageController.cs
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
 
 namespace ToanHocHay.WebApp.Controllers
 {
+    [Authorize]
     public class PackageController : Controller
     {
         private readonly PackageApiService _packageService;
@@ -93,7 +95,9 @@ namespace ToanHocHay.WebApp.Controllers
             return Json(new
             {
                 status = status.Status,
-                endDate = status.EndDate
+                endDate = DateTime.TryParse(status.EndDate, out var parsedDate)
+    ? parsedDate.ToString("dd/MM/yyyy")
+    : status.EndDate
             });
         }
     }

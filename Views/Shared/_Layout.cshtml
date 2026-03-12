@@ -30,7 +30,7 @@
             opacity: 1;
             transform: translateY(0);
         }
-        
+
 
         /* --- Sửa lại phần Submenu của bạn ở đây --- */
         .dropdown-submenu {
@@ -77,16 +77,16 @@
             position: relative;
         }
 
-        .nav-item-active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #2563EB, #3B82F6);
-            border-radius: 2px 2px 0 0;
-        }
+            .nav-item-active::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #2563EB, #3B82F6);
+                border-radius: 2px 2px 0 0;
+            }
 
         /* Mobile menu toggle */
         .mobile-menu {
@@ -95,19 +95,19 @@
             transition: max-height 0.3s ease-out;
         }
 
-        .mobile-menu.active {
-            max-height: 500px;
-        }
+            .mobile-menu.active {
+                max-height: 500px;
+            }
 
         /* Subtle animation for footer social icons */
         .social-icon {
             transition: all 0.3s ease;
         }
 
-        .social-icon:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
-        }
+            .social-icon:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+            }
     </style>
     <script>
         tailwind.config = {
@@ -267,7 +267,7 @@
                                 </div>
                             </li>
 
-                                @await Component.InvokeAsync("Menu")
+                            @await Component.InvokeAsync("Menu")
                             </li>
 
                             <li>
@@ -406,7 +406,6 @@
 
             <div class="h-96 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-3" id="chat-messages">
                 <div class="flex gap-2">
-                    
                 </div>
             </div>
 
@@ -446,7 +445,7 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            
+
             <!-- Body -->
             <div class="px-4 py-3">
                 <p class="text-slate-500 text-sm mb-2 leading-snug font-medium">
@@ -511,6 +510,7 @@
                 opacity: 0;
                 transform: translateY(20px) scale(0.95);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0) scale(1);
@@ -522,6 +522,7 @@
                 opacity: 1;
                 transform: translateY(0) scale(1);
             }
+
             to {
                 opacity: 0;
                 transform: translateY(20px) scale(0.95);
@@ -569,7 +570,7 @@
             const notification = document.getElementById('chatbot-notification');
             notification.classList.remove('show');
             notification.classList.add('hide');
-            
+
             setTimeout(() => {
                 notification.style.display = 'none';
             }, 400);
@@ -578,7 +579,7 @@
         function openChatFromNotification() {
             // Close notification
             closeChatbotNotification();
-            
+
             // Open chat window
             setTimeout(() => {
                 toggleChat();
@@ -589,7 +590,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             const isHomePage = "@currentController" === "Home" && "@currentAction" === "Index";
             const notification = document.getElementById('chatbot-notification');
-            
+
             if (isHomePage && notification) {
                 // Show immediately when home page is loaded
                 notification.classList.add('show');
@@ -690,7 +691,44 @@
                 animateTrail();
             }
 
-            
+
+    </script>
+    <script>
+        (function() {
+            function getCookie(name) {
+                const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                return match ? match[2] : null;
+            }
+
+            // Check token hết hạn qua cookie hint
+            const expiry = getCookie('session_expiry_hint');
+            if (expiry && Date.now() > parseInt(expiry)) {
+                document.cookie = 'session_expiry_hint=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                window.location.href = '/Account/Logout';
+                return;
+            }
+
+            // Intercept fetch → 401 → logout
+            const originalFetch = window.fetch;
+            window.fetch = async function(...args) {
+                const response = await originalFetch.apply(this, args);
+                if (response.status === 401) {
+                    window.location.href = '/Account/Logout';
+                }
+                return response;
+            };
+
+            // Intercept XHR → 401 → logout
+            const originalOpen = XMLHttpRequest.prototype.open;
+            XMLHttpRequest.prototype.open = function(...args) {
+                this.addEventListener('load', function() {
+                    if (this.status === 401) {
+                        window.location.href = '/Account/Logout';
+                    }
+                });
+                return originalOpen.apply(this, args);
+            };
+        })();
     </script>
 </body>
 </html>

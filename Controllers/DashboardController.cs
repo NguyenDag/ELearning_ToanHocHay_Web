@@ -101,27 +101,17 @@ namespace ToanHocHay.WebApp.Controllers
 
             int studentId = int.Parse(studentIdClaim);
             var data = await _apiService.GetChapterScoreComparisonAsync(studentId);
+
+            // DEBUG TẠM
+            Console.WriteLine($"=== CHART DEBUG: studentId={studentId}, data={data?.Count ?? -1} ===");
+
             if (data == null)
-                return Json(new { success = false });
+                return Json(new { success = false, reason = "data_null" });
+            if (data.Count == 0)
+                return Json(new { success = false, reason = "data_empty" });
+
             return Json(new { success = true, data });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> AIAssessmentData()
-        {
-            var idClaim = User.FindFirst("StudentId")?.Value;
-            if (idClaim == null) return Unauthorized();
-            var data = await _apiService.GetAIAssessmentAsync(int.Parse(idClaim));
-            return Json(new { success = (data != null), data });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> AIRoadmapData()
-        {
-            var idClaim = User.FindFirst("StudentId")?.Value;
-            if (idClaim == null) return Unauthorized();
-            var data = await _apiService.GetAIRoadmapAsync(int.Parse(idClaim));
-            return Json(new { success = (data != null), data });
-        }
     }
 }

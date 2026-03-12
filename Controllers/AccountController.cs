@@ -79,7 +79,13 @@ namespace ToanHocHay.WebApp.Controllers
                 new AuthenticationProperties { IsPersistent = true, ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7) });
 
             _logger.LogInformation("User {Email} đăng nhập thành công. Role: {Role}", email, data.UserType);
-
+            var expiryMs = DateTimeOffset.UtcNow.AddDays(7).ToUnixTimeMilliseconds();
+            Response.Cookies.Append("session_expiry_hint", expiryMs.ToString(), new CookieOptions
+            {
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+                HttpOnly = false, // FE cần đọc được
+                SameSite = SameSiteMode.Lax
+            });
             // FIX: redirect theo role
             return data.UserType switch
             {
@@ -211,7 +217,9 @@ namespace ToanHocHay.WebApp.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            // Xóa cookie thủ công để chắc chắn
+            Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
+            return RedirectToAction("Login", "Account");
         }
 
         // ================= EMAIL CONFIRMATION =================

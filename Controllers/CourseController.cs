@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Services;
 using ToanHocHay.WebApp.Models.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ToanHocHay.WebApp.Controllers
 {
+    [Authorize]
     public class CourseController : Controller
     {
         private readonly CourseApiService _courseApi;
@@ -51,5 +54,41 @@ namespace ToanHocHay.WebApp.Controllers
             ViewBag.CurrentTopicId = lesson.TopicId;
             return View("Lesson", lesson);
         }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> UpdateProgress([FromBody] UpdateProgressRequest req)
+        {
+            try
+            {
+                var studentIdStr = User.FindFirst("StudentId")?.Value;
+                if (string.IsNullOrEmpty(studentIdStr))
+                    return Unauthorized();
+
+                req.StudentId = int.Parse(studentIdStr);
+
+                var client = HttpContext.RequestServices
+                    .GetRequiredService<IHttpClientFactory>().CreateClient();
+
+                var token = HttpContext.Session.GetString("Token")
+                         ?? User.FindFirst("Token")?.Value;
+
+                if (!string.IsNullOrEmpty(token))
+                    client.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                await client.PostAsJsonAsync(
+                    $"{ToanHocHay.WebApp.Common.Constants.ApiConstant.apiBaseUrl}/api/LessonProgress/update-progress",
+                    req);
+
+                return Ok();
+            }
+            catch { return Ok(); } // fail silent — không block UX
+        }
+    }
+    public class UpdateProgressRequest
+    {
+        public int StudentId { get; set; }
+        public int LessonId { get; set; }
+        public int WatchTime { get; set; }
     }
 }
