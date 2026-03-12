@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Services;
 
@@ -29,6 +30,10 @@ builder.Services.AddSession(options =>
     // Lax giúp Cookie không bị trình duyệt chặn khi chạy qua IP Server
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
+
+builder.Services.AddControllers()
+    .AddJsonOptions(o =>
+        o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

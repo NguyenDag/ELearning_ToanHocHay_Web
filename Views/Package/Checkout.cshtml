@@ -8,7 +8,6 @@
     var stuName = ViewData["StudentName"]?.ToString() ?? "";
     var stuId = ViewData["StudentId"]?.ToString() ?? "";
 
-    // FIX: format khớp với SePayService.ExtractSubscriptionId — pattern SUBSCRIPTION_{id}
     var transferContent = $"TKPTTS SUBSCRIPTION_{subId}";
     var priceRaw = package.Price.ToString("N0");
 }
@@ -70,6 +69,32 @@
         }
     }
 
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+
+        20%, 60% {
+            transform: translateX(-8px);
+        }
+
+        40%, 80% {
+            transform: translateX(8px);
+        }
+    }
+
+    @@keyframes confetti-fall {
+        0% {
+            transform: translateY(-10px) rotate(0deg);
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(120px) rotate(720deg);
+            opacity: 0;
+        }
+    }
+
     .pulse-ring {
         position: absolute;
         inset: -8px;
@@ -84,6 +109,10 @@
 
     .fade-in-up {
         animation: fadeInUp .4s ease both;
+    }
+
+    .shake-anim {
+        animation: shake .5s ease;
     }
 
     .qr-img {
@@ -116,7 +145,8 @@
             color: #6366f1;
         }
 
-    #success-overlay {
+    /* ── Overlays ── */
+    .overlay-wrap {
         display: none;
         position: fixed;
         inset: 0;
@@ -127,22 +157,42 @@
         justify-content: center;
     }
 
-        #success-overlay.show {
+        .overlay-wrap.show {
             display: flex;
         }
+
+    /* Confetti dots */
+    .confetti-dot {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        animation: confetti-fall 1s ease forwards;
+    }
 </style>
 
-<!-- SUCCESS OVERLAY -->
-<div id="success-overlay">
-    <div class="bg-white rounded-[2.5rem] p-12 max-w-md w-full mx-4 text-center shadow-2xl fade-in-up">
-        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+<!-- ══════════════════════════════════════════
+     SUCCESS OVERLAY
+══════════════════════════════════════════ -->
+<div id="success-overlay" class="overlay-wrap">
+    <div id="success-card"
+         class="relative bg-white rounded-[2.5rem] p-12 max-w-md w-full mx-4 text-center shadow-2xl fade-in-up overflow-hidden">
+
+        <!-- confetti container -->
+        <div id="confetti-box" class="pointer-events-none absolute inset-0"></div>
+
+        <!-- icon -->
+        <div class="relative w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <i class="fa-solid fa-check text-5xl text-green-500 check-pop"></i>
         </div>
+
         <h2 class="text-3xl font-black text-slate-800 mb-2">Thanh toán thành công!</h2>
         <p class="text-slate-400 font-bold mb-1">
             Gói <span class="text-indigo-600 font-black">@package.PackageName</span> đã được kích hoạt.
         </p>
         <p class="text-xs text-slate-400 font-bold mb-8" id="success-enddate"></p>
+
+        <!-- bouncing dots -->
         <div class="flex justify-center gap-2 mb-8">
             <span class="w-3 h-3 rounded-full bg-indigo-400 animate-bounce" style="animation-delay:0s"></span>
             <span class="w-3 h-3 rounded-full bg-orange-400 animate-bounce" style="animation-delay:.1s"></span>
@@ -150,63 +200,104 @@
             <span class="w-3 h-3 rounded-full bg-pink-400 animate-bounce" style="animation-delay:.3s"></span>
             <span class="w-3 h-3 rounded-full bg-yellow-400 animate-bounce" style="animation-delay:.4s"></span>
         </div>
-        <a href="/Dashboard" class="block w-full py-4 bg-indigo-600 text-white font-black rounded-2xl text-sm uppercase tracking-widest hover:bg-indigo-700 transition mb-3">
+
+        <a href="/Course"
+           class="block w-full py-4 bg-indigo-600 text-white font-black rounded-2xl text-sm uppercase tracking-widest hover:bg-indigo-700 transition mb-3">
             Vào học ngay <i class="fa-solid fa-arrow-right ml-2"></i>
         </a>
-        <a href="/Package" class="block w-full py-3 bg-slate-100 text-slate-500 font-black rounded-2xl text-sm hover:bg-slate-200 transition">
+        <a href="/Package"
+           class="block w-full py-3 bg-slate-100 text-slate-500 font-black rounded-2xl text-sm hover:bg-slate-200 transition">
             Xem trang gói học
         </a>
     </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     FAILURE / TIMEOUT OVERLAY
+══════════════════════════════════════════ -->
+<div id="failure-overlay" class="overlay-wrap">
+    <div class="bg-white rounded-[2.5rem] p-12 max-w-md w-full mx-4 text-center shadow-2xl fade-in-up">
+
+        <!-- icon -->
+        <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6" id="fail-icon-wrap">
+            <i id="fail-icon" class="fa-solid fa-clock text-5xl text-red-400"></i>
+        </div>
+
+        <h2 class="text-3xl font-black text-slate-800 mb-2" id="fail-title">QR đã hết hạn</h2>
+        <p class="text-slate-400 font-bold mb-8" id="fail-desc">
+            Mã QR đã hết hiệu lực sau 15 phút.<br>Vui lòng tạo đơn mới để thanh toán lại.
+        </p>
+
+        <!-- action buttons -->
+        <button onclick="retryPayment()"
+                class="block w-full py-4 bg-indigo-600 text-white font-black rounded-2xl text-sm uppercase tracking-widest hover:bg-indigo-700 transition mb-3">
+            <i class="fa-solid fa-rotate-right mr-2"></i> Tạo đơn mới
+        </button>
+        <a href="/Home/Contact"
+           class="block w-full py-3 bg-slate-100 text-slate-500 font-black rounded-2xl text-sm hover:bg-slate-200 transition">
+            <i class="fa-solid fa-headset mr-2"></i> Liên hệ hỗ trợ
+        </a>
+
+        <!-- already paid? -->
+        <p class="text-xs text-slate-400 font-bold mt-6">
+            Đã chuyển khoản nhưng chưa kích hoạt?
+            <a href="/Home/Contact" class="text-indigo-500 hover:underline">Báo ngay để được xử lý</a>
+        </p>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE BODY
+══════════════════════════════════════════ -->
 <div class="min-h-screen py-10 px-4">
     <div class="max-w-5xl mx-auto">
 
         <div class="text-center mb-10">
             <h1 class="text-3xl font-black text-slate-800 mb-2">Thanh toán đơn hàng</h1>
-            <p class="text-slate-400 font-bold">Quét mã QR để kích hoạt gói <span class="text-indigo-600">@package.PackageName</span></p>
+            <p class="text-slate-400 font-bold">
+                Quét mã QR để kích hoạt gói <span class="text-indigo-600">@package.PackageName</span>
+            </p>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            <!-- LEFT -->
+            <!-- ── LEFT ── -->
             <div class="space-y-6">
 
                 <!-- QR Card -->
                 <div class="glass p-8 flex flex-col items-center">
-                    <div id="status-badge" class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full mb-6">
+                    <div id="status-badge"
+                         class="flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-full mb-6">
                         <div class="relative w-4 h-4 flex-shrink-0">
                             <div class="pulse-ring"></div>
                             <div class="w-4 h-4 rounded-full bg-amber-400"></div>
                         </div>
                         <span class="text-xs font-black text-amber-700 uppercase tracking-widest">Chờ thanh toán...</span>
                     </div>
+
                     <div id="qr-section" class="text-center">
-                        <img src="@qrUrl" alt="QR Thanh toán" class="qr-img w-64 h-64 object-contain mx-auto mb-4" />
+                        <img src="@qrUrl" alt="QR Thanh toán"
+                             class="qr-img w-64 h-64 object-contain mx-auto mb-4" />
                         <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Mã QR hết hạn sau</p>
                         <p class="text-2xl font-black text-indigo-600" id="countdown">15:00</p>
                     </div>
                 </div>
 
-                <!-- Thông tin CK -->
+                <!-- Bank Info -->
                 <div class="glass p-6">
                     <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-5 border-b pb-3 flex items-center gap-2">
                         <i class="fa-solid fa-building-columns text-indigo-400"></i>
                         Thông tin chuyển khoản
                     </h3>
                     <div class="space-y-3">
-
-                        <!-- Ngân hàng -->
                         <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngân hàng</p>
                                 <p class="font-black text-slate-800">TPBank (Tiên Phong)</p>
                             </div>
-                            <img src="https://api.vietqr.io/img/TPB.png" alt="TPBank"
-                                 class="h-8 w-auto" onerror="this.style.display='none'" />
+                            <img src="https://api.vietqr.io/img/TPB.png" alt="TPBank" class="h-8 w-auto" onerror="this.style.display='none'" />
                         </div>
 
-                        <!-- STK -->
                         <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl gap-3">
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Số tài khoản</p>
@@ -219,7 +310,6 @@
                             <span id="v-stk" class="sr-only">00000802110</span>
                         </div>
 
-                        <!-- Tên TK -->
                         <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl gap-3">
                             <div>
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Chủ tài khoản</p>
@@ -232,7 +322,6 @@
                             <span id="v-name" class="sr-only">NGUYEN DANG NGUYEN</span>
                         </div>
 
-                        <!-- Số tiền -->
                         <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-xl border border-indigo-100 gap-3">
                             <div>
                                 <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Số tiền</p>
@@ -245,7 +334,6 @@
                             <span id="v-amount" class="sr-only">@((long)package.Price)</span>
                         </div>
 
-                        <!-- Nội dung CK — QUAN TRỌNG -->
                         <div class="flex items-center justify-between p-4 bg-amber-50 rounded-xl border-2 border-amber-200 gap-3">
                             <div class="min-w-0">
                                 <p class="text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1 mb-1">
@@ -260,14 +348,13 @@
                             <span id="v-content" class="sr-only">@transferContent</span>
                         </div>
                     </div>
-
                     <p class="text-[10px] text-red-500 font-black mt-4 flex items-start gap-1.5">
                         <i class="fa-solid fa-circle-info mt-0.5 flex-shrink-0"></i>
                         Nhập đúng nội dung <b>@transferContent</b> để hệ thống tự động kích hoạt gói.
                     </p>
                 </div>
 
-                <!-- Hướng dẫn -->
+                <!-- Steps -->
                 <div class="glass p-6">
                     <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Hướng dẫn thanh toán</h3>
                     <div class="space-y-3">
@@ -294,7 +381,7 @@
                 </div>
             </div>
 
-            <!-- RIGHT -->
+            <!-- ── RIGHT ── -->
             <div class="space-y-6">
                 <div class="glass p-8">
                     <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-6 border-b pb-4">Chi tiết đơn hàng</h3>
@@ -389,64 +476,207 @@
     </div>
 </div>
 
-<script>
-    const subscriptionId = @subId;
-    let pollInterval;
-    let countdownSeconds = 15 * 60;
+@section Scripts {
+    <script>
+        // ── Config ──────────────────────────────────────────────
+        const SUBSCRIPTION_ID = @subId;
+        const API_STATUS_URL  = `/Package/CheckStatus?subscriptionId=${SUBSCRIPTION_ID}`;
+        const POLL_INTERVAL_MS   = 3000;   // 3 giây
+        const QR_TIMEOUT_SECONDS = 15 * 60; // 15 phút
 
-    const countdownEl = document.getElementById('countdown');
-    const countdownTimer = setInterval(() => {
-        if (countdownSeconds <= 0) {
-            clearInterval(countdownTimer);
-            clearInterval(pollInterval);
-            countdownEl.textContent = 'Hết hạn';
-            countdownEl.classList.add('text-red-500');
-            document.getElementById('status-badge').innerHTML =
-                `<i class="fa-solid fa-clock text-red-400"></i>
-                 <span class="text-xs font-black text-red-600 uppercase tracking-widest">QR đã hết hạn</span>`;
-            return;
-        }
-        const m = Math.floor(countdownSeconds / 60);
-        const s = countdownSeconds % 60;
-        countdownEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        countdownSeconds--;
-    }, 1000);
+        // ── State ────────────────────────────────────────────────
+        let pollInterval;
+        let countdownSeconds = QR_TIMEOUT_SECONDS;
+        let isFinished = false;
 
-    async function checkPaymentStatus() {
-        try {
-            const res  = await fetch(`/Package/CheckStatus?subscriptionId=${subscriptionId}`);
-            const data = await res.json();
-            if (data.status === 'Active') {
-                clearInterval(pollInterval);
+        // ── Elements ─────────────────────────────────────────────
+        const countdownEl  = document.getElementById('countdown');
+        const statusBadge  = document.getElementById('status-badge');
+
+        // ── Countdown ────────────────────────────────────────────
+        const countdownTimer = setInterval(() => {
+            if (isFinished) return clearInterval(countdownTimer);
+
+            countdownSeconds--;
+
+            if (countdownSeconds <= 0) {
                 clearInterval(countdownTimer);
-                showSuccess(data.endDate);
+                stopPolling();
+                showFailure('timeout');
+                return;
             }
-        } catch (e) { console.error('Poll error:', e); }
-    }
 
-    function showSuccess(endDate) {
-        document.getElementById('status-badge').innerHTML =
-            `<i class="fa-solid fa-check text-green-500"></i>
-             <span class="text-xs font-black text-green-700 uppercase tracking-widest">Đã thanh toán!</span>`;
-        document.getElementById('status-badge').className =
-            'flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full mb-6';
-        if (endDate) document.getElementById('success-enddate').textContent = `Hạn sử dụng: ${endDate}`;
-        document.getElementById('success-overlay').classList.add('show');
-    }
+            // Warning colour when < 2 min
+            if (countdownSeconds < 120) {
+                countdownEl.classList.remove('text-indigo-600');
+                countdownEl.classList.add('text-red-500');
+            }
 
-    function copyById(spanId, btn) {
-        const text = document.getElementById(spanId)?.textContent?.trim() ?? '';
-        navigator.clipboard.writeText(text).then(() => {
-            const orig = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép';
-            btn.classList.add('bg-green-100', 'text-green-600');
-            setTimeout(() => {
-                btn.innerHTML = orig;
-                btn.classList.remove('bg-green-100', 'text-green-600');
-            }, 2000);
-        });
-    }
+            const m = Math.floor(countdownSeconds / 60);
+            const s = countdownSeconds % 60;
+            countdownEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }, 1000);
 
-    pollInterval = setInterval(checkPaymentStatus, 3000);
-    setTimeout(checkPaymentStatus, 2000);
-</script>
+        // ── Polling ───────────────────────────────────────────────
+        async function checkPaymentStatus() {
+            if (isFinished) return;
+            try {
+                const res = await fetch(API_STATUS_URL);
+                if (!res.ok) return; // Bỏ qua lỗi mạng tạm thời
+
+                const data = await res.json();
+
+                switch (data.status) {
+                    case 'Active':
+                        stopPolling();
+                        showSuccess(data.endDate);
+                        break;
+
+                    case 'Expired':
+                        stopPolling();
+                        showFailure('expired');
+                        break;
+
+                    case 'Cancelled':
+                        stopPolling();
+                        showFailure('cancelled');
+                        break;
+
+                    case 'Pending':
+                    default:
+                        // Vẫn đang chờ → tiếp tục poll
+                        break;
+                }
+            } catch (e) {
+                console.warn('Poll error:', e);
+            }
+        }
+
+        function stopPolling() {
+            isFinished = true;
+            clearInterval(pollInterval);
+            clearInterval(countdownTimer);
+        }
+
+        // Bắt đầu poll ngay sau 2s, rồi mỗi 3s
+        setTimeout(checkPaymentStatus, 2000);
+        pollInterval = setInterval(checkPaymentStatus, POLL_INTERVAL_MS);
+
+        // ── Show Success ──────────────────────────────────────────
+        function showSuccess(endDate) {
+            // Update badge
+            statusBadge.className = 'flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-full mb-6';
+            statusBadge.innerHTML = `
+                <i class="fa-solid fa-check text-green-500"></i>
+                <span class="text-xs font-black text-green-700 uppercase tracking-widest">Đã thanh toán!</span>`;
+
+            // End date
+            if (endDate) {
+                const d = new Date(endDate);
+                document.getElementById('success-enddate').textContent =
+                    `Hạn sử dụng: ${d.toLocaleDateString('vi-VN')}`;
+            }
+
+            // Confetti burst
+            spawnConfetti();
+
+            // Show overlay
+            document.getElementById('success-overlay').classList.add('show');
+        }
+
+        function showFailure(reason) {
+            const iconWrap = document.getElementById('fail-icon-wrap');
+            const icon     = document.getElementById('fail-icon');
+            const title    = document.getElementById('fail-title');
+            const desc     = document.getElementById('fail-desc');
+
+            const configs = {
+                timeout: {
+                    iconClass: 'fa-solid fa-clock text-5xl text-orange-400 check-pop',
+                    bgClass:   'bg-orange-100',
+                    title:     'QR đã hết hạn',
+                    desc:      'Mã QR đã hết hiệu lực sau 15 phút.<br>Vui lòng tạo đơn mới để thanh toán lại.',
+                    badgeText: 'QR đã hết hạn',
+                    badgeCls:  'flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-200 rounded-full mb-6',
+                    badgeIcon: 'fa-solid fa-clock text-orange-400',
+                    badgeTxtCls: 'text-xs font-black text-orange-600 uppercase tracking-widest',
+                },
+                expired: {
+                    iconClass: 'fa-solid fa-calendar-xmark text-5xl text-red-400 check-pop',
+                    bgClass:   'bg-red-100',
+                    title:     'Đơn hàng đã hết hạn',
+                    desc:      'Đơn hàng này đã hết thời hạn thanh toán.<br>Vui lòng tạo đơn mới để tiếp tục.',
+                    badgeText: 'Đơn hết hạn',
+                    badgeCls:  'flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-full mb-6',
+                    badgeIcon: 'fa-solid fa-calendar-xmark text-red-400',
+                    badgeTxtCls: 'text-xs font-black text-red-600 uppercase tracking-widest',
+                },
+                cancelled: {
+                    iconClass: 'fa-solid fa-ban text-5xl text-slate-400 check-pop',
+                    bgClass:   'bg-slate-100',
+                    title:     'Đơn hàng đã bị huỷ',
+                    desc:      'Đơn hàng này đã bị huỷ và không thể thanh toán.<br>Vui lòng tạo đơn mới nếu bạn muốn tiếp tục.',
+                    badgeText: 'Đã huỷ đơn',
+                    badgeCls:  'flex items-center gap-2 px-4 py-2 bg-slate-100 border border-slate-300 rounded-full mb-6',
+                    badgeIcon: 'fa-solid fa-ban text-slate-400',
+                    badgeTxtCls: 'text-xs font-black text-slate-500 uppercase tracking-widest',
+                },
+            };
+
+            const cfg = configs[reason] ?? configs['timeout'];
+
+            icon.className     = cfg.iconClass;
+            iconWrap.className = `w-24 h-24 ${cfg.bgClass} rounded-full flex items-center justify-center mx-auto mb-6`;
+            title.textContent  = cfg.title;
+            desc.innerHTML     = cfg.desc;
+
+            // Update status badge trên QR card
+            statusBadge.className = cfg.badgeCls;
+            statusBadge.innerHTML = `
+                <i class="${cfg.badgeIcon}"></i>
+                <span class="${cfg.badgeTxtCls}">${cfg.badgeText}</span>`;
+
+            // Update countdown text
+            countdownEl.textContent = 'Hết hạn';
+            countdownEl.classList.remove('text-indigo-600');
+            countdownEl.classList.add('text-red-500');
+
+            document.getElementById('failure-overlay').classList.add('show');
+        }
+
+        // ── Retry: back to package page ───────────────────────────
+        function retryPayment() {
+            window.location.href = '/Package';
+        }
+
+        // ── Confetti ──────────────────────────────────────────────
+        function spawnConfetti() {
+            const box    = document.getElementById('confetti-box');
+            const colors = ['#6366f1','#f97316','#22c55e','#ec4899','#eab308','#06b6d4'];
+            for (let i = 0; i < 30; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'confetti-dot';
+                dot.style.left            = `${Math.random() * 100}%`;
+                dot.style.top             = `${Math.random() * 30}%`;
+                dot.style.background      = colors[Math.floor(Math.random() * colors.length)];
+                dot.style.animationDelay  = `${Math.random() * 0.6}s`;
+                dot.style.animationDuration = `${0.8 + Math.random() * 0.6}s`;
+                box.appendChild(dot);
+            }
+        }
+
+        // ── Copy helper ───────────────────────────────────────────
+        function copyById(spanId, btn) {
+            const text = document.getElementById(spanId)?.textContent?.trim() ?? '';
+            navigator.clipboard.writeText(text).then(() => {
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Đã sao chép';
+                btn.classList.add('bg-green-100','text-green-600');
+                setTimeout(() => {
+                    btn.innerHTML = orig;
+                    btn.classList.remove('bg-green-100','text-green-600');
+                }, 2000);
+            });
+        }
+    </script>
+}

@@ -88,11 +88,13 @@ namespace ToanHocHay.WebApp.Services
             {
                 AddAuthHeader();
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/Subscription/{subscriptionId}");
+                    $"{ApiConstant.apiBaseUrl}/api/Subscription/status/{subscriptionId}");
                 if (!response.IsSuccessStatusCode) return null;
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<SubscriptionStatusDto>>(json, _jsonOptions);
-                return result?.Data;
+                var result = JsonSerializer.Deserialize<SubscriptionStatusDto>(json, _jsonOptions);
+                Console.WriteLine($"Response is: {result.ToString}");
+
+                return result;
             }
             catch { return null; }
         }

@@ -93,7 +93,7 @@ namespace ToanHocHay.WebApp.Controllers
             return Json(new
             {
                 status = status.Status,
-                endDate = status.EndDate?.ToString("dd/MM/yyyy")
+                endDate = status.EndDate
             });
         }
     }

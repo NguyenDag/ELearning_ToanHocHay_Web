@@ -26,9 +26,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
 
     public class SubscriptionStatusDto
     {
-        public int SubscriptionId { get; set; }
         public string Status { get; set; } = "Pending"; // Pending | Active | Expired | Cancelled
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+        public string? EndDate { get; set; }
     }
 }
