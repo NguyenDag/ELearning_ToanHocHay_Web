@@ -42,7 +42,7 @@ namespace ToanHocHay.WebApp.Controllers
                 if (data == null)
                 {
                     _logger.LogError("API trả về NULL cho StudentId: {Id}", studentId);
-                    data = new CoreDashboardDto();
+                    return RedirectToAction("Login", "Account");
                 }
 
                 // 2. Nếu backend chưa trả SubscriptionInfo (PackageType = 0, IsActive = false)

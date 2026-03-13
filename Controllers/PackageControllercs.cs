@@ -38,13 +38,7 @@ namespace ToanHocHay.WebApp.Controllers
                         int? matchedPackageId = null;
                         if (packages != null)
                         {
-                            matchedPackageId = packages.FirstOrDefault(p =>
-                            {
-                                var n = p.PackageName.ToLower().Trim();
-                                return sub.PackageType == 2 && n.Contains("premium") ||
-                                       sub.PackageType == 1 && (n.Contains("tiêu chuẩn") || 
-                                       n.Contains("standard") || n.Contains("tieu chuan"));
-                            })?.PackageId;
+                            matchedPackageId = packages.FirstOrDefault(p => p.PackageId == sub.PackageType)?.PackageId;
                         }
 
                         ViewData["CurrentPackageId"] = matchedPackageId;

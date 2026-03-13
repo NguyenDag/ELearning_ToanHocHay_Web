@@ -10,11 +10,12 @@
     var sub = Model?.SubscriptionInfo ?? new SubscriptionInfoDto();
     int packageType = sub.PackageType;
     bool isFree = packageType == 0;
-    bool isStandard = packageType >= 1;
-    bool isPremium = packageType >= 2;
+    bool isTrial = packageType == 1;
+    bool isStandard = packageType >= 2;
+    bool isPremium = packageType >= 3;
 
     bool canChart = isStandard;
-    bool canAiHint = isStandard;
+    bool canAiHint = isTrial || isStandard;
     bool canUnlimitedHint = isPremium || sub.UnlimitedAiHint;
     bool canPersonalPath = isPremium || sub.PersonalizedPath;
     bool canMistakeRetry = isStandard || sub.MistakeRetry;
@@ -155,7 +156,7 @@
         </div>
 
         <!-- PREMIUM PROMO (chỉ hiện với Free) -->
-        @if (isFree)
+        @if (isFree || isTrial)
         {
             <div class="purple-gradient rounded-[2.5rem] p-10 mb-10 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl shadow-indigo-100 relative overflow-hidden">
                 <div class="absolute right-0 top-0 opacity-10 translate-x-1/4 -translate-y-1/4"><i class="fa-solid fa-rocket text-[250px]"></i></div>

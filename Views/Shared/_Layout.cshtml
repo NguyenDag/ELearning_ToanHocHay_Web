@@ -693,7 +693,7 @@
 
 
     </script>
-    
+
     <script>
         (function() {
             function getCookie(name) {
@@ -701,7 +701,6 @@
                 return match ? match[2] : null;
             }
 
-            // Check token hết hạn
             const expiry = getCookie('session_expiry_hint');
             if (expiry && Date.now() > parseInt(expiry)) {
                 document.cookie = 'session_expiry_hint=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
@@ -709,7 +708,6 @@
                 return;
             }
 
-            // Intercept fetch → 401 → logout
             const originalFetch = window.fetch;
             window.fetch = async function(...args) {
                 const response = await originalFetch.apply(this, args);
@@ -719,7 +717,6 @@
                 return response;
             };
 
-            // Intercept XHR → 401 → logout
             const originalOpen = XMLHttpRequest.prototype.open;
             XMLHttpRequest.prototype.open = function(...args) {
                 this.addEventListener('load', function() {
@@ -730,7 +727,7 @@
                 return originalOpen.apply(this, args);
             };
 
-            // ✅ THÊM VÀO ĐÂY - Đồng bộ logout khi tab khác đăng nhập tk mới
+            // Đồng bộ multi-tab
             const currentUser = '@(User.Identity?.IsAuthenticated == true ? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value : "")';
             if (currentUser) {
                 const stored = localStorage.getItem('active_user');
@@ -739,14 +736,22 @@
                     return;
                 }
                 localStorage.setItem('active_user', currentUser);
+
+                // Poll 3 giây
+                setInterval(() => {
+                    const latest = localStorage.getItem('active_user');
+                    if (latest && latest !== currentUser) {
+                        window.location.href = '/Account/Logout';
+                    }
+                }, 3000);
+
+                // Đồng bộ ngay khi tab khác thay đổi
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'active_user' && e.newValue !== currentUser) {
+                        window.location.href = '/Account/Logout';
+                    }
+                });
             }
-
-            window.addEventListener('storage', (e) => {
-                if (e.key === 'active_user' && e.newValue !== e.oldValue && e.oldValue !== null) {
-                    window.location.href = '/Account/Logout';
-                }
-            });
-
         })();
     </script>
 </body>
