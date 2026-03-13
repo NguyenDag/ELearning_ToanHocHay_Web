@@ -42,7 +42,8 @@ namespace ToanHocHay.WebApp.Controllers
                             {
                                 var n = p.PackageName.ToLower().Trim();
                                 return sub.PackageType == 2 && n.Contains("premium") ||
-                                       sub.PackageType == 1 && (n.Contains("tiêu chuẩn") || n.Contains("standard") || n.Contains("tieu chuan"));
+                                       sub.PackageType == 1 && (n.Contains("tiêu chuẩn") || 
+                                       n.Contains("standard") || n.Contains("tieu chuan"));
                             })?.PackageId;
                         }
 
