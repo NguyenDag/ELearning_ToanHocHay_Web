@@ -43,6 +43,12 @@ namespace ToanHocHay.WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password)
         {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                HttpContext.Session.Clear();
+                Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
+            }
             var (data, error) = await _authService.Login(new LoginRequestDto { Email = email, Password = password });
 
             if (error != null)
@@ -86,6 +92,15 @@ namespace ToanHocHay.WebApp.Controllers
                 HttpOnly = false, // FE cần đọc được
                 SameSite = SameSiteMode.Lax
             });
+            
+            // Set active user hint để đồng bộ multi-tab
+            Response.Cookies.Append("active_user_hint", data.UserId.ToString(), new CookieOptions
+            {
+                HttpOnly = false,
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
+
             // FIX: redirect theo role
             return data.UserType switch
             {

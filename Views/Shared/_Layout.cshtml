@@ -693,6 +693,7 @@
 
 
     </script>
+    
     <script>
         (function() {
             function getCookie(name) {
@@ -700,7 +701,7 @@
                 return match ? match[2] : null;
             }
 
-            // Check token hết hạn qua cookie hint
+            // Check token hết hạn
             const expiry = getCookie('session_expiry_hint');
             if (expiry && Date.now() > parseInt(expiry)) {
                 document.cookie = 'session_expiry_hint=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
@@ -728,6 +729,24 @@
                 });
                 return originalOpen.apply(this, args);
             };
+
+            // ✅ THÊM VÀO ĐÂY - Đồng bộ logout khi tab khác đăng nhập tk mới
+            const currentUser = '@(User.Identity?.IsAuthenticated == true ? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value : "")';
+            if (currentUser) {
+                const stored = localStorage.getItem('active_user');
+                if (stored && stored !== currentUser) {
+                    window.location.href = '/Account/Logout';
+                    return;
+                }
+                localStorage.setItem('active_user', currentUser);
+            }
+
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'active_user' && e.newValue !== e.oldValue && e.oldValue !== null) {
+                    window.location.href = '/Account/Logout';
+                }
+            });
+
         })();
     </script>
 </body>
