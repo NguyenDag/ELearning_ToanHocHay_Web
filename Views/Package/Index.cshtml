@@ -118,7 +118,7 @@
 </style>
 
 <div class="min-h-screen py-16 px-4">
-    <div class="max-w-6xl mx-auto">
+    <div class="max-w-7xl mx-auto">
 
         <!-- Header -->
         <div class="text-center mb-12 fade-up d1">
@@ -152,7 +152,7 @@
         }
 
         <!-- Toggle tháng/năm -->
-        <div class="flex justify-center mb-12 fade-up d2">
+        @* <div class="flex justify-center mb-12 fade-up d2">
             <div class="toggle-pill">
                 <div class="bg-slide" id="pill-bg"></div>
                 <button id="btn-month" onclick="switchMode('month')" style="color:#1E293B">Theo tháng</button>
@@ -161,13 +161,12 @@
                     <span style="background:#FEE2E2;color:#ef4444;font-size:.6rem;font-weight:900;padding:.15rem .45rem;border-radius:.4rem;">-30%</span>
                 </button>
             </div>
-        </div>
+        </div> *@
 
         <!-- Cards -->
         @if (Model != null && Model.Any())
         {
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-@(Math.Min(Model.Count + 1, 4)) gap-6 items-start fade-up d3">
-
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start fade-up d3">
                 <!-- Free card -->
                 <div class="pkg-card @(!hasActiveSub ? "active-plan" : "") p-8">
                     @if (!hasActiveSub)
@@ -197,7 +196,8 @@
                 <!-- Dynamic package cards -->
                 @foreach (var pkg in Model.Where(p => p.IsActive))
                 {
-                    bool isFeatured = pkg.PackageName.ToLower().Contains("premium");
+                    bool isFeatured = pkg.PackageName.ToLower().Contains("năm"); // Gói năm nổi bật nhất
+                    bool isPremiumMonth = pkg.PackageName.ToLower().Contains("premium") && !pkg.PackageName.ToLower().Contains("năm");
                     bool isActivePlan = currentPackageId.HasValue && currentPackageId.Value == pkg.PackageId;
                     string accentColor = isFeatured ? "#F97316" : "#6366F1";
                     string accentLight = isFeatured ? "#FFF7ED" : "#EEF2FF";
@@ -218,6 +218,12 @@
                         }
                         else if (isFeatured)
                         {
+                            <div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:white;font-size:.6rem;font-weight:900;padding:.35rem .9rem;border-radius:0 2rem 0 .75rem;letter-spacing:.06em;">
+                                <i class="fa-solid fa-crown mr-1"></i> TỐT NHẤT
+                            </div>
+                        }
+                        else if (isPremiumMonth)
+                        {
                             <div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,#f97316,#ef4444);color:white;font-size:.6rem;font-weight:900;padding:.35rem .9rem;border-radius:0 2rem 0 .75rem;letter-spacing:.06em;">
                                 <i class="fa-solid fa-star mr-1"></i> KHUYÊN DÙNG
                             </div>
@@ -225,7 +231,8 @@
 
                     <span class="inline-block text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest mb-6"
                           style="background:@accentLight;color:@accentColor;margin-top:@(isActivePlan || isFeatured ? ".75rem" : "0")">
-                        @(pkg.PackageName.ToLower().Contains("tiêu chuẩn") || pkg.PackageName.ToLower().Contains("standard") ? "Cơ bản"
+                        @(pkg.PackageName.ToLower().Contains("năm") ? "Premium năm"
+                                            : pkg.PackageName.ToLower().Contains("tiêu chuẩn") || pkg.PackageName.ToLower().Contains("standard") ? "Cơ bản"
                                             : pkg.PackageName.ToLower().Contains("premium") ? "Nâng cao"
                                             : "Gói học")
                 </span>
@@ -235,12 +242,12 @@
 
                         <!-- Giá -->
                         <div class="mb-8">
-                            <span class="price-val text-4xl font-black" style="color:@accentColor"
-                                  data-month="@pkg.Price.ToString("N0")"
-                                  data-year="@((pkg.Price * 10 * 0.7m).ToString("N0"))">
+                            <span class="text-4xl font-black" style="color:@accentColor">
                                 @pkg.Price.ToString("N0")
                             </span>
-                            <span class="price-unit text-slate-400 font-bold">/tháng</span>
+                            <span class="text-slate-400 font-bold">
+                                @(pkg.DurationDays >= 300 ? "/năm" : "/tháng")
+                            </span>
                         </div>
 
                         <!-- Features -->
@@ -317,21 +324,7 @@
 </div>
 
 <script>
-    let mode = 'month';
-
-    function switchMode(m) {
-        mode = m;
-        const isYear = m === 'year';
-        document.getElementById('pill-bg').style.transform = isYear ? 'translateX(100%)' : 'translateX(0)';
-        document.getElementById('btn-month').style.color = isYear ? '#94a3b8' : '#1E293B';
-        document.getElementById('btn-year').style.color  = isYear ? '#1E293B' : '#94a3b8';
-        document.querySelectorAll('.price-val').forEach(el => {
-            el.textContent = isYear ? el.dataset.year : el.dataset.month;
-        });
-        document.querySelectorAll('.price-unit').forEach(el => {
-            el.textContent = isYear ? '/năm' : '/tháng';
-        });
-    }
+    
 
     // Scroll & highlight card preselect
     const plan = "@preselected".toLowerCase();
