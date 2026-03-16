@@ -1,5 +1,4 @@
 ﻿// FILE: ToanHocHay.WebApp/Controllers/ParentController.cs
-// XÓA file ParentController_New.cs cũ, thay bằng file này
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,8 +54,6 @@ namespace ToanHocHay.WebApp.Controllers
                 }
 
                 var client = CreateAuthClient();
-
-                // Gọi endpoint lấy thông tin parent kèm connection code
                 var res = await client.GetAsync(
                     $"{ApiConstant.apiBaseUrl}/api/parent/{parentIdStr}");
 
@@ -65,19 +62,20 @@ namespace ToanHocHay.WebApp.Controllers
                     var json = await res.Content.ReadAsStringAsync();
                     var wrapper = JsonSerializer.Deserialize<JsonElement>(json);
 
-                    if (wrapper.TryGetProperty("data", out var data))
+                    // BE trả về PascalCase: Data, ConnectionCode, Children
+                    if (wrapper.TryGetProperty("Data", out var data))
                     {
-                        if (data.TryGetProperty("connectionCode", out var code))
+                        if (data.TryGetProperty("ConnectionCode", out var code))
                             ViewData["ConnectionCode"] = code.GetString() ?? "--------";
 
-                        if (data.TryGetProperty("children", out var children) &&
+                        if (data.TryGetProperty("Children", out var children) &&
                             children.ValueKind == JsonValueKind.Array)
                         {
                             var students = children.EnumerateArray()
                                 .Select(ch => new ConnectedStudentVm
                                 {
-                                    FullName = ch.TryGetProperty("fullName", out var fn) ? fn.GetString() ?? "" : "",
-                                    GradeLevel = ch.TryGetProperty("gradeLevel", out var gl) ? gl.GetInt32() : 6,
+                                    FullName = ch.TryGetProperty("FullName", out var fn) ? fn.GetString() ?? "" : "",
+                                    GradeLevel = ch.TryGetProperty("GradeLevel", out var gl) ? gl.GetInt32() : 6,
                                 }).ToList();
                             ViewData["ConnectedStudents"] = students;
                         }
@@ -110,7 +108,7 @@ namespace ToanHocHay.WebApp.Controllers
                     return Json(new { success = false, message = "Không tải được dữ liệu" });
 
                 var json = await res.Content.ReadAsStringAsync();
-                var data = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(json);
+                var data = JsonSerializer.Deserialize<JsonElement>(json);
                 return Json(new { success = true, data });
             }
             catch (Exception ex)
@@ -119,13 +117,14 @@ namespace ToanHocHay.WebApp.Controllers
             }
         }
 
-        // GET /Parent/GetInfo — AJAX endpoint cho Dashboard
+        // GET /Parent/GetInfo — AJAX endpoint cho Dashboard & Connection page
         [HttpGet]
         public async Task<IActionResult> GetInfo()
         {
             try
             {
                 var parentIdStr = User.FindFirst("ParentId")?.Value;
+
                 if (string.IsNullOrEmpty(parentIdStr))
                     return Json(new { connectionCode = "--------", children = new object[0] });
 
@@ -137,22 +136,26 @@ namespace ToanHocHay.WebApp.Controllers
                     return Json(new { connectionCode = "--------", children = new object[0] });
 
                 var json = await res.Content.ReadAsStringAsync();
-                var wrapper = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(json);
+                var wrapper = JsonSerializer.Deserialize<JsonElement>(json);
 
-                if (wrapper.TryGetProperty("data", out var data))
+                // BE trả về PascalCase: Data, ConnectionCode, Children
+                if (wrapper.TryGetProperty("Data", out var data))
                 {
-                    var code = data.TryGetProperty("connectionCode", out var c) ? c.GetString() : "--------";
+                    var code = data.TryGetProperty("ConnectionCode", out var c)
+                        ? c.GetString() ?? "--------"
+                        : "--------";
+
                     var children = new List<object>();
 
-                    if (data.TryGetProperty("children", out var ch) &&
-                        ch.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    if (data.TryGetProperty("Children", out var ch) &&
+                        ch.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var child in ch.EnumerateArray())
                         {
                             children.Add(new
                             {
-                                fullName = child.TryGetProperty("fullName", out var fn) ? fn.GetString() : "",
-                                gradeLevel = child.TryGetProperty("gradeLevel", out var gl) ? gl.GetInt32() : 6,
+                                fullName = child.TryGetProperty("FullName", out var fn) ? fn.GetString() : "",
+                                gradeLevel = child.TryGetProperty("GradeLevel", out var gl) ? gl.GetInt32() : 6,
                             });
                         }
                     }

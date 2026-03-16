@@ -94,16 +94,23 @@ namespace ToanHocHay.WebApp.Controllers
                     new AuthenticationHeaderValue("Bearer", token?.Trim() ?? "");
 
                 var response = await _httpClient.PostAsJsonAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student-parent/connect",
-                    new { connectionCode = model.ConnectionCode, relationship = model.Relationship });
+    $"{ApiConstant.apiBaseUrl}/api/StudentParent/connect",
+    new { ConnectionCode = model.ConnectionCode, Relationship = model.Relationship });
 
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<JsonElement>(json);
+                Console.WriteLine($"=== CONNECT RESPONSE: Status={response.StatusCode}, Body={json} ===");
 
                 if (response.IsSuccessStatusCode)
                     return Ok(new { success = true, message = "Kết nối thành công!" });
 
-                var msg = result.TryGetProperty("message", out var m) ? m.GetString() : "Mã không hợp lệ";
+                // Check empty TRƯỚC khi parse
+                if (string.IsNullOrEmpty(json))
+                    return BadRequest(new { success = false, message = "Lỗi không xác định" });
+
+                var result = JsonSerializer.Deserialize<JsonElement>(json);
+                var msg = result.TryGetProperty("Message", out var m) ? m.GetString()
+                        : result.TryGetProperty("message", out var m2) ? m2.GetString()
+                        : "Mã không hợp lệ";
                 return BadRequest(new { success = false, message = msg });
             }
             catch (Exception ex)
