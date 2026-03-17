@@ -148,12 +148,13 @@ namespace ToanHocHay.WebApp.Controllers
                     var children = new List<object>();
 
                     if (data.TryGetProperty("Children", out var ch) &&
-                        ch.ValueKind == JsonValueKind.Array)
+    ch.ValueKind == JsonValueKind.Array)
                     {
                         foreach (var child in ch.EnumerateArray())
                         {
                             children.Add(new
                             {
+                                studentId = child.TryGetProperty("StudentId", out var sid) ? sid.GetInt32() : 0,
                                 fullName = child.TryGetProperty("FullName", out var fn) ? fn.GetString() : "",
                                 gradeLevel = child.TryGetProperty("GradeLevel", out var gl) ? gl.GetInt32() : 6,
                             });

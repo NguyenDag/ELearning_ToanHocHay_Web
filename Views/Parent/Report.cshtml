@@ -299,68 +299,66 @@
             }
         }
 
-        function renderReport(d) {
-            const stats  = d.stats  || {};
-            const info   = d.studentInfo || {};
-            const chapters = d.chapterProgress || [];
-            const lessons  = d.recentLessons  || [];
+                function renderReport(d) {
+            // BE trả về PascalCase
+            const stats    = d.Stats    || d.stats    || {};
+            const info     = d.StudentInfo || d.studentInfo || {};
+            const chapters = d.ChapterProgress || d.chapterProgress || [];
+            const lessons  = d.RecentLessons  || d.recentLessons  || [];
 
-            const scoreColor = stats.averageScore >= 80 ? 'text-green-600' :
-                               stats.averageScore >= 60 ? 'text-amber-500' : 'text-red-500';
+            const avgScore = stats.AverageScore ?? stats.averageScore ?? 0;
+            const scoreColor = avgScore >= 8 ? 'text-green-600' :
+                               avgScore >= 5 ? 'text-amber-500' : 'text-red-500';
 
             document.getElementById('report-content').innerHTML = `
-                <!-- Student info banner -->
                 <div class="glass p-5 mb-6 flex items-center gap-4 fade-up">
                     <div class="w-14 h-14 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-md">
-                        ${(info.fullName || '?')[0]}
+                        ${(info.FullName || info.fullName || '?')[0]}
                     </div>
                     <div>
-                        <p class="font-black text-slate-800 text-lg">${info.fullName || 'Học sinh'}</p>
-                        <p class="text-slate-400 font-bold text-sm">Lớp ${info.gradeLevel || 6} · ${info.schoolName || 'Chưa có trường'}</p>
+                        <p class="font-black text-slate-800 text-lg">${info.FullName || info.fullName || 'Học sinh'}</p>
+                        <p class="text-slate-400 font-bold text-sm">Lớp ${info.GradeLevel || info.gradeLevel || 6} · ${info.SchoolName || info.schoolName || 'Chưa có trường'}</p>
                     </div>
                     <div class="ml-auto flex items-center gap-2">
-                        <div class="px-4 py-2 bg-${stats.currentStreak > 0 ? 'orange' : 'slate'}-100 rounded-xl text-center">
-                            <p class="text-xl font-black text-${stats.currentStreak > 0 ? 'orange' : 'slate'}-600">🔥 ${stats.currentStreak || 0}</p>
+                        <div class="px-4 py-2 bg-orange-100 rounded-xl text-center">
+                            <p class="text-xl font-black text-orange-600">🔥 ${stats.CurrentStreak ?? stats.currentStreak ?? 0}</p>
                             <p class="text-[10px] font-black text-slate-400 uppercase">Streak</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Stats grid -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 fade-up">
                     <div class="stat-card text-center">
                         <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
                             <i class="fa-solid fa-clock text-blue-600"></i>
                         </div>
-                        <p class="text-2xl font-black text-slate-800">${stats.weeklyStudyMinutes || 0}</p>
+                        <p class="text-2xl font-black text-slate-800">${stats.WeeklyStudyMinutes ?? stats.weeklyStudyMinutes ?? 0}</p>
                         <p class="text-xs text-slate-400 font-bold">phút học tuần này</p>
                     </div>
                     <div class="stat-card text-center">
                         <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2">
                             <i class="fa-solid fa-star text-green-600"></i>
                         </div>
-                        <p class="text-2xl font-black ${scoreColor}">${stats.averageScore ? Math.round(stats.averageScore) : 0}%</p>
+                        <p class="text-2xl font-black ${scoreColor}">${avgScore}/10</p>
                         <p class="text-xs text-slate-400 font-bold">điểm trung bình</p>
                     </div>
                     <div class="stat-card text-center">
                         <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
                             <i class="fa-solid fa-pen-to-square text-purple-600"></i>
                         </div>
-                        <p class="text-2xl font-black text-slate-800">${stats.weeklyExercisesCompleted || 0}</p>
+                        <p class="text-2xl font-black text-slate-800">${stats.WeeklyExercisesCompleted ?? stats.weeklyExercisesCompleted ?? 0}</p>
                         <p class="text-xs text-slate-400 font-bold">bài làm tuần này</p>
                     </div>
                     <div class="stat-card text-center">
                         <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-2">
                             <i class="fa-solid fa-book-open text-amber-600"></i>
                         </div>
-                        <p class="text-2xl font-black text-slate-800">${stats.totalLessonsCompleted || 0}</p>
+                        <p class="text-2xl font-black text-slate-800">${stats.TotalLessonsCompleted ?? stats.totalLessonsCompleted ?? 0}</p>
                         <p class="text-xs text-slate-400 font-bold">bài học hoàn thành</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 fade-up">
-
-                    <!-- Chapter progress -->
                     <div class="glass p-6">
                         <h3 class="font-black text-slate-800 mb-5 flex items-center gap-2">
                             <div class="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -370,20 +368,23 @@
                         </h3>
                         ${chapters.length > 0 ? `
                             <div class="space-y-4">
-                                ${chapters.map(c => `
+                                ${chapters.map(c => {
+                                    const pct = c.CompletionPercentage ?? c.completionPercentage ?? 0;
+                                    const name = c.ChapterName || c.chapterName || '';
+                                    const done = c.CompletedTopics ?? c.completedTopics ?? 0;
+                                    const total = c.TotalTopics ?? c.totalTopics ?? 0;
+                                    return `
                                     <div>
                                         <div class="flex items-center justify-between mb-1.5">
-                                            <p class="font-bold text-slate-700 text-sm truncate max-w-[70%]">${c.chapterName}</p>
-                                            <span class="font-black text-xs ${c.completionPercentage >= 80 ? 'text-green-600' : c.completionPercentage >= 40 ? 'text-amber-500' : 'text-slate-400'}">
-                                                ${c.completionPercentage || 0}%
-                                            </span>
+                                            <p class="font-bold text-slate-700 text-sm truncate max-w-[70%]">${name}</p>
+                                            <span class="font-black text-xs ${pct >= 80 ? 'text-green-600' : pct >= 40 ? 'text-amber-500' : 'text-slate-400'}">${pct}%</span>
                                         </div>
                                         <div class="progress-bar">
-                                            <div class="progress-fill ${c.completionPercentage >= 80 ? 'bg-green-500' : c.completionPercentage >= 40 ? 'bg-amber-400' : 'bg-indigo-400'}"
-                                                 style="width:${c.completionPercentage || 0}%"></div>
+                                            <div class="progress-fill ${pct >= 80 ? 'bg-green-500' : pct >= 40 ? 'bg-amber-400' : 'bg-indigo-400'}" style="width:${pct}%"></div>
                                         </div>
-                                        <p class="text-[10px] text-slate-400 font-bold mt-1">${c.completedTopics || 0}/${c.totalTopics || 0} chủ đề</p>
-                                    </div>`).join('')}
+                                        <p class="text-[10px] text-slate-400 font-bold mt-1">${done}/${total} chủ đề</p>
+                                    </div>`;
+                                }).join('')}
                             </div>` : `
                             <div class="py-8 text-center">
                                 <i class="fa-solid fa-book text-slate-200 text-3xl mb-3"></i>
@@ -391,7 +392,6 @@
                             </div>`}
                     </div>
 
-                    <!-- Recent lessons -->
                     <div class="glass p-6">
                         <h3 class="font-black text-slate-800 mb-5 flex items-center gap-2">
                             <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -401,20 +401,25 @@
                         </h3>
                         ${lessons.length > 0 ? `
                             <div class="space-y-3">
-                                ${lessons.map(l => `
+                                ${lessons.map(l => {
+                                    const name = l.LessonName || l.lessonName || l.TopicName || l.topicName || '';
+                                    const chapter = l.ChapterName || l.chapterName || '';
+                                    const score = l.Score ?? l.score;
+                                    return `
                                     <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
                                         <div class="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
                                             <i class="fa-solid fa-book-open text-indigo-600 text-xs"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="font-black text-slate-700 text-sm truncate">${l.lessonName || l.topicName}</p>
-                                            <p class="text-[11px] text-slate-400 font-bold">${l.chapterName}</p>
+                                            <p class="font-black text-slate-700 text-sm truncate">${name}</p>
+                                            <p class="text-[11px] text-slate-400 font-bold">${chapter}</p>
                                         </div>
-                                        ${l.score != null ? `
-                                            <span class="text-xs font-black px-2 py-1 rounded-lg flex-shrink-0 ${l.score >= 80 ? 'bg-green-100 text-green-700' : l.score >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}">
-                                                ${Math.round(l.score)}%
+                                        ${score != null ? `
+                                            <span class="text-xs font-black px-2 py-1 rounded-lg flex-shrink-0 ${score >= 8 ? 'bg-green-100 text-green-700' : score >= 5 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}">
+                                                ${score}/10
                                             </span>` : ''}
-                                    </div>`).join('')}
+                                    </div>`;
+                                }).join('')}
                             </div>` : `
                             <div class="py-8 text-center">
                                 <i class="fa-solid fa-book-open text-slate-200 text-3xl mb-3"></i>
