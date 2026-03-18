@@ -48,7 +48,7 @@ namespace ToanHocHay.WebApp.Controllers
             {
                 var packageClaim = User.FindFirst("PackageType")?.Value ?? "0";
                 int packageType = int.TryParse(packageClaim, out var p) ? p : 0;
-                if (packageType < 3)
+                if (packageType < 2)
                 {
                     TempData["UpgradeMsg"] = "Đề thi này yêu cầu gói Premium!";
                     return RedirectToAction("Index", "Package");
