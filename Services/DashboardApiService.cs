@@ -103,11 +103,11 @@ namespace ToanHocHay.WebApp.Services
                     $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/chapter-score-comparison");
                 if (!response.IsSuccessStatusCode) return null;
 
-                // FIX: unwrap ApiResponse wrapper
-                var wrapper = await response.Content
-                    .ReadFromJsonAsync<ApiResponse<List<ChapterScoreDto>>>(
+                // FIX: deserialize List directly since backend returns Ok(result) without ApiResponse wrapper
+                var data = await response.Content
+                    .ReadFromJsonAsync<List<ChapterScoreDto>>(
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                return wrapper?.Success == true ? wrapper.Data : null;
+                return data;
             }
             catch { return null; }
         }
