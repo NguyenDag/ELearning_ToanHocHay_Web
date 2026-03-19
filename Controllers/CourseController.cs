@@ -63,26 +63,31 @@ namespace ToanHocHay.WebApp.Controllers
                 var studentIdStr = User.FindFirst("StudentId")?.Value;
                 if (string.IsNullOrEmpty(studentIdStr))
                     return Unauthorized();
-
                 req.StudentId = int.Parse(studentIdStr);
+
+                Console.WriteLine($"=== UpdateProgress: studentId={req.StudentId}, lessonId={req.LessonId}, watchTime={req.WatchTime} ==="); // ← THÊM
 
                 var client = HttpContext.RequestServices
                     .GetRequiredService<IHttpClientFactory>().CreateClient();
-
                 var token = HttpContext.Session.GetString("Token")
                          ?? User.FindFirst("Token")?.Value;
-
                 if (!string.IsNullOrEmpty(token))
                     client.DefaultRequestHeaders.Authorization =
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-                await client.PostAsJsonAsync(
+                var beResponse = await client.PostAsJsonAsync(
                     $"{ToanHocHay.WebApp.Common.Constants.ApiConstant.apiBaseUrl}/api/LessonProgress/update-progress",
                     req);
 
+                Console.WriteLine($"=== UpdateProgress BE response: {beResponse.StatusCode} ==="); // ← THÊM
+
                 return Ok();
             }
-            catch { return Ok(); } // fail silent — không block UX
+            catch (Exception ex)
+            {
+                Console.WriteLine($"=== UpdateProgress ERROR: {ex.Message} ==="); // ← THÊM
+                return Ok();
+            }
         }
     }
     public class UpdateProgressRequest

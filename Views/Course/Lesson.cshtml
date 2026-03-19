@@ -479,22 +479,37 @@
                 if (timerDisplay) timerDisplay.innerText = `${minutes}:${seconds} / ${reqMin}:${reqSec}`;
             }
 
-            function completeLesson() {
-                if (isCompleted) return;
-                isCompleted = true;
-                if (progressBar) {
-                    progressBar.classList.remove('bg-blue-600');
-                    progressBar.classList.add('bg-green-500');
-                    progressBar.style.width = '100%';
-                }
-                if (btnComplete) {
-                    btnComplete.classList.remove('hidden');
-                    btnComplete.classList.add('flex');
-                }
-                if (typeof confetti !== 'undefined') {
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                }
+                    async function completeLesson() {
+            if (isCompleted) return;
+            isCompleted = true;
+
+            if (progressBar) {
+                progressBar.classList.remove('bg-blue-600');
+                progressBar.classList.add('bg-green-500');
+                progressBar.style.width = '100%';
             }
+            if (btnComplete) {
+                btnComplete.classList.remove('hidden');
+                btnComplete.classList.add('flex');
+            }
+            if (typeof confetti !== 'undefined') {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
+
+            // Lưu tiến trình lên server
+            try {
+                await fetch('/Course/UpdateProgress', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lessonId: @Model.LessonId,
+                        watchTime: currentTime
+                    })
+                });
+            } catch(e) {
+                console.error('Không thể lưu tiến trình:', e);
+            }
+        }
 
             if (!hasVideo) {
                 const interval = setInterval(() => {
