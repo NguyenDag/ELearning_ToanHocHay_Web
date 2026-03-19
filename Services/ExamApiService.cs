@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
@@ -222,5 +222,25 @@ namespace ToanHocHay.WebApp.Services
                 return null;
             }
         }
+
+        // 8. Báo cáo chuyển tab — gửi email cho phụ huynh
+        public async Task<bool> ReportTabSwitchAsync(int attemptId)
+        {
+            try
+            {
+                AddAuthHeader();
+                var response = await _httpClient.PostAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/{attemptId}/report-tab-switch",
+                    null
+                );
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"--- Lỗi ReportTabSwitch: {ex.Message} ---");
+                return false;
+            }
+        }
     }
 }
+

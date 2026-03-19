@@ -124,5 +124,16 @@ namespace ToanHocHay.WebApp.Controllers
 
             return BadRequest(new { success = false, message = "Không thể lấy gợi ý từ AI." });
         }
+
+        // 6. Báo cáo chuyển tab - gửi thông báo cho phụ huynh
+        [HttpPost]
+        public async Task<IActionResult> ReportTabSwitch([FromBody] TabSwitchReportDto report)
+        {
+            if (report == null || report.AttemptId <= 0)
+                return BadRequest("Dữ liệu không hợp lệ.");
+
+            await _examService.ReportTabSwitchAsync(report.AttemptId);
+            return Ok(new { success = true });
+        }
     }
 }

@@ -233,6 +233,25 @@
         </main>
     </div>
 
+    <!-- ── TAB SWITCH WARNING OVERLAY ─────────────── -->
+    <div id="tab-switch-overlay" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-50 flex items-center justify-center text-center p-6">
+        <div class="bg-white rounded-3xl p-10 max-w-sm w-full shadow-2xl animate-bounce-once">
+            <div class="mb-5">
+                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-800 mb-2">⚠️ Cảnh Báo!</h2>
+                <p class="text-slate-600 font-medium mb-1">Bạn vừa rời khỏi trang thi!</p>
+                <p class="text-red-500 font-bold text-sm" id="tab-switch-count-text">Lần vi phạm: 1</p>
+                <p class="text-slate-500 text-sm mt-2">Phụ huynh của bạn đã được thông báo qua email.</p>
+            </div>
+            <button onclick="dismissTabWarning()" class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:-translate-y-1">
+                Tôi hiểu, tiếp tục làm bài
+            </button>
+        </div>
+    </div>
+
+
     <!-- ── SUBMISSION LOADING OVERLAY ──────────────── -->
     <div id="submitting-overlay" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center text-center p-6">
         <div class="bg-white rounded-3xl p-10 max-w-sm w-full shadow-2xl scale-in-center">
@@ -475,6 +494,39 @@
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
             }
+        }
+
+        // ── Tab Switch Detection ─────────────────────────────────────
+        let tabSwitchCount = 0;
+        const tabSwitchOverlay = document.getElementById('tab-switch-overlay');
+        const tabSwitchCountText = document.getElementById('tab-switch-count-text');
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+        document.addEventListener('visibilitychange', async () => {
+            if (document.hidden) return; // khi tab bị ẩn thì bỏ qua, chỉ xử lý khi quay lại
+            if (!attemptId || parseInt(attemptId) <= 0) return;
+
+            tabSwitchCount++;
+            tabSwitchCountText.innerText = `Lần vi phạm: ${tabSwitchCount}`;
+            tabSwitchOverlay.classList.remove('hidden');
+
+            // Gọi backend để gửi email cho phụ huynh (fire-and-forget)
+            try {
+                await fetch('/Exam/ReportTabSwitch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ attemptId: parseInt(attemptId) })
+                });
+            } catch (err) {
+                console.warn('Tab switch report failed:', err);
+            }
+        });
+
+        function dismissTabWarning() {
+            tabSwitchOverlay.classList.add('hidden');
         }
     </script>
 </body>
