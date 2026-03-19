@@ -107,6 +107,9 @@ namespace ToanHocHay.WebApp.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            var tabSwitchLogs = await _examService.GetTabSwitchLogsAsync(attemptId);
+            ViewBag.TabSwitchLogs = tabSwitchLogs;
+
             // Truyền dữ liệu thật vào View
             return View(result);
         }

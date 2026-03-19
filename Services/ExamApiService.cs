@@ -241,6 +241,26 @@ namespace ToanHocHay.WebApp.Services
                 return false;
             }
         }
+        // 9. Lấy lịch sử chuyển tab
+        public async Task<List<DateTime>> GetTabSwitchLogsAsync(int attemptId)
+        {
+            try
+            {
+                AddAuthHeader();
+                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/{attemptId}/tab-switch-logs");
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<DateTime>>>();
+                    return result?.Data ?? new List<DateTime>();
+                }
+                return new List<DateTime>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"--- Lỗi GetTabSwitchLogs: {ex.Message} ---");
+                return new List<DateTime>();
+            }
+        }
     }
 }
 

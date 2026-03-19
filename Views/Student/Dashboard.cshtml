@@ -368,19 +368,28 @@
                         {
                             @foreach (var item in Model.RecentLessons)
                             {
-                                <div class="flex items-center justify-between group cursor-pointer transition">
-                                    <div class="flex items-center gap-4 text-left">
-                                        <div class="w-12 h-12 @(item.IsCompleted ? "bg-green-50 text-green-500" : "bg-indigo-50 text-indigo-500") rounded-2xl flex items-center justify-center shadow-sm border">
-                                            <i class="fa-solid @(item.IsCompleted ? "fa-check" : "fa-clock") text-lg"></i>
+                                <div class="flex flex-col gap-2 p-3 bg-white hover:bg-slate-50 border border-transparent hover:border-slate-100 rounded-2xl transition cursor-pointer relative overflow-hidden">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-4 text-left">
+                                            <div class="w-12 h-12 @(item.IsCompleted ? "bg-green-50 text-green-500 border-green-100" : "bg-indigo-50 text-indigo-500 border-indigo-100") rounded-xl flex items-center justify-center shadow-sm border">
+                                                <i class="fa-solid @(item.IsCompleted ? "fa-check" : "fa-clock") text-lg"></i>
+                                            </div>
+                                            <div class="max-w-[150px]">
+                                                <p class="font-black text-slate-700 text-sm leading-tight truncate">@item.LessonName</p>
+                                                <p class="text-[10px] text-slate-400 font-bold uppercase mt-1 italic">@item.CompletedAt.ToString("dd/MM")</p>
+                                            </div>
                                         </div>
-                                        <div class="max-w-[150px]">
-                                            <p class="font-black text-slate-700 text-sm leading-tight truncate">@item.LessonName</p>
-                                            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1 italic">@item.CompletedAt.ToString("dd/MM")</p>
-                                        </div>
+                                        <span class="text-sm font-black text-slate-800">
+                                            @(item.Score.HasValue? item.Score.Value.ToString("F1") : item.IsCompleted ? "✓" : "---")
+                                        </span>
                                     </div>
-                                    <span class="text-sm font-black text-slate-800">
-                                        @(item.Score.HasValue? item.Score.Value.ToString("F1") : item.IsCompleted ? "✓" : "---")
-                                    </span>
+                                    @if(item.TabSwitchCount > 0)
+                                    {
+                                        <div class="mt-1 flex items-center gap-2 bg-red-50 text-red-600 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-red-100">
+                                            <i class="fa-solid fa-triangle-exclamation"></i>
+                                            <span>Nhắc nhở: Chuyển tab @item.TabSwitchCount lần khi làm bài</span>
+                                        </div>
+                                    }
                                 </div>
                             }
                         }

@@ -73,6 +73,45 @@
             </h1>
             <p class="text-gray-500 mb-8">Bài tập: <strong>@Model.ExerciseName</strong></p>
 
+            @{
+                var tabSwitchLogs = ViewBag.TabSwitchLogs as List<DateTime> ?? new List<DateTime>();
+            }
+
+            @if (tabSwitchLogs.Any())
+            {
+                <div class="mb-10 bg-red-50 border-2 border-red-200 rounded-3xl p-6 text-left relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-red-100 rounded-full mix-blend-multiply opacity-50 blur-2xl flex-shrink-0 animate-pulse"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 bg-red-200 rounded-full mix-blend-multiply opacity-50 blur-2xl flex-shrink-0 animate-pulse" style="animation-delay: 1s"></div>
+
+                    <div class="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i>
+                        </div>
+                        <div class="flex-grow text-center md:text-left">
+                            <h3 class="text-xl font-black text-red-600 mb-1">Cảnh Báo Vi Phạm Nội Quy</h3>
+                            <p class="text-red-500/80 font-medium">Hệ thống ghi nhận bạn đã chuyển tab <strong class="text-red-700">@tabSwitchLogs.Count lần</strong> trong quá trình làm bài.</p>
+                        </div>
+                        <div class="shrink-0">
+                            <button onclick="toggleTabLogs()" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-lg shadow-red-500/30 transition-all active:scale-95 flex items-center gap-2">
+                                <i class="fa-regular fa-clock"></i> Xem lịch sử vi phạm
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="tab-switch-logs" class="hidden mt-6 pt-6 border-t border-red-200/60">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                            @for (int i = 0; i < tabSwitchLogs.Count; i++)
+                            {
+                                <div class="bg-white/60 backdrop-blur-sm border border-red-100 px-4 py-2 rounded-xl flex items-center gap-3">
+                                    <span class="w-6 h-6 rounded-full bg-red-100 text-red-600 text-xs font-bold flex items-center justify-center">@(i+1)</span>
+                                    <span class="font-bold text-red-700 font-mono text-sm">@tabSwitchLogs[i].ToLocalTime().ToString("HH:mm:ss")</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
                 <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
                     <i class="fa-solid fa-circle-check text-2xl text-green-500 mb-2"></i>
@@ -231,6 +270,13 @@
             section.classList.toggle('active');
             if (section.classList.contains('active')) {
                 section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function toggleTabLogs() {
+            const logsDiv = document.getElementById('tab-switch-logs');
+            if (logsDiv) {
+                logsDiv.classList.toggle('hidden');
             }
         }
     </script>

@@ -54,6 +54,8 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public bool IsCompleted { get; set; }
         public int ProgressPercentage { get; set; }
         public double? Score { get; set; }
+        public int? AttemptId { get; set; }
+        public int? TabSwitchCount { get; set; }
     }
     public class ChapterProgressSummaryDto
     {
