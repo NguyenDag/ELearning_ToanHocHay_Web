@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Services;
 using ToanHocHay.WebApp.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -64,6 +64,10 @@ namespace ToanHocHay.WebApp.Controllers
             {
                 ViewBag.CompletedLessonIds = new List<int>();
             }
+
+            // 3. Lấy các bài học cùng Topic để hiện ở Sidebar và điều hướng
+            var relatedLessons = await _courseApi.GetLessonsByTopicAsync(lesson.TopicId);
+            ViewBag.RelatedLessons = relatedLessons;
 
             return View("Lesson", lesson);
         }
