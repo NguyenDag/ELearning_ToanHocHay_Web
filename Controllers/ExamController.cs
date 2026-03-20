@@ -20,7 +20,16 @@ namespace ToanHocHay.WebApp.Controllers
         {
             var exams = await _examService.GetExercisesAsync();
 
-            Console.WriteLine(exams.Count);
+            var studentIdStr = User.FindFirst("StudentId")?.Value;
+            if (!string.IsNullOrEmpty(studentIdStr))
+            {
+                var completedIds = await _examService.GetCompletedExerciseIdsAsync(int.Parse(studentIdStr));
+                ViewData["CompletedIds"] = completedIds;
+            }
+            else
+            {
+                ViewData["CompletedIds"] = new List<int>();
+            }
 
             return View(exams);
         }

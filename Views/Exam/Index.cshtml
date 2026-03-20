@@ -1,6 +1,7 @@
 ﻿@using ToanHocHay.WebApp.Models.DTOs
 @{
     ViewData["Title"] = "Thư viện đề thi Lớp 6";
+    var completedIds = ViewData["CompletedIds"] as List<int> ?? new List<int>();
 }
 
 @functions {
@@ -160,6 +161,7 @@
                 <button onclick="setFilter('all')" id="filter-all" class="filter-btn px-4 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs whitespace-nowrap transition">Tất cả</button>
                 <button onclick="setFilter('free')" id="filter-free" class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-indigo-50 hover:text-indigo-600 whitespace-nowrap transition">🟢 Miễn phí</button>
                 <button onclick="setFilter('premium')" id="filter-premium" class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-indigo-50 hover:text-indigo-600 whitespace-nowrap transition">⭐ Premium</button>
+                <button onclick="setFilter('done')" id="filter-done" class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-600 font-bold text-xs hover:bg-green-50 hover:text-green-600 whitespace-nowrap transition">✅ Đã làm</button>
             </div>
             <div class="flex items-center gap-2 text-xs text-slate-400 font-bold">
                 <span id="exam-count">@Model.Count đề thi</span>
@@ -171,26 +173,37 @@
             @foreach (var exam in Model)
             {
                 string color = GetDurationColor(exam.DurationMinutes);
+                bool isDone = completedIds.Contains(exam.ExerciseId);
+
                 <div class="exam-card fade-up"
                      data-name="@exam.ExerciseName.ToLower()"
-                     data-type="@(exam.IsFree ? "free" : "premium")">
+                     data-type="@(exam.IsFree ? "free" : "premium")"
+                     data-done="@(isDone ? "done" : "not-done")">
 
                     <!-- Top color bar -->
-                    <div style="height:4px; background:@color; width:100%;"></div>
+                    <div style="height:4px; background:@(isDone ? "#22c55e" : color); width:100%;"></div>
 
                     <div class="p-6 flex flex-col flex-1">
                         <!-- Badge row -->
-                        <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
                             <span class="text-[10px] font-black px-3 py-1 rounded-full border uppercase tracking-widest"
                                   style="background:@(color)15; color:@color; border-color:@(color)30;">
                                 @GetDurationLabel(exam.DurationMinutes)
                             </span>
-                            @if (!exam.IsFree)
-                            {
-                                <span class="text-[10px] font-black text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full flex items-center gap-1">
-                                    <i class="fa-solid fa-crown text-[9px]"></i> Premium
-                                </span>
-                            }
+                            <div class="flex items-center gap-2">
+                                @if (isDone)
+                                {
+                                    <span class="text-[10px] font-black text-green-600 bg-green-50 border border-green-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-check text-[9px]"></i> Đã làm
+                                    </span>
+                                }
+                                @if (!exam.IsFree)
+                                {
+                                    <span class="text-[10px] font-black text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                        <i class="fa-solid fa-crown text-[9px]"></i> Premium
+                                    </span>
+                                }
+                            </div>
                         </div>
 
                         <!-- Title -->
@@ -218,10 +231,10 @@
                         @if (canAccess)
                         {
                             <a asp-controller="Exam" asp-action="DoExam" asp-route-id="@exam.ExerciseId"
-                               class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition flex items-center justify-center gap-2
-                      @(exam.IsFree ? "border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-600 hover:text-white" : "text-white")"
-                               style="@(!exam.IsFree ? "background:linear-gradient(135deg,#f97316,#ef4444);" : "")">
-                                Thi ngay <i class="fa-solid fa-play text-[10px]"></i>
+                               class="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition flex items-center justify-center gap-2"
+                               style="@(isDone ? "background:linear-gradient(135deg,#22c55e,#16a34a);color:white;" : !exam.IsFree ? "background:linear-gradient(135deg,#f97316,#ef4444);color:white;" : "border:2px solid #6366f1;color:#6366f1;")">
+                                @(isDone ? "Làm lại" : "Thi ngay")
+                                <i class="fa-solid @(isDone ? "fa-rotate-right" : "fa-play") text-[10px]"></i>
                             </a>
                         }
                         else
@@ -273,7 +286,9 @@
 
     function getFilteredCards() {
         return allCards.filter(card => {
-            const matchFilter = currentFilter === 'all' || card.dataset.type === currentFilter;
+            const matchFilter = currentFilter === 'all'
+                || (currentFilter === 'done' && card.dataset.done === 'done')
+                || (currentFilter !== 'done' && card.dataset.type === currentFilter);
             const matchSearch = !searchQuery || card.dataset.name.includes(searchQuery.toLowerCase());
             return matchFilter && matchSearch;
         });
@@ -289,25 +304,19 @@
         const start = (currentPage - 1) * ITEMS_PER_PAGE;
         const end = start + ITEMS_PER_PAGE;
 
-        // Ẩn/hiện cards
         allCards.forEach(c => c.style.display = 'none');
         filtered.forEach((c, i) => {
             c.style.display = (i >= start && i < end) ? 'flex' : 'none';
         });
 
-        // Empty state
         document.getElementById('empty-state').classList.toggle('hidden', total > 0);
-
-        // Count
         document.getElementById('exam-count').textContent = `${total} đề thi`;
 
-        // Pagination
         const pg = document.getElementById('pagination');
         if (!pg) return;
 
         pg.style.display = totalPages <= 1 ? 'none' : 'flex';
 
-        // Page numbers
         const container = document.getElementById('page-numbers');
         container.innerHTML = '';
         for (let i = 1; i <= totalPages; i++) {
@@ -333,7 +342,7 @@
         currentFilter = f;
         currentPage = 1;
         document.querySelectorAll('.filter-btn').forEach(b => {
-            b.classList.remove('bg-indigo-600', 'text-white');
+            b.classList.remove('bg-indigo-600', 'text-white', 'bg-green-600');
             b.classList.add('bg-gray-100', 'text-gray-600');
         });
         const active = document.getElementById('filter-' + f);
@@ -348,6 +357,5 @@
         render();
     }
 
-    // Init
     render();
 </script>

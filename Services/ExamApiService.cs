@@ -41,6 +41,23 @@ namespace ToanHocHay.WebApp.Services
                 Console.WriteLine("--- CẢNH BÁO: Không tìm thấy Token trong Session! ---");
             }
         }
+        public async Task<List<int>> GetCompletedExerciseIdsAsync(int studentId)
+        {
+            try
+            {
+                AddAuthHeader();
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/student/{studentId}/history");
+                if (!response.IsSuccessStatusCode) return new List<int>();
+                var resString = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ExerciseResultDto>>>(resString, _jsonOptions);
+                return apiResponse?.Data?
+                    .Select(a => a.ExerciseId)
+                    .Distinct()
+                    .ToList() ?? new List<int>();
+            }
+            catch { return new List<int>(); }
+        }
 
         // 1. Lấy danh sách bài kiểm tra (Trang Index)
         public async Task<List<ExerciseDto>> GetExercisesAsync()

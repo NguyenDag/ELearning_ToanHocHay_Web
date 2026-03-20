@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 
 namespace ToanHocHay.WebApp.Services
@@ -17,7 +18,21 @@ namespace ToanHocHay.WebApp.Services
             _httpContextAccessor = httpContextAccessor;
             _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         }
-
+        public async Task<List<int>> GetCompletedLessonIdsAsync(int studentId)
+        {
+            try
+            {
+                AddAuthHeader();
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/LessonProgress/student/{studentId}/completed");
+                if (!response.IsSuccessStatusCode) return new List<int>();
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ApiResponse<List<int>>>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                return result?.Data ?? new List<int>();
+            }
+            catch { return new List<int>(); }
+        }
         private void AddAuthHeader()
         {
             _httpClient.DefaultRequestHeaders.Authorization = null;

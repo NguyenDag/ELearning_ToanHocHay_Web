@@ -7,6 +7,8 @@
     var curriculum = ViewBag.FullCurriculum as CurriculumDto;
     var relatedLessons = ViewBag.RelatedLessons as IEnumerable<LessonDto>;
     var minTimeSeconds = 30;
+    var completedLessonIds = ViewBag.CompletedLessonIds as List<int> ?? new List<int>();
+    bool isLessonDone = completedLessonIds.Contains(Model.LessonId);
 
     // Navigation logic
     var currentList = relatedLessons?.OrderBy(l => l.OrderIndex).ToList();
@@ -301,7 +303,7 @@
                                                         bool isSelected = lesson.LessonId == Model.LessonId;
                                                         <a href="/Course/Learning/@lesson.LessonId"
                                                            class="flex items-center gap-3 p-4 hover:bg-blue-50/30 transition-all @(isSelected ? "bg-blue-50/20" : "")">
-                                                            <i class="fa-solid @(isSelected ? "fa-circle-play text-blue-600" : "fa-circle-check text-gray-200") text-base flex-shrink-0"></i>
+                                                            <i class="fa-solid @(isSelected ? "fa-circle-play text-blue-600" : isLessonDone ? "fa-circle-check text-green-500" : "fa-circle-check text-gray-200") text-base flex-shrink-0"></i>
                                                             <div class="flex-1 min-w-0">
                                                                 <p class="text-[13px] font-bold @(isSelected ? "text-blue-700" : "text-gray-600") leading-tight truncate">
                                                                     @lesson.LessonName
@@ -509,6 +511,11 @@
             } catch(e) {
                 console.error('Không thể lưu tiến trình:', e);
             }
+                const currentLessonId = @Model.LessonId;
+        document.querySelectorAll('a[href="/Course/Learning/' + currentLessonId + '"] i').forEach(icon => {
+            icon.classList.remove('fa-circle-play', 'text-blue-600', 'text-gray-200');
+            icon.classList.add('fa-circle-check', 'text-green-500');
+        });
         }
 
             if (!hasVideo) {

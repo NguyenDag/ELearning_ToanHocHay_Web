@@ -52,6 +52,19 @@ namespace ToanHocHay.WebApp.Controllers
             var curriculum = await _courseApi.GetCurriculumDetailAsync(DEFAULT_CURRICULUM_ID);
             ViewBag.FullCurriculum = curriculum;
             ViewBag.CurrentTopicId = lesson.TopicId;
+
+            // ← THÊM: Lấy danh sách lesson đã hoàn thành
+            var studentIdStr = User.FindFirst("StudentId")?.Value;
+            if (!string.IsNullOrEmpty(studentIdStr))
+            {
+                var completedLessonIds = await _courseApi.GetCompletedLessonIdsAsync(int.Parse(studentIdStr));
+                ViewBag.CompletedLessonIds = completedLessonIds ?? new List<int>();
+            }
+            else
+            {
+                ViewBag.CompletedLessonIds = new List<int>();
+            }
+
             return View("Lesson", lesson);
         }
         [HttpPost]
