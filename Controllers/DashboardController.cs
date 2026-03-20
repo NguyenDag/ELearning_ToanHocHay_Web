@@ -113,5 +113,30 @@ namespace ToanHocHay.WebApp.Controllers
             return Json(new { success = true, data });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> AIAssessment()
+        {
+            var studentIdClaim = User.FindFirst("StudentId")?.Value;
+            if (string.IsNullOrEmpty(studentIdClaim)) return Unauthorized();
+
+            int studentId = int.Parse(studentIdClaim);
+            var result = await _apiService.GetAIAssessmentAsync(studentId);
+            if (result == null) return Json(new { success = false, message = "Không thể kết nối máy chủ AI" });
+
+            return Json(new { success = true, data = result });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AIRoadmap()
+        {
+            var studentIdClaim = User.FindFirst("StudentId")?.Value;
+            if (string.IsNullOrEmpty(studentIdClaim)) return Unauthorized();
+
+            int studentId = int.Parse(studentIdClaim);
+            var result = await _apiService.GetAIRoadmapAsync(studentId);
+            if (result == null) return Json(new { success = false, message = "Không thể kết nối máy chủ AI" });
+
+            return Json(new { success = true, data = result });
+        }
     }
 }

@@ -11,6 +11,8 @@ namespace ToanHocHay.WebApp.Services
     {
         Task<CoreDashboardDto?> GetStudentDashboardAsync(int studentId);
         Task<List<ChapterScoreDto>?> GetChapterScoreComparisonAsync(int studentId);
+        Task<AIInsightResponse?> GetAIAssessmentAsync(int studentId);
+        Task<AIInsightResponse?> GetAIRoadmapAsync(int studentId);
     }
 
     public class DashboardApiService : IDashboardApiService
@@ -108,6 +110,40 @@ namespace ToanHocHay.WebApp.Services
                     .ReadFromJsonAsync<List<ChapterScoreDto>>(
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 return data;
+            }
+            catch { return null; }
+        }
+
+        public async Task<AIInsightResponse?> GetAIAssessmentAsync(int studentId)
+        {
+            try
+            {
+                var token = GetToken();
+                if (string.IsNullOrEmpty(token)) return null;
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token.Trim());
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/ai-assessment");
+                if (!response.IsSuccessStatusCode) return null;
+
+                return await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);
+            }
+            catch { return null; }
+        }
+
+        public async Task<AIInsightResponse?> GetAIRoadmapAsync(int studentId)
+        {
+            try
+            {
+                var token = GetToken();
+                if (string.IsNullOrEmpty(token)) return null;
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token.Trim());
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/ai-roadmap");
+                if (!response.IsSuccessStatusCode) return null;
+
+                return await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);
             }
             catch { return null; }
         }
