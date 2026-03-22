@@ -655,13 +655,7 @@
                         </div>
                     </div>
 
-                    <!-- Recommended Button -->
-                    <div id="ai-action-btn" class="hidden pt-4">
-                        <a id="btn-go-lesson" href="#" class="w-full flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white font-black rounded-2xl shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition">
-                            <span>Học ngay</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                        </a>
-                    </div>
+
                 </div>
             </div>
             
@@ -756,13 +750,6 @@
             extraList.appendChild(li);
         });
 
-        // Action Button
-        const actionBtn = document.getElementById('ai-action-btn');
-        if (data.lesson_id) {
-            actionBtn.classList.remove('hidden');
-            document.getElementById('btn-go-lesson').href = `/Lesson/Detail/${data.lesson_id}`;
-        } else {
-            actionBtn.classList.add('hidden');
-        }
+
     }
 </script>
