@@ -2,6 +2,7 @@
 using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
@@ -13,10 +14,7 @@ namespace ToanHocHay.WebApp.Services
         public AuthApiService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _jsonOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
+            _jsonOptions = ApiJson.Options;
         }
 
         // 1. Đăng nhập

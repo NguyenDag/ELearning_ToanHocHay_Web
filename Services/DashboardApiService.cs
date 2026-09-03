@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
@@ -25,7 +26,7 @@ namespace ToanHocHay.WebApp.Services
         {
             _httpClient = httpClient;
             _httpContextAccessor = httpContextAccessor;
-            _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            _jsonOptions = ApiJson.Options;
         }
 
         private void SetStatus(string status)
@@ -107,8 +108,7 @@ namespace ToanHocHay.WebApp.Services
 
                 // FIX: deserialize List directly since backend returns Ok(result) without ApiResponse wrapper
                 var data = await response.Content
-                    .ReadFromJsonAsync<List<ChapterScoreDto>>(
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    .ReadFromJsonAsync<List<ChapterScoreDto>>(ApiJson.Options);
                 return data;
             }
             catch { return null; }

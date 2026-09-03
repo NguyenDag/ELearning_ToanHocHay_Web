@@ -3,22 +3,44 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Services;
+using ToanHocHay.WebApp.Services.Http;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 // --- CẤU HÌNH API URL ---
 var baseUri = ApiConstant.apiBaseUrl.EndsWith("/") ? ApiConstant.apiBaseUrl : ApiConstant.apiBaseUrl + "/";
 var finalApiUrl = new Uri(baseUri + "api/");
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddHttpClient<AuthApiService>(client => client.BaseAddress = finalApiUrl);
-builder.Services.AddHttpClient<CourseApiService>(client => client.BaseAddress = finalApiUrl);
-builder.Services.AddHttpClient<ExamApiService>(client => client.BaseAddress = finalApiUrl);
-builder.Services.AddHttpClient<ChatApiService>(client => client.BaseAddress = finalApiUrl);
-builder.Services.AddHttpClient<IDashboardApiService, DashboardApiService>(client => client.BaseAddress = finalApiUrl);
-builder.Services.AddHttpClient<PackageApiService>();
-builder.Services.AddHttpClient<SubscriptionApiService>();
+
+// --- TẦNG GỌI API CHUẨN HOÁ ---
+builder.Services.AddScoped<ITokenStore, SessionTokenStore>();
+builder.Services.AddTransient<AuthTokenHandler>();
+
+// Client "thô" chỉ dùng cho refresh-token — KHÔNG gắn AuthTokenHandler (tránh đệ quy).
+builder.Services.AddHttpClient(AuthTokenHandler.RawClientName, c => c.BaseAddress = finalApiUrl);
+
+// Client bọc ApiResponse<T> + mã HTTP thật, dùng cho các service mới/đã refactor.
+builder.Services.AddHttpClient<ApiClient>(c => c.BaseAddress = finalApiUrl)
+    .AddHttpMessageHandler<AuthTokenHandler>();
+
+// Các service hiện có: gắn AuthTokenHandler để tự đính token + tự refresh khi 401.
+builder.Services.AddHttpClient<AuthApiService>(client => client.BaseAddress = finalApiUrl)
+    .AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddHttpClient<CourseApiService>(client => client.BaseAddress = finalApiUrl)
+    .AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddHttpClient<ExamApiService>(client => client.BaseAddress = finalApiUrl)
+    .AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddHttpClient<ChatApiService>(client => client.BaseAddress = finalApiUrl)
+    .AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddHttpClient<IDashboardApiService, DashboardApiService>(client => client.BaseAddress = finalApiUrl)
+    .AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddHttpClient<PackageApiService>(client => client.BaseAddress = finalApiUrl)
+    .AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddHttpClient<SubscriptionApiService>(client => client.BaseAddress = finalApiUrl)
+    .AddHttpMessageHandler<AuthTokenHandler>();
 
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();
@@ -29,10 +51,6 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
-
-builder.Services.AddControllers()
-    .AddJsonOptions(o =>
-        o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

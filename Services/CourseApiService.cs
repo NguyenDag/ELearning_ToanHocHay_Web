@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
@@ -16,7 +17,7 @@ namespace ToanHocHay.WebApp.Services
         {
             _httpClient = httpClient;
             _httpContextAccessor = httpContextAccessor;
-            _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            _jsonOptions = ApiJson.Options;
         }
         public async Task<List<int>> GetCompletedLessonIdsAsync(int studentId)
         {
@@ -27,8 +28,7 @@ namespace ToanHocHay.WebApp.Services
                     $"{ApiConstant.apiBaseUrl}/api/LessonProgress/student/{studentId}/completed");
                 if (!response.IsSuccessStatusCode) return new List<int>();
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<List<int>>>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var result = JsonSerializer.Deserialize<ApiResponse<List<int>>>(json, ApiJson.Options);
                 return result?.Data ?? new List<int>();
             }
             catch { return new List<int>(); }

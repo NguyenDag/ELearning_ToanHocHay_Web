@@ -134,7 +134,7 @@ namespace ToanHocHay.WebApp.Controllers
 
                 var wrapper = await response.Content
                     .ReadFromJsonAsync<ApiResponse<List<ConnectedParentDto>>>(
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        ToanHocHay.WebApp.Services.Http.ApiJson.Options);
                 return wrapper?.Data ?? new();
             }
             catch { return new(); }

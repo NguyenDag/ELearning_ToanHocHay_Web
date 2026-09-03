@@ -2,6 +2,7 @@
 using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
@@ -15,7 +16,7 @@ namespace ToanHocHay.WebApp.Services
         {
             _httpClient = httpClient;
             _httpContextAccessor = httpContextAccessor;
-            _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            _jsonOptions = ApiJson.Options;
         }
 
         private void AddAuthHeader()

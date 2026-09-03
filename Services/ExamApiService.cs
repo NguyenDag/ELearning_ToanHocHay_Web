@@ -4,6 +4,7 @@ using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
@@ -17,13 +18,7 @@ namespace ToanHocHay.WebApp.Services
         {
             _httpClient = httpClient;
             _httpContextAccessor = httpContextAccessor;
-            // Cấu hình để không phân biệt chữ hoa chữ thường khi giải mã JSON từ API
-            // VÀ giữ nguyên PascalCase khi gửi đi để khớp với Backend (PropertyNamingPolicy = null)
-            _jsonOptions = new JsonSerializerOptions 
-            { 
-                PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = null 
-            };
+            _jsonOptions = ApiJson.Options;
         }
 
         /// <summary>
