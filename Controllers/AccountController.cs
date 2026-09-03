@@ -270,6 +270,85 @@ namespace ToanHocHay.WebApp.Controllers
             return RedirectToAction("Login", "Account");
         }
 
+        // ================= QUÊN / ĐẶT LẠI MẬT KHẨU =================
+
+        // GET /Account/ForgotPassword
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            if (User.Identity?.IsAuthenticated == true) return RedirectByRole();
+            return View();
+        }
+
+        // POST /Account/ForgotPassword — backend không lộ email có tồn tại hay không.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ViewBag.Error = "Vui lòng nhập email.";
+                return View();
+            }
+
+            await _authService.ForgotPasswordAsync(email.Trim());
+
+            // Luôn báo thành công (chống dò email tồn tại).
+            ViewBag.Sent = true;
+            ViewBag.Email = email.Trim();
+            return View();
+        }
+
+        // GET /reset-password?token=...  (khớp liên kết trong email backend) và /Account/ResetPassword
+        [HttpGet("/reset-password")]
+        [HttpGet("Account/ResetPassword")]
+        public IActionResult ResetPassword(string? token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                ViewBag.Error = "Liên kết đặt lại mật khẩu không hợp lệ.";
+                ViewBag.Invalid = true;
+            }
+            ViewBag.Token = token;
+            return View();
+        }
+
+        // POST /Account/ResetPassword
+        [HttpPost("/reset-password")]
+        [HttpPost("Account/ResetPassword")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(string token, string newPassword, string confirmPassword)
+        {
+            ViewBag.Token = token;
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                ViewBag.Error = "Liên kết đặt lại mật khẩu không hợp lệ.";
+                ViewBag.Invalid = true;
+                return View();
+            }
+            if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 6)
+            {
+                ViewBag.Error = "Mật khẩu mới phải có ít nhất 6 ký tự.";
+                return View();
+            }
+            if (newPassword != confirmPassword)
+            {
+                ViewBag.Error = "Mật khẩu xác nhận không khớp.";
+                return View();
+            }
+
+            var result = await _authService.ResetPasswordAsync(token, newPassword);
+            if (result.Success)
+            {
+                TempData["SuccessMsg"] = "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.";
+                return RedirectToAction("Login");
+            }
+
+            ViewBag.Error = result.Message ?? "Không đặt lại được mật khẩu. Liên kết có thể đã hết hạn hoặc đã dùng.";
+            return View();
+        }
+
         // ================= EMAIL CONFIRMATION =================
         [HttpGet]
         public async Task<IActionResult> ConfirmEmail(string token)
@@ -295,11 +374,13 @@ namespace ToanHocHay.WebApp.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMsg"] = "Email xác nhận mới đã được gửi!";
+                TempData["SuccessMsg"] = "Nếu email hợp lệ và chưa xác nhận, chúng tôi đã gửi lại email xác nhận.";
                 return RedirectToAction("Login");
             }
 
-            ViewBag.Error = "Email không tồn tại hoặc có lỗi xảy ra.";
+            ViewBag.Error = (int)response.StatusCode == 429
+                ? "Bạn yêu cầu quá nhanh. Vui lòng thử lại sau ít phút."
+                : "Không gửi lại được email xác nhận. Vui lòng thử lại sau.";
             return View("ConfirmEmailFailed");
         }
     }

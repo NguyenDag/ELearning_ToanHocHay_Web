@@ -582,13 +582,16 @@
                 const res = await fetch('/Student/ChangePassword', {
                     method:'POST', headers:{'Content-Type':'application/json'},
                     body: JSON.stringify({
-                        oldPassword: document.getElementById('oldPassword').value,
-                        newPassword: np, confirmPassword: cp
+                        currentPassword: document.getElementById('oldPassword').value,
+                        newPassword: np
                     })
                 });
                 const r = await res.json();
-                if (r.success) { showAlert('success','Đổi mật khẩu thành công!'); e.target.reset(); }
-                else showAlert('error', r.message || 'Mật khẩu cũ không đúng');
+                if (r.success) {
+                    await showAlert('success', r.message || 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+                    window.location.href = r.redirect || '/Account/Login';
+                }
+                else showAlert('error', r.message || 'Mật khẩu hiện tại không đúng');
             } catch { showAlert('error','Lỗi kết nối'); }
             finally { setLoading(btn, false, orig); }
         });

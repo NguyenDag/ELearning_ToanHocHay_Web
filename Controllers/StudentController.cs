@@ -4,9 +4,12 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Controllers
 {
@@ -17,17 +20,20 @@ namespace ToanHocHay.WebApp.Controllers
         private readonly CourseApiService _courseApiService;
         private readonly HttpClient _httpClient;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITokenStore _tokenStore;
 
         public StudentController(
             AuthApiService authApiService,
             CourseApiService courseApiService,
             IHttpClientFactory httpClientFactory,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ITokenStore tokenStore)
         {
             _authApiService = authApiService;
             _courseApiService = courseApiService;
             _httpClient = httpClientFactory.CreateClient("ApiClient");
             _httpContextAccessor = httpContextAccessor;
+            _tokenStore = tokenStore;
         }
 
         public async Task<IActionResult> Dashboard()
@@ -73,8 +79,23 @@ namespace ToanHocHay.WebApp.Controllers
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
+
             var result = await _authApiService.ChangePasswordAsync(int.Parse(userIdStr), model);
-            return Json(result);
+
+            if (result.Success)
+            {
+                // Backend thu hồi refresh token + bump SecurityStamp → phải đăng nhập lại.
+                await _authApiService.LogoutAsync(_tokenStore.RefreshToken);
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                _tokenStore.Clear();
+                HttpContext.Session.Clear();
+                Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
+                TempData["SuccessMsg"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+
+                return Json(new { success = true, message = result.Message, redirect = Url.Action("Login", "Account") });
+            }
+
+            return Json(new { success = false, message = result.Message, errors = result.Errors });
         }
 
         // POST /Student/ConnectParent — học sinh nhập mã phụ huynh

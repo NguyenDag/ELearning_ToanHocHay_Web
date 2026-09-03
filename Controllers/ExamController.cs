@@ -52,14 +52,14 @@ namespace ToanHocHay.WebApp.Controllers
             if (exam == null)
                 return RedirectToAction("Index");
 
-            // ← THÊM ĐOẠN NÀY
+            // Chặn nhanh phía UI khi rõ ràng không đủ điều kiện; quyết định cuối vẫn ở backend
+            // (StartExercise trả 403 theo Exercise.RequiredTier — xử lý ở nhánh attemptId == 0).
             if (!exam.IsFree)
             {
-                var packageClaim = User.FindFirst("PackageType")?.Value ?? "0";
-                int packageType = int.TryParse(packageClaim, out var p) ? p : 0;
-                if (packageType < 2)
+                var tier = User.FindFirst("PackageTier")?.Value ?? nameof(PackageTier.Free);
+                if (string.Equals(tier, nameof(PackageTier.Free), StringComparison.OrdinalIgnoreCase))
                 {
-                    TempData["UpgradeMsg"] = "Đề thi này yêu cầu gói Premium!";
+                    TempData["UpgradeMsg"] = "Đề thi này yêu cầu gói trả phí. Vui lòng nâng cấp để tiếp tục.";
                     return RedirectToAction("Index", "Package");
                 }
             }
