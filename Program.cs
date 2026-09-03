@@ -1,17 +1,28 @@
 ﻿using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Services;
 using ToanHocHay.WebApp.Services.Http;
+
+// Nạp .env (nếu có) trước khi đọc cấu hình — biến trong đó ghi đè appsettings.json.
+DotEnv.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// --- CẤU HÌNH API URL ---
-var baseUri = ApiConstant.apiBaseUrl.EndsWith("/") ? ApiConstant.apiBaseUrl : ApiConstant.apiBaseUrl + "/";
-var finalApiUrl = new Uri(baseUri + "api/");
+// --- CẤU HÌNH API URL (appsettings.json > .env > mặc định trong ApiConstant) ---
+ApiConstant.apiBaseUrl = builder.Configuration["Api:BaseUrl"]?.Trim().TrimEnd('/') is { Length: > 0 } apiUrl
+    ? apiUrl : ApiConstant.apiBaseUrl.TrimEnd('/');
+ApiConstant.webBaseUrl = builder.Configuration["Api:WebBaseUrl"]?.Trim().TrimEnd('/') is { Length: > 0 } webUrl
+    ? webUrl : ApiConstant.webBaseUrl.TrimEnd('/');
+
+var sessionIdleMinutes = builder.Configuration.GetValue<int?>("Session:IdleTimeoutMinutes") ?? 60;
+var cookieExpireDays = builder.Configuration.GetValue<int?>("Auth:CookieExpireDays") ?? 7;
+
+var finalApiUrl = new Uri(ApiConstant.apiBaseUrl + "/api/");
 
 builder.Services.AddHttpContextAccessor();
 
@@ -46,7 +57,7 @@ builder.Services.AddHttpClient<SubscriptionApiService>(client => client.BaseAddr
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.IdleTimeout = TimeSpan.FromMinutes(sessionIdleMinutes);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
@@ -60,7 +71,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/Login";
         options.Cookie.Name = "ToanHocHay_Auth_Cookie";
         options.Cookie.SameSite = SameSiteMode.Lax;
-        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.ExpireTimeSpan = TimeSpan.FromDays(cookieExpireDays);
         options.SlidingExpiration = true;
         options.Events = new CookieAuthenticationEvents
         {

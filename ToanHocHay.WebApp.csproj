@@ -6,6 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <!-- Các file mẫu cấu hình: chỉ là tài liệu, không đóng gói / không copy ra output. -->
+  <ItemGroup>
+    <Content Remove="appsettings.Example.json" />
+    <None Include="appsettings.Example.json" CopyToOutputDirectory="Never" />
+    <None Include=".env.example" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
   <ItemGroup>
     <Folder Include="wwwroot\images\banner\New folder %281%29\" />
     <Folder Include="wwwroot\images\home\" />

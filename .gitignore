@@ -416,3 +416,16 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# ============================================================================
+# Cấu hình cục bộ & bí mật — dùng bản mẫu để tạo lại:
+#   appsettings.Example.json  ->  appsettings.json
+#   .env.example              ->  .env
+# ============================================================================
+appsettings.json
+appsettings.*.json
+!appsettings.Example.json
+
+.env
+.env.*
+!.env.example
