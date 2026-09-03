@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "Nội dung bị khoá";
+    var isAuth = ViewBag.IsAuthenticated as bool? ?? false;
+    var courseId = ViewBag.CourseId as int?;
+}
+
+<div class="container mx-auto px-4 py-20 flex justify-center">
+    <div class="w-full max-w-lg bg-white rounded-3xl shadow-xl border border-gray-100 p-10 text-center">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        <h1 class="mt-5 text-xl font-black text-gray-800">Bài học này chưa mở khoá</h1>
+        <p class="mt-2 text-sm text-gray-500">
+            @(ViewBag.LockMessage as string ?? "Bài học nằm trong phần trả phí hoặc cần ghi danh khoá học.")
+        </p>
+
+        <div class="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
+            @if (!isAuth)
+            {
+                <a href="/Account/Login" class="px-6 py-3 rounded-xl bg-[#1e3a5f] text-white font-bold hover:bg-[#2a4074]">
+                    Đăng nhập
+                </a>
+            }
+            else if (courseId is > 0)
+            {
+                <form asp-controller="Course" asp-action="Enroll" method="post" class="inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="courseId" value="@courseId" />
+                    <button type="submit" class="px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700">
+                        Ghi danh khoá học (miễn phí)
+                    </button>
+                </form>
+            }
+            <a href="/Package" class="px-6 py-3 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-50">
+                Xem các gói học
+            </a>
+        </div>
+
+        <div class="mt-6">
+            <a href="/Course/Index@(courseId is > 0 ? "/" + courseId : "")" class="text-sm text-gray-400 hover:text-gray-600">
+                ← Quay lại danh sách bài giảng
+            </a>
+        </div>
+    </div>
+</div>

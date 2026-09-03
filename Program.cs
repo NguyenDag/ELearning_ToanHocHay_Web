@@ -51,6 +51,9 @@ builder.Services.AddHttpClient<PackageApiService>(client => client.BaseAddress =
 builder.Services.AddHttpClient<SubscriptionApiService>(client => client.BaseAddress = finalApiUrl)
     .AddHttpMessageHandler<AuthTokenHandler>();
 
+// Tầng nội dung học mới (P2) — dùng ApiClient.
+builder.Services.AddScoped<ContentApiService>();
+
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

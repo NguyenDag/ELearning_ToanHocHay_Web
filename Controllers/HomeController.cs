@@ -3,27 +3,53 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Common.Http;
 using ToanHocHay.WebApp.Models;
+using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
 
 namespace ToanHocHay.WebApp.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly CourseApiService _courseApi;
+        private readonly ContentApiService _content;
         private readonly ILogger<HomeController> _logger;
-        private const int KNTT_CURRICULUM_ID = 3; // Kết Nối Tri Thức
 
-        public HomeController(CourseApiService courseApi, ILogger<HomeController> logger)
+        public HomeController(ContentApiService content, ILogger<HomeController> logger)
         {
-            _courseApi = courseApi;
+            _content = content;
             _logger = logger;
         }
 
         public async Task<IActionResult> Index()
         {
-            // Lấy chapters từ curriculum Kết Nối Tri Thức để hiển thị sidebar
-            var curriculum = await _courseApi.GetCurriculumDetailAsync(KNTT_CURRICULUM_ID);
-            ViewData["Chapters"] = curriculum?.Chapters?.OrderBy(c => c.OrderIndex).Take(6).ToList();
+            // Sidebar: 6 chương đầu của khoá học published đầu tiên.
+            var courses = await _content.GetCoursesAsync(publishedOnly: true);
+            var courseId = courses.Data?
+                .Where(c => c.PublishedVersionId != null)
+                .OrderBy(c => c.DisplayOrder)
+                .Select(c => (int?)c.CourseId)
+                .FirstOrDefault() ?? courses.Data?.FirstOrDefault()?.CourseId;
+
+            if (courseId is > 0)
+            {
+                var content = await _content.GetCourseContentAsync(courseId.Value);
+                if (content.IsSuccess && content.Data != null)
+                {
+                    ViewData["Chapters"] = content.Data.Tree
+                        .Where(n => !n.IsHidden)
+                        .OrderBy(n => n.OrderIndex)
+                        .Take(6)
+                        .Select(n => new ChapterDto
+                        {
+                            ChapterId = n.NodeId,
+                            ChapterName = n.Title,
+                            OrderIndex = n.OrderIndex,
+                            Topics = n.Children.Where(c => !c.IsHidden)
+                                .Select(c => new TopicDto { TopicId = c.NodeId, TopicName = c.Title })
+                                .ToList()
+                        })
+                        .ToList();
+                }
+            }
             return View();
         }
 

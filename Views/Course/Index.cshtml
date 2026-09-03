@@ -36,6 +36,47 @@
     </div>
 </section>
 
+@{
+    var accessLevel = ViewBag.AccessLevel as string;
+    var isEntitled = ViewBag.IsEntitled as bool? ?? false;
+    var isStudent = ViewBag.IsStudent as bool? ?? false;
+    var bannerCourseId = ViewBag.CourseId as int?;
+    var guestLimited = ViewBag.GuestLimited as bool? ?? false;
+}
+
+@if (guestLimited)
+{
+    <div class="container mx-auto px-4 mt-6">
+        <div class="rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 text-sm flex items-center gap-3">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Bạn đã xem hết lượt học thử dành cho khách. <a href="/Account/Login" class="font-bold underline">Đăng nhập</a> để xem đầy đủ.</span>
+        </div>
+    </div>
+}
+else if (!isEntitled && string.Equals(accessLevel, "FreeOnly", StringComparison.OrdinalIgnoreCase))
+{
+    <div class="container mx-auto px-4 mt-6">
+        <div class="rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 px-5 py-4 text-sm flex flex-col sm:flex-row sm:items-center gap-3">
+            <span class="flex-1"><i class="fa-solid fa-unlock-keyhole mr-2"></i>Bạn đang xem các bài học <b>miễn phí</b>. Mở khoá toàn bộ chương trình:</span>
+            <div class="flex gap-2">
+                @if (isStudent && bannerCourseId is > 0)
+                {
+                    <form asp-controller="Course" asp-action="Enroll" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="courseId" value="@bannerCourseId" />
+                        <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 whitespace-nowrap">Ghi danh miễn phí</button>
+                    </form>
+                }
+                else if (!(ViewBag.IsAuthenticated as bool? ?? false))
+                {
+                    <a href="/Account/Login" class="px-4 py-2 rounded-lg bg-[#1e3a5f] text-white font-bold hover:bg-[#2a4074] whitespace-nowrap">Đăng nhập</a>
+                }
+                <a href="/Package" class="px-4 py-2 rounded-lg border border-blue-300 font-bold text-blue-800 hover:bg-blue-100 whitespace-nowrap">Xem gói học</a>
+            </div>
+        </div>
+    </div>
+}
+
 @* --- 2. THANH ĐIỀU KHIỂN (Search) --- *@
 <section class="bg-white border-b border-gray-100 sticky top-[64px] z-40 shadow-sm transition-all duration-300">
     <div class="container mx-auto px-4 py-4">

@@ -167,11 +167,25 @@
                                         </figure>
                                         break;
 
-                                    case LessonBlockType.Pdf:
+                                    case LessonBlockType.Embed:
+                                    case LessonBlockType.Animation:
+                                        <div class="aspect-video rounded-3xl overflow-hidden shadow-2xl border-8 border-slate-100 bg-black my-8">
+                                            <iframe class="w-full h-full" src="@block.ContentUrl" frameborder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowfullscreen></iframe>
+                                        </div>
+                                        break;
+
                                     case LessonBlockType.Audio:
+                                        <div class="p-5 bg-gray-50 rounded-2xl border border-gray-200 my-6">
+                                            <audio controls class="w-full" src="@block.ContentUrl"></audio>
+                                        </div>
+                                        break;
+
+                                    case LessonBlockType.Pdf:
                                         <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-600 flex items-center gap-2">
                                             <i class="fa-solid fa-paperclip"></i>
-                                            <span>Tài liệu đính kèm:</span>
+                                            <span>Tài liệu đính kèm@(string.IsNullOrEmpty(block.ContentText) ? "" : ": " + block.ContentText)</span>
                                             <a href="@block.ContentUrl" target="_blank" class="text-blue-600 hover:underline font-bold">
                                                 Mở xem
                                             </a>
@@ -301,9 +315,10 @@
                                                     @foreach (var lesson in topic.Lessons.OrderBy(l => l.OrderIndex))
                                                     {
                                                         bool isSelected = lesson.LessonId == Model.LessonId;
+                                                        bool thisDone = completedLessonIds.Contains(lesson.LessonId);
                                                         <a href="/Course/Learning/@lesson.LessonId"
                                                            class="flex items-center gap-3 p-4 hover:bg-blue-50/30 transition-all @(isSelected ? "bg-blue-50/20" : "")">
-                                                            <i class="fa-solid @(isSelected ? "fa-circle-play text-blue-600" : isLessonDone ? "fa-circle-check text-green-500" : "fa-circle-check text-gray-200") text-base flex-shrink-0"></i>
+                                                            <i class="fa-solid @(isSelected ? "fa-circle-play text-blue-600" : thisDone ? "fa-circle-check text-green-500" : "fa-circle-check text-gray-200") text-base flex-shrink-0"></i>
                                                             <div class="flex-1 min-w-0">
                                                                 <p class="text-[13px] font-bold @(isSelected ? "text-blue-700" : "text-gray-600") leading-tight truncate">
                                                                     @lesson.LessonName
