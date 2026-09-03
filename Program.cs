@@ -83,6 +83,18 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // --- THỨ TỰ MIDDLEWARE ---
+app.UseMiddleware<ToanHocHay.WebApp.Common.Http.CorrelationIdMiddleware>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
+}
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseSession();
