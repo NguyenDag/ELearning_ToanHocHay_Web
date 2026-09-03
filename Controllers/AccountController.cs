@@ -9,6 +9,7 @@ using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
+using ToanHocHay.WebApp.Services.Http;
 using System.Text;
 using System.Net.Http.Json;
 
@@ -19,13 +20,29 @@ namespace ToanHocHay.WebApp.Controllers
         private readonly AuthApiService _authService;
         private readonly ILogger<AccountController> _logger;
         private readonly HttpClient _httpClient;
+        private readonly ITokenStore _tokenStore;
 
-        public AccountController(AuthApiService authService, ILogger<AccountController> logger, IHttpClientFactory httpClientFactory)
+        public AccountController(
+            AuthApiService authService,
+            ILogger<AccountController> logger,
+            IHttpClientFactory httpClientFactory,
+            ITokenStore tokenStore)
         {
             _authService = authService;
             _logger = logger;
             _httpClient = httpClientFactory.CreateClient();
+            _tokenStore = tokenStore;
         }
+
+        /// <summary>Bậc gói → số cũ (0=Free,1=Standard,2=Premium/Yearly) cho claim "PackageType" — giữ
+        /// tương thích các chỗ đang đọc claim này (Exam...). Sẽ bỏ khi các đợt sau dùng "PackageTier".</summary>
+        private static int LegacyPackageLevel(PackageTier tier) => tier switch
+        {
+            PackageTier.Standard => 1,
+            PackageTier.Premium => 2,
+            PackageTier.Yearly => 2,
+            _ => 0
+        };
 
         // ================= LOGIN (GET) =================
         [HttpGet]
@@ -47,6 +64,7 @@ namespace ToanHocHay.WebApp.Controllers
             {
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 HttpContext.Session.Clear();
+                _tokenStore.Clear();
                 Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
             }
             var (data, error) = await _authService.Login(new LoginRequestDto { Email = email, Password = password });
@@ -59,9 +77,13 @@ namespace ToanHocHay.WebApp.Controllers
                 return View("Login");
             }
 
-            // Lưu Token
-            HttpContext.Session.SetString("Token", data!.Token);
-            HttpContext.Session.SetString("JWT", data.Token);
+            // Lưu cặp access + refresh token (AuthTokenHandler sẽ tự refresh khi hết hạn).
+            _tokenStore.Save(
+                data!.Token,
+                data.TokenExpiration == default ? DateTime.UtcNow.AddMinutes(25) : data.TokenExpiration,
+                data.RefreshToken,
+                data.RefreshTokenExpiration);
+
             HttpContext.Session.SetInt32("UserId", data.UserId);
             HttpContext.Session.SetString("UserFullName", data.FullName ?? "");
 
@@ -72,7 +94,8 @@ namespace ToanHocHay.WebApp.Controllers
     new Claim(ClaimTypes.Email, data.Email ?? ""),
     new Claim(ClaimTypes.Role, data.UserType.ToString()),
     new Claim("Token", data.Token),
-    new Claim("PackageType", data.PackageType.ToString()), // ← THÊM
+    new Claim("PackageTier", data.PackageTier.ToString()),
+    new Claim("PackageType", LegacyPackageLevel(data.PackageTier).ToString()), // tương thích cũ
 };
 
             if (data.StudentId.HasValue) claims.Add(new Claim("StudentId", data.StudentId.Value.ToString()));
@@ -217,8 +240,15 @@ namespace ToanHocHay.WebApp.Controllers
 
             if (response.Success)
             {
-                TempData["Success"] = "Đổi mật khẩu thành công!";
-                return RedirectToAction("Profile");
+                // Backend thu hồi toàn bộ refresh token + bump SecurityStamp → token cũ chết ngay.
+                await _authService.LogoutAsync(_tokenStore.RefreshToken);
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                _tokenStore.Clear();
+                HttpContext.Session.Clear();
+                Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
+
+                TempData["SuccessMsg"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+                return RedirectToAction("Login");
             }
 
             ViewBag.Error = response.Message;
@@ -230,9 +260,12 @@ namespace ToanHocHay.WebApp.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
+            // Thu hồi refresh token phía backend trước khi xoá phiên.
+            await _authService.LogoutAsync(_tokenStore.RefreshToken);
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            _tokenStore.Clear();
             HttpContext.Session.Clear();
-            // Xóa cookie thủ công để chắc chắn
             Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
             return RedirectToAction("Login", "Account");
         }

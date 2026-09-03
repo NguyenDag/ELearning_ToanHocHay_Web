@@ -103,5 +103,48 @@ namespace ToanHocHay.WebApp.Services
                 return ApiResponse<bool>.ErrorResponse("Lỗi kết nối: " + ex.Message);
             }
         }
+
+        // 6. Đăng xuất — thu hồi refresh token phía backend (best-effort).
+        public async Task LogoutAsync(string? refreshToken)
+        {
+            try
+            {
+                await _httpClient.PostAsJsonAsync(
+                    ApiRoutes.Auth.Logout, new { refreshToken }, _jsonOptions);
+            }
+            catch { /* best-effort — vẫn xoá phiên phía WebApp dù backend lỗi */ }
+        }
+
+        // 7. Quên mật khẩu — không lộ email có tồn tại hay không.
+        public async Task<ApiResponse<bool>> ForgotPasswordAsync(string email)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(
+                    ApiRoutes.Auth.ForgotPassword, new { email }, _jsonOptions);
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
+                return result ?? ApiResponse<bool>.SuccessResponse(true);
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse("Lỗi kết nối: " + ex.Message);
+            }
+        }
+
+        // 8. Đặt lại mật khẩu bằng token trong email.
+        public async Task<ApiResponse<bool>> ResetPasswordAsync(string token, string newPassword)
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(
+                    ApiRoutes.Auth.ResetPassword, new { token, newPassword }, _jsonOptions);
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
+                return result ?? ApiResponse<bool>.ErrorResponse("Phản hồi từ server không hợp lệ");
+            }
+            catch (Exception ex)
+            {
+                return ApiResponse<bool>.ErrorResponse("Lỗi kết nối: " + ex.Message);
+            }
+        }
     }
 }
