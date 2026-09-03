@@ -418,14 +418,9 @@ FodyWeavers.xsd
 *.msp
 
 # ============================================================================
-# Cấu hình cục bộ & bí mật — dùng bản mẫu để tạo lại:
-#   appsettings.Example.json  ->  appsettings.json
-#   .env.example              ->  .env
+# Cấu hình cục bộ — tạo lại từ bản mẫu: appsettings.Example.json -> appsettings.json
+# Prod: đè bằng biến môi trường (Api__BaseUrl, ...) hoặc appsettings.Production.json.
 # ============================================================================
 appsettings.json
 appsettings.*.json
 !appsettings.Example.json
-
-.env
-.env.*
-!.env.example

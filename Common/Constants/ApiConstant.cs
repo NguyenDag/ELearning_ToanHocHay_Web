@@ -4,7 +4,7 @@ namespace ToanHocHay.WebApp.Common.Constants
     /// URL gốc của Backend API và của chính WebApp.
     /// Giá trị được nạp từ cấu hình lúc khởi động (<c>Program.cs</c>):
     /// <c>Api:BaseUrl</c> / <c>Api:WebBaseUrl</c> trong <c>appsettings.json</c>, hoặc biến
-    /// môi trường <c>Api__BaseUrl</c> / <c>Api__WebBaseUrl</c> (file <c>.env</c>).
+    /// môi trường <c>Api__BaseUrl</c> / <c>Api__WebBaseUrl</c>.
     /// Các giá trị gán sẵn dưới đây chỉ là mặc định dự phòng khi thiếu cấu hình.
     /// </summary>
     public static class ApiConstant

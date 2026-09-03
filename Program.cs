@@ -1,19 +1,17 @@
 ﻿using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Services;
 using ToanHocHay.WebApp.Services.Http;
-
-// Nạp .env (nếu có) trước khi đọc cấu hình — biến trong đó ghi đè appsettings.json.
-DotEnv.Load(Path.Combine(Directory.GetCurrentDirectory(), ".env"));
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
-// --- CẤU HÌNH API URL (appsettings.json > .env > mặc định trong ApiConstant) ---
+// --- CẤU HÌNH API URL ---
+// Thứ tự: biến môi trường thật (Api__BaseUrl) > appsettings.json (Api:BaseUrl) > mặc định trong ApiConstant.
+// .NET tự nạp biến môi trường qua AddEnvironmentVariables() trong CreateBuilder.
 ApiConstant.apiBaseUrl = builder.Configuration["Api:BaseUrl"]?.Trim().TrimEnd('/') is { Length: > 0 } apiUrl
     ? apiUrl : ApiConstant.apiBaseUrl.TrimEnd('/');
 ApiConstant.webBaseUrl = builder.Configuration["Api:WebBaseUrl"]?.Trim().TrimEnd('/') is { Length: > 0 } webUrl

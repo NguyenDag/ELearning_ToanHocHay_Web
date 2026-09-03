@@ -4,19 +4,17 @@ Frontend (ASP.NET Core MVC) của dự án ToanHocHay — tiêu thụ Backend AP
 
 ## Cấu hình khi chạy lần đầu
 
-Các file cấu hình chứa giá trị theo môi trường **không được commit** (`.gitignore`).
-Tạo lại từ bản mẫu:
+`appsettings.json` **không được commit** (`.gitignore`). Tạo lại từ bản mẫu:
 
 ```bash
 cp appsettings.Example.json appsettings.json
-cp .env.example .env
 ```
 
 Rồi sửa giá trị cho phù hợp.
 
 ### Các khoá cấu hình
 
-| appsettings.json | .env (biến môi trường) | Ý nghĩa | Mặc định |
+| Khoá (`appsettings.json`) | Biến môi trường tương đương | Ý nghĩa | Mặc định |
 |---|---|---|---|
 | `Api:BaseUrl` | `Api__BaseUrl` | URL gốc Backend API (không kèm `/api`) | `http://103.98.152.182` |
 | `Api:WebBaseUrl` | `Api__WebBaseUrl` | URL công khai của WebApp | `https://www.toanhochay.com` |
@@ -24,10 +22,15 @@ Rồi sửa giá trị cho phù hợp.
 | `Auth:CookieExpireDays` | `Auth__CookieExpireDays` | Số ngày giữ cookie đăng nhập | `7` |
 | — | `ASPNETCORE_ENVIRONMENT` | `Development` / `Staging` / `Production` | `Production` |
 
-**Thứ tự ưu tiên:** biến môi trường thật của hệ điều hành/container → `.env` → `appsettings.json` → mặc định trong code.
+**Thứ tự ưu tiên** (theo cơ chế cấu hình mặc định của .NET):
+biến môi trường thật → `appsettings.{Environment}.json` → `appsettings.json` → mặc định trong code.
+
 Dấu phân cấp trong biến môi trường là `__` (hai gạch dưới): `Api__BaseUrl` ↔ `Api:BaseUrl`.
 
-File `.env` được nạp tự động lúc khởi động (`Common/DotEnv.cs`, gọi trong `Program.cs`).
+> Không dùng file `.env` — frontend không có bí mật nào, và .NET đã tự đọc biến môi trường.
+> Trên server/CI/Railway/Docker, set biến môi trường thật là đủ để đè `appsettings.json`.
+
+App vẫn chạy được nếu thiếu `appsettings.json` (dùng giá trị mặc định trong code).
 
 ## Chạy
 
