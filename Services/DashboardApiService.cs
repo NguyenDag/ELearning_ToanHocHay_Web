@@ -62,9 +62,9 @@ namespace ToanHocHay.WebApp.Services
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token.Trim());
 
-                // FIX: thêm ApiConstant.apiBaseUrl — trước đây thiếu nên request fail im lặng
+                // Route đổi: /api/student/{id}/dashboard → /api/students/{id}/dashboard/overview (A5)
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard");
+                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.DashboardOverview(studentId)}");
 
                 SetStatus(((int)response.StatusCode).ToString());
 
@@ -103,7 +103,7 @@ namespace ToanHocHay.WebApp.Services
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token.Trim());
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/chapter-score-comparison");
+                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.ChapterScoreComparison(studentId)}");
                 if (!response.IsSuccessStatusCode) return null;
 
                 // FIX: deserialize List directly since backend returns Ok(result) without ApiResponse wrapper
@@ -123,7 +123,7 @@ namespace ToanHocHay.WebApp.Services
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token.Trim());
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/ai-assessment");
+                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.AiAssessment(studentId)}");
                 if (!response.IsSuccessStatusCode) return null;
 
                 return await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);
@@ -140,7 +140,7 @@ namespace ToanHocHay.WebApp.Services
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token.Trim());
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/ai-roadmap");
+                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.AiRoadmap(studentId)}");
                 if (!response.IsSuccessStatusCode) return null;
 
                 return await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);

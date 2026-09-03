@@ -92,9 +92,12 @@ namespace ToanHocHay.WebApp.Controllers
                     client.DefaultRequestHeaders.Authorization =
                         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
+                // TODO(Đợt 2): endpoint /api/LessonProgress/update-progress đã bị bỏ.
+                // Thay bằng POST /api/progress/lessons/{nodeId}/complete body { secondsViewed }
+                // (backend chặn nếu < 20s hoặc chưa ghi danh).
                 var beResponse = await client.PostAsJsonAsync(
-                    $"{ToanHocHay.WebApp.Common.Constants.ApiConstant.apiBaseUrl}/api/LessonProgress/update-progress",
-                    req);
+                    $"{ToanHocHay.WebApp.Common.Constants.ApiConstant.apiBaseUrl}/api/progress/lessons/{req.LessonId}/complete",
+                    new { secondsViewed = req.WatchTime });
 
                 Console.WriteLine($"=== UpdateProgress BE response: {beResponse.StatusCode} ==="); // ← THÊM
 

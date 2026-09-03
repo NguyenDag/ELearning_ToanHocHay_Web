@@ -2,47 +2,29 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
-using System.Net.Http.Headers;
-using Microsoft.AspNetCore.Http;
 using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
+    /// <summary>
+    /// Luồng làm bài / thi. Route đã đổi sang <c>api/exercise-attempts</c>, <c>api/exercises</c>,
+    /// <c>api/ai-hints</c> (A5). Token được <see cref="AuthTokenHandler"/> tự gắn + tự refresh.
+    /// </summary>
     public class ExamApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JsonSerializerOptions _jsonOptions;
+        private readonly JsonSerializerOptions _jsonOptions = ApiJson.Options;
 
-        public ExamApiService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        public ExamApiService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
-            _jsonOptions = ApiJson.Options;
         }
 
-        /// <summary>
-        /// Tự động lấy JWT Token từ Session và gắn vào Header Authorization
-        /// </summary>
-        private void AddAuthHeader()
-        {
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("Token");
-             if (!string.IsNullOrEmpty(token))
-            {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-            else
-            {
-                Console.WriteLine("--- CẢNH BÁO: Không tìm thấy Token trong Session! ---");
-            }
-        }
         public async Task<List<int>> GetCompletedExerciseIdsAsync(int studentId)
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/student/{studentId}/history");
+                var response = await _httpClient.GetAsync(ApiRoutes.ExerciseAttempts.History(studentId));
                 if (!response.IsSuccessStatusCode) return new List<int>();
                 var resString = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ExerciseResultDto>>>(resString, _jsonOptions);
@@ -59,21 +41,15 @@ namespace ToanHocHay.WebApp.Services
         {
             try
             {
-                AddAuthHeader(); // Gắn Token vào yêu cầu
-                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/Exercises");
-
+                var response = await _httpClient.GetAsync(ApiRoutes.Exercises.List);
                 var resString = await response.Content.ReadAsStringAsync();
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Log để kiểm tra dữ liệu thô từ API
-                    Console.WriteLine($"--- DỮ LIỆU THÔ TỪ API: {resString} ---");
-
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse<List<ExerciseDto>>>(resString, _jsonOptions);
                     return apiResponse?.Data ?? new List<ExerciseDto>();
                 }
 
-                // In ra màn hình console của Visual Studio mã lỗi chi tiết (401, 404, 500...)
                 Console.WriteLine($"--- LỖI API EXERCISES: {(int)response.StatusCode} - {resString} ---");
                 return new List<ExerciseDto>();
             }
@@ -89,13 +65,10 @@ namespace ToanHocHay.WebApp.Services
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/exercises/{id}");
-
+                var response = await _httpClient.GetAsync(ApiRoutes.Exercises.ById(id));
                 if (response.IsSuccessStatusCode)
                 {
                     var resString = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"=== EXERCISE DETAIL JSON: {resString} ===");
                     var apiResponse = JsonSerializer.Deserialize<ApiResponse<ExerciseDetailDto>>(resString, _jsonOptions);
                     return apiResponse?.Data;
                 }
@@ -108,73 +81,41 @@ namespace ToanHocHay.WebApp.Services
             }
         }
 
-        // 3. Bắt đầu làm bài (Tạo AttemptId)
+        // 3. Bắt đầu làm bài (Tạo AttemptId).
+        // Backend nay lấy StudentId TỪ TOKEN (client gửi cũng bị ghi đè); 403 nếu tier gói < RequiredTier.
         public async Task<(int attemptId, string? error)> StartExercise(int exerciseId, int studentId)
         {
             try
             {
-                AddAuthHeader();
                 var payload = new { ExerciseId = exerciseId, StudentId = studentId };
-
-                // Gọi API
-                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/start", payload, _jsonOptions);
+                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.ExerciseAttempts.Start, payload, _jsonOptions);
                 var resString = await response.Content.ReadAsStringAsync();
 
-                /*if (!response.IsSuccessStatusCode && response.Message)
-                {
-                    // In ra log để xem Backend thực sự báo lỗi gì (Ví dụ: 401 Unauthorized)
-                    Console.WriteLine($"--- LỖI BACKEND: {resString}");
-                    return (0, "Máy chủ từ chối yêu cầu (có thể do hết hạn phiên làm việc).");
-                }*/
-
-                // Dùng dynamic hoặc kiểm tra kỹ Data null
                 var apiResult = JsonSerializer.Deserialize<ApiResponse<ExerciseAttemptDto>>(resString, _jsonOptions);
 
-                if (apiResult != null && apiResult.Success && apiResult.Data != null)
-                {
+                if (response.IsSuccessStatusCode && apiResult is { Success: true, Data: not null })
                     return (apiResult.Data.AttemptId, null);
-                }
 
                 return (0, apiResult?.Message ?? "Không thể khởi tạo bài thi.");
             }
             catch (Exception ex)
             {
-                // Log lỗi thật sự ra Console để debug
-                Console.WriteLine($"--- DEBUG START EXERCISE ERROR: {ex.ToString()}");
+                Console.WriteLine($"--- DEBUG START EXERCISE ERROR: {ex}");
                 return (0, "Lỗi kết nối hoặc dữ liệu không hợp lệ.");
             }
         }
 
         // 4. Nộp từng câu trả lời (Ajax/Realtime)
-        /*public async Task<bool> SubmitSingleAnswer(SubmitAnswerRequestDto dto)
-        {
-            try
-            {
-                AddAuthHeader();
-                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/submit-answer", dto);
-                return response.IsSuccessStatusCode;
-            }
-            catch { return false; }
-        }*/
-
-        // 4. Nộp từng câu trả lời (Ajax/Realtime) (Updated for SubmitSingleAnswer)
         public async Task<bool> SaveSingleAnswer(SubmitAnswerRequestDto dto)
         {
             try
             {
-                AddAuthHeader();
-                Console.WriteLine($"=== SAVE ANSWER: qId={dto.QuestionId}, optId={dto.SelectedOptionId}, text={dto.AnswerText} ===");
-
-                var response = await _httpClient.PostAsJsonAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/save-answer", dto);
-
-                // THÊM ĐOẠN NÀY
+                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.ExerciseAttempts.SaveAnswer, dto, _jsonOptions);
                 if (!response.IsSuccessStatusCode)
                 {
                     var err = await response.Content.ReadAsStringAsync();
                     Console.WriteLine($"=== SAVE FAILED {(int)response.StatusCode}: {err} ===");
                 }
-
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
@@ -185,9 +126,8 @@ namespace ToanHocHay.WebApp.Services
         {
             try
             {
-                AddAuthHeader();
                 var payload = new { AttemptId = attemptId };
-                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/complete", payload);
+                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.ExerciseAttempts.Complete, payload, _jsonOptions);
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
@@ -198,9 +138,7 @@ namespace ToanHocHay.WebApp.Services
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/{attemptId}/result");
-
+                var response = await _httpClient.GetAsync(ApiRoutes.ExerciseAttempts.Result(attemptId));
                 if (response.IsSuccessStatusCode)
                 {
                     var resString = await response.Content.ReadAsStringAsync();
@@ -212,14 +150,12 @@ namespace ToanHocHay.WebApp.Services
             catch { return null; }
         }
 
-        // 7. Gọi AI Gợi ý
+        // 7. Gọi AI Gợi ý — route đổi thành api/ai-hints; 429 khi hết lượt hôm nay (xử lý ở Đợt 3).
         public async Task<AIHintDto?> GetAIHintAsync(AIHintRequestDto dto)
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/AIHint", dto);
-
+                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.AiHints.Create, dto, _jsonOptions);
                 if (response.IsSuccessStatusCode)
                 {
                     var resString = await response.Content.ReadAsStringAsync();
@@ -240,11 +176,7 @@ namespace ToanHocHay.WebApp.Services
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.PostAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/{attemptId}/report-tab-switch",
-                    null
-                );
+                var response = await _httpClient.PostAsync(ApiRoutes.ExerciseAttempts.ReportTabSwitch(attemptId), null);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -253,16 +185,16 @@ namespace ToanHocHay.WebApp.Services
                 return false;
             }
         }
+
         // 9. Lấy lịch sử chuyển tab
         public async Task<List<DateTime>> GetTabSwitchLogsAsync(int attemptId)
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/ExerciseAttempts/{attemptId}/tab-switch-logs");
+                var response = await _httpClient.GetAsync(ApiRoutes.ExerciseAttempts.TabSwitchLogs(attemptId));
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<DateTime>>>();
+                    var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<DateTime>>>(_jsonOptions);
                     return result?.Data ?? new List<DateTime>();
                 }
                 return new List<DateTime>();
@@ -275,4 +207,3 @@ namespace ToanHocHay.WebApp.Services
         }
     }
 }
-

@@ -32,7 +32,7 @@ namespace ToanHocHay.WebApp.Services
             try
             {
                 AddAuthHeader();
-                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/Package");
+                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Packages.List}");
                 if (!response.IsSuccessStatusCode) return new List<PackageDto>();
                 var json = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<ApiResponse<List<PackageDto>>>(json, _jsonOptions);
@@ -46,7 +46,7 @@ namespace ToanHocHay.WebApp.Services
             try
             {
                 AddAuthHeader();
-                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/Package/{id}");
+                var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Packages.ById(id)}");
                 if (!response.IsSuccessStatusCode) return null;
                 var json = await response.Content.ReadAsStringAsync();
                 var result = JsonSerializer.Deserialize<ApiResponse<PackageDto>>(json, _jsonOptions);

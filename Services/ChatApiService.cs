@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Net.Http.Json;
+using ToanHocHay.WebApp.Common.Constants;
 
 namespace ToanHocHay.WebApp.Services
 {
@@ -20,7 +21,7 @@ namespace ToanHocHay.WebApp.Services
             {
                 // Gọi tới ChatbotController của Backend C#
                 var payload = new ChatMessagePayload { UserId = userId, Text = text };
-                var response = await _httpClient.PostAsJsonAsync("Chatbot/message", payload);
+                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.Chatbot.Message, payload);
 
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -36,7 +37,7 @@ namespace ToanHocHay.WebApp.Services
             try
             {
                 var payload = new ChatReplyPayload { UserId = userId, Reply = reply };
-                var response = await _httpClient.PostAsJsonAsync("Chatbot/quick-reply", payload);
+                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.Chatbot.QuickReply, payload);
 
                 response.EnsureSuccessStatusCode();
                 return await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -52,7 +53,7 @@ namespace ToanHocHay.WebApp.Services
             try
             {
                 var payload = new ChatTriggerPayload { UserId = userId, Trigger = trigger };
-                var response = await _httpClient.PostAsJsonAsync("Chatbot/trigger", payload);
+                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.Chatbot.Trigger, payload);
 
                 response.EnsureSuccessStatusCode();
                 var result = await response.Content.ReadFromJsonAsync<JsonElement>();

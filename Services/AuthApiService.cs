@@ -20,7 +20,7 @@ namespace ToanHocHay.WebApp.Services
         // 1. Đăng nhập
         public async Task<(LoginResponseDto? data, string? error)> Login(LoginRequestDto request)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/auth/login", request);
+            var response = await _httpClient.PostAsJsonAsync(ApiRoutes.Auth.Login, request, _jsonOptions);
             var resString = await response.Content.ReadAsStringAsync();
             var apiResponse = JsonSerializer.Deserialize<ApiResponse<LoginResponseDto>>(resString, _jsonOptions);
 
@@ -34,8 +34,8 @@ namespace ToanHocHay.WebApp.Services
         // 2. Đăng ký
         public async Task<(bool success, string? error)> Register(RegisterRequestDto request)
         {
-            var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/auth/register", request);
-            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+            var response = await _httpClient.PostAsJsonAsync(ApiRoutes.Auth.Register, request, _jsonOptions);
+            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
 
             if (!response.IsSuccessStatusCode || apiResponse == null || !apiResponse.Success)
             {
@@ -44,28 +44,27 @@ namespace ToanHocHay.WebApp.Services
             return (true, null);
         }
 
-        // 3. Lấy thông tin Profile mới nhất (Sửa lỗi thiếu định nghĩa)
+        // 3. Lấy thông tin Profile mới nhất — route đổi /api/user/{id} → /api/users/{id}
         public async Task<UserDto?> GetProfileAsync(int userId)
         {
             try
             {
-                // Sửa /api/auth/profile/ thành /api/user/
-                var apiResponse = await _httpClient.GetFromJsonAsync<ApiResponse<UserDto>>($"{ApiConstant.apiBaseUrl}/api/user/{userId}");
+                var apiResponse = await _httpClient.GetFromJsonAsync<ApiResponse<UserDto>>(
+                    ApiRoutes.Users.ById(userId), _jsonOptions);
                 return apiResponse?.Data;
             }
             catch { return null; }
         }
 
-        // 4. Cập nhật thông tin cá nhân (Sửa lỗi thiếu định nghĩa)
-        // 4. Cập nhật thông tin cá nhân
+        // 4. Cập nhật thông tin cá nhân — route đổi thành /api/users/update-profile/{id}
         public async Task<ApiResponse<bool>> UpdateProfileAsync(int userId, UpdateProfileDto request)
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/auth/update-profile/{userId}", request);
+                var response = await _httpClient.PostAsJsonAsync(
+                    ApiRoutes.Users.UpdateProfile(userId), request, _jsonOptions);
 
-                // Nếu Backend trả về lỗi 404, 500...
-                if (!response.IsSuccessStatusCode)
+                if (!response.IsSuccessStatusCode && response.Content.Headers.ContentLength is null or 0)
                 {
                     return ApiResponse<bool>.ErrorResponse("Lỗi server: " + response.StatusCode);
                 }
@@ -79,12 +78,15 @@ namespace ToanHocHay.WebApp.Services
             }
         }
 
-        // 5. Đổi mật khẩu
+        // 5. Đổi mật khẩu — route đổi thành /api/auth/change-password (userId lấy từ token).
+        // Thành công ⇒ backend thu hồi toàn bộ refresh token + bump SecurityStamp ⇒ phải đăng nhập lại.
         public async Task<ApiResponse<bool>> ChangePasswordAsync(int userId, ChangePasswordDto request)
         {
+            _ = userId; // không còn dùng trên route — giữ chữ ký cho các nơi đang gọi
             try
             {
-                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/auth/change-password/{userId}", request);
+                var response = await _httpClient.PostAsJsonAsync(
+                    ApiRoutes.Auth.ChangePassword, request, _jsonOptions);
 
                 if (response.Content.Headers.ContentLength == 0)
                 {

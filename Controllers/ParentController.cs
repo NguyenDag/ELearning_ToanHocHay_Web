@@ -55,7 +55,7 @@ namespace ToanHocHay.WebApp.Controllers
 
                 var client = CreateAuthClient();
                 var res = await client.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/parent/{parentIdStr}");
+                    $"{ApiConstant.apiBaseUrl}/api/parents/{parentIdStr}");
 
                 if (res.IsSuccessStatusCode)
                 {
@@ -102,7 +102,7 @@ namespace ToanHocHay.WebApp.Controllers
             {
                 var client = CreateAuthClient();
                 var res = await client.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/dashboard/overview");
+                    $"{ApiConstant.apiBaseUrl}/api/students/{studentId}/dashboard/overview");
 
                 if (!res.IsSuccessStatusCode)
                     return Json(new { success = false, message = "Không tải được dữ liệu" });
@@ -130,7 +130,7 @@ namespace ToanHocHay.WebApp.Controllers
 
                 var client = CreateAuthClient();
                 var res = await client.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/parent/{parentIdStr}");
+                    $"{ApiConstant.apiBaseUrl}/api/parents/{parentIdStr}");
 
                 if (!res.IsSuccessStatusCode)
                     return Json(new { connectionCode = "--------", children = new object[0] });

@@ -41,11 +41,15 @@ namespace ToanHocHay.WebApp.Services
             try
             {
                 AddAuthHeader();
-                var payload = new { StudentId = studentId, PackageId = packageId, AmountPaid = amount };
-                var response = await _httpClient.PostAsJsonAsync($"{ApiConstant.apiBaseUrl}/api/Subscription", payload);
+                // Backend nay tự lấy giá từ Package.Price — KHÔNG nhận AmountPaid nữa (Đợt 5 dọn tiếp).
+                var payload = new { StudentId = studentId, PackageId = packageId };
+                var response = await _httpClient.PostAsJsonAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Subscriptions.Create}", payload, _jsonOptions);
                 if (!response.IsSuccessStatusCode) return null;
-                var json = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<CreateSubscriptionResultDto>(json, _jsonOptions);
+                // Backend bọc vỏ ApiResponse<{ subscriptionId, amount, qrUrl }>.
+                var wrapper = await response.Content
+                    .ReadFromJsonAsync<ApiResponse<CreateSubscriptionResultDto>>(_jsonOptions);
+                return wrapper?.Success == true ? wrapper.Data : null;
             }
             catch { return null; }
         }
@@ -65,9 +69,9 @@ namespace ToanHocHay.WebApp.Services
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token.Trim());
 
-                // FIX: thêm apiBaseUrl vào URL
+                // Route đổi: student → students (A5)
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/student/{studentId}/subscription/current");
+                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.CurrentSubscription(studentId)}");
 
                 if (!response.IsSuccessStatusCode) return null;
 
@@ -89,13 +93,12 @@ namespace ToanHocHay.WebApp.Services
             {
                 AddAuthHeader();
                 var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/Subscription/status/{subscriptionId}");
+                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Subscriptions.Status(subscriptionId)}");
                 if (!response.IsSuccessStatusCode) return null;
-                var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<SubscriptionStatusDto>(json, _jsonOptions);
-                Console.WriteLine($"Response is: {result.ToString}");
-
-                return result;
+                // Backend bọc vỏ ApiResponse<{ status, endDate }>.
+                var wrapper = await response.Content
+                    .ReadFromJsonAsync<ApiResponse<SubscriptionStatusDto>>(_jsonOptions);
+                return wrapper?.Success == true ? wrapper.Data : null;
             }
             catch { return null; }
         }

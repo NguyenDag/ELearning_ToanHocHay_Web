@@ -93,9 +93,12 @@ namespace ToanHocHay.WebApp.Controllers
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token?.Trim() ?? "");
 
+                // Route đổi: /api/StudentParent/connect → /api/parents/link (LinkParentDto { Code, Relationship }).
+                // Luồng liên kết đầy đủ (mời qua email, huỷ liên kết...) làm ở Đợt 7.
                 var response = await _httpClient.PostAsJsonAsync(
-    $"{ApiConstant.apiBaseUrl}/api/StudentParent/connect",
-    new { ConnectionCode = model.ConnectionCode, Relationship = model.Relationship });
+    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Parents.Link}",
+    new { Code = model.ConnectionCode, Relationship = model.Relationship },
+    ToanHocHay.WebApp.Services.Http.ApiJson.Options);
 
                 var json = await response.Content.ReadAsStringAsync();
                 Console.WriteLine($"=== CONNECT RESPONSE: Status={response.StatusCode}, Body={json} ===");
@@ -129,7 +132,10 @@ namespace ToanHocHay.WebApp.Controllers
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token?.Trim() ?? "");
 
-                var response = await _httpClient.GetAsync($"student/{studentId}/parents");
+                // TODO(Đợt 7): backend chưa có GET /api/students/{id}/parents — đề nghị bổ sung,
+                // hoặc lấy từ GET /api/parents/{parentId}/children ở phía phụ huynh.
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/students/{studentId}/parents");
                 if (!response.IsSuccessStatusCode) return new();
 
                 var wrapper = await response.Content

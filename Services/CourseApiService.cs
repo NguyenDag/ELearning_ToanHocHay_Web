@@ -1,4 +1,3 @@
-﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
@@ -7,50 +6,45 @@ using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
+    /// <summary>
+    /// Nội dung khoá học. Token do <see cref="AuthTokenHandler"/> tự gắn.
+    ///
+    /// ⚠️ Nhiều hàm dưới đây gọi các endpoint cũ (<c>Lesson</c>, <c>Curriculum</c>,
+    /// <c>LessonProgress</c>, <c>Exercise/by-topic</c>, <c>Student/update-profile</c>) mà backend
+    /// đã BỎ khi làm tầng nội dung mới. Việc thay bằng <c>api/learn</c> / <c>api/catalog</c> /
+    /// <c>api/courses</c> / <c>api/enrollments</c> / <c>api/progress</c> nằm ở Đợt 2 của kế hoạch.
+    /// Tạm thời các hàm này trả rỗng/null (đã bọc try/catch) để app không vỡ.
+    /// </summary>
     public class CourseApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JsonSerializerOptions _jsonOptions;
+        private readonly JsonSerializerOptions _jsonOptions = ApiJson.Options;
 
-        public CourseApiService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        public CourseApiService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
-            _jsonOptions = ApiJson.Options;
         }
+
+        // TODO(Đợt 2): thay bằng GET /api/progress/versions/{courseVersionId}
         public async Task<List<int>> GetCompletedLessonIdsAsync(int studentId)
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/LessonProgress/student/{studentId}/completed");
+                var response = await _httpClient.GetAsync($"progress/students/{studentId}/completed-lessons");
                 if (!response.IsSuccessStatusCode) return new List<int>();
                 var json = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ApiResponse<List<int>>>(json, ApiJson.Options);
+                var result = JsonSerializer.Deserialize<ApiResponse<List<int>>>(json, _jsonOptions);
                 return result?.Data ?? new List<int>();
             }
             catch { return new List<int>(); }
         }
-        private void AddAuthHeader()
-        {
-            _httpClient.DefaultRequestHeaders.Authorization = null;
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("Token");
-            if (!string.IsNullOrEmpty(token))
-            {
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            }
-        }
 
-        // --- CÁC HÀM GỌI API (Dùng đường dẫn ngắn, bỏ ApiConstant) ---
-
+        // TODO(Đợt 2): GET /api/learn/courses/{courseId}/content
         public async Task<IEnumerable<LessonDto>> GetAllLessonsAsync()
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<LessonDto>>>("Lesson", _jsonOptions);
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<LessonDto>>>("learn/lessons", _jsonOptions);
                 return response?.Data ?? new List<LessonDto>();
             }
             catch (Exception ex)
@@ -60,12 +54,12 @@ namespace ToanHocHay.WebApp.Services
             }
         }
 
+        // TODO(Đợt 2): GET /api/learn/nodes/{nodeId}
         public async Task<LessonDto?> GetLessonDetailAsync(int lessonId)
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetFromJsonAsync<ApiResponse<LessonDto>>($"Lesson/{lessonId}", _jsonOptions);
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<LessonDto>>(ApiRoutes.Learn.Node(lessonId), _jsonOptions);
                 return response?.Data;
             }
             catch (Exception ex)
@@ -75,12 +69,12 @@ namespace ToanHocHay.WebApp.Services
             }
         }
 
+        // TODO(Đợt 2): nhánh con của cây learn
         public async Task<IEnumerable<LessonDto>> GetLessonsByTopicAsync(int topicId)
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<LessonDto>>>($"Lesson/by-topic/{topicId}", _jsonOptions);
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<IEnumerable<LessonDto>>>($"learn/nodes/{topicId}/children", _jsonOptions);
                 return response?.Data ?? new List<LessonDto>();
             }
             catch (Exception ex)
@@ -89,14 +83,15 @@ namespace ToanHocHay.WebApp.Services
                 return new List<LessonDto>();
             }
         }
+
+        // Route đổi student → students; backend nay bọc ApiResponse<T>.
         public async Task<CoreDashboardDto?> GetStudentDashboardStatsAsync(int studentId)
         {
             try
             {
-                AddAuthHeader();
-                // Gọi đến endpoint dashboard của Backend (Dự án Control)
-                var response = await _httpClient.GetFromJsonAsync<CoreDashboardDto>($"student/{studentId}/dashboard/overview", _jsonOptions);
-                return response;
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<CoreDashboardDto>>(
+                    ApiRoutes.Students.DashboardOverview(studentId), _jsonOptions);
+                return response?.Data;
             }
             catch (Exception ex)
             {
@@ -104,30 +99,13 @@ namespace ToanHocHay.WebApp.Services
                 return null;
             }
         }
-        
-        public async Task<ApiResponse<bool>> UpdateProfileAsync(UpdateProfileDto dto)
-        {
-            try
-            {
-                AddAuthHeader();
-                var response = await _httpClient.PostAsJsonAsync("Student/update-profile", dto);
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
 
-                // Sửa dòng này:
-                return result ?? new ApiResponse<bool> { Success = false, Message = "Không nhận được phản hồi" };
-            }
-            catch (Exception ex)
-            {
-                // Và sửa dòng này:
-                return new ApiResponse<bool> { Success = false, Message = ex.Message };
-            }
-        }
+        // TODO(Đợt 2): dựng cây từ catalog + courses + learn
         public async Task<CurriculumDto?> GetCurriculumDetailAsync(int id)
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetFromJsonAsync<ApiResponse<CurriculumDto>>($"Curriculum/{id}", _jsonOptions);
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<CurriculumDto>>(ApiRoutes.Courses.ById(id), _jsonOptions);
                 return (response != null && response.Success) ? response.Data : null;
             }
             catch (Exception ex)
@@ -136,14 +114,13 @@ namespace ToanHocHay.WebApp.Services
                 return null;
             }
         }
-        // Thêm vào CourseApiService.cs phía WebApp
+
+        // TODO(Đợt 2): GET /api/courses + /api/catalog
         public async Task<List<CurriculumDto>> GetFullMenuTreeAsync()
         {
             try
             {
-                AddAuthHeader();
-                // Gọi tới endpoint mới tạo ở Bước 1
-                var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<CurriculumDto>>>("Curriculum/full-tree", _jsonOptions);
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<CurriculumDto>>>(ApiRoutes.Courses.List, _jsonOptions);
                 return response?.Data ?? new List<CurriculumDto>();
             }
             catch (Exception ex)
@@ -153,12 +130,13 @@ namespace ToanHocHay.WebApp.Services
             }
         }
 
+        // TODO(Đợt 2/3): danh sách đề theo node
         public async Task<List<ExerciseDto>> GetExercisesByTopicAsync(int topicId)
         {
             try
             {
-                AddAuthHeader();
-                var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ExerciseDto>>>($"Exercise/by-topic/{topicId}", _jsonOptions);
+                var response = await _httpClient.GetFromJsonAsync<ApiResponse<List<ExerciseDto>>>(
+                    $"{ApiRoutes.Exercises.List}?nodeId={topicId}", _jsonOptions);
                 return response?.Data ?? new List<ExerciseDto>();
             }
             catch (Exception ex)

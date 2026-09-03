@@ -257,7 +257,7 @@ namespace ToanHocHay.WebApp.Controllers
         public async Task<IActionResult> ResendConfirmationEmail(string email)
         {
             var response = await _httpClient.PostAsJsonAsync(
-                $"{ApiConstant.apiBaseUrl}/api/auth/resend-confirmation-email",
+                $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Auth.ResendConfirmation}",
                 new { Email = email });
 
             if (response.IsSuccessStatusCode)
