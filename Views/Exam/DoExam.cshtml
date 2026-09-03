@@ -205,11 +205,14 @@
                                     </div>
                                     <p id="hint-text-@q.QuestionId" class="text-gray-700 leading-relaxed"></p>
                                 </div>
-                                <button onclick="getAIHint(@q.QuestionId)" id="hint-btn-@q.QuestionId"
-                                        class="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-amber-400 text-amber-600 font-bold rounded-xl hover:bg-amber-50 transition-all shadow-sm">
-                                    <i class="fa-solid fa-robot"></i>
-                                    <span>Gợi ý AI</span>
-                                </button>
+                                <div class="flex items-center gap-3 flex-wrap">
+                                    <button onclick="getAIHint(@q.QuestionId)" id="hint-btn-@q.QuestionId"
+                                            class="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-amber-400 text-amber-600 font-bold rounded-xl hover:bg-amber-50 transition-all shadow-sm">
+                                        <i class="fa-solid fa-robot"></i>
+                                        <span>Gợi ý AI</span>
+                                    </button>
+                                    <span class="hint-quota-badge text-xs font-bold text-gray-400"></span>
+                                </div>
                             </div>
                         </div>
                     }
@@ -432,6 +435,36 @@
 
         // ── AI Hint ──────────────────────────────────────────────────
         let questionHints = {};
+        let hintQuota = { unlimited: false, remaining: null };
+
+        function renderHintQuota() {
+            const txt = hintQuota.unlimited
+                ? '∞ lượt gợi ý'
+                : (hintQuota.remaining == null ? '' : `Còn ${hintQuota.remaining} lượt gợi ý hôm nay`);
+            document.querySelectorAll('.hint-quota-badge').forEach(el => {
+                el.innerText = txt;
+                el.classList.toggle('text-red-500', !hintQuota.unlimited && hintQuota.remaining === 0);
+            });
+        }
+
+        async function loadHintQuota() {
+            try {
+                const r = await fetch('/Exam/HintQuota');
+                const q = await r.json();
+                hintQuota.unlimited = !!q.unlimited;
+                hintQuota.remaining = (q.remaining ?? null);
+            } catch { /* ẩn khi lỗi */ }
+            renderHintQuota();
+        }
+        document.addEventListener('DOMContentLoaded', loadHintQuota);
+
+        function disableAllHintButtons(label) {
+            document.querySelectorAll('[id^="hint-btn-"]').forEach(b => {
+                b.disabled = true;
+                b.classList.add('opacity-50');
+                b.innerHTML = `<i class="fa-solid fa-lock"></i> <span>${label}</span>`;
+            });
+        }
 
         async function getAIHint(questionId) {
             const btn = document.getElementById(`hint-btn-${questionId}`);
@@ -475,6 +508,11 @@
                     document.getElementById(`hint-container-${questionId}`).classList.remove('hidden');
                     questionHints[questionId] = result.data.hintLevel;
 
+                    if (!hintQuota.unlimited && hintQuota.remaining != null && hintQuota.remaining > 0) {
+                        hintQuota.remaining -= 1;
+                        renderHintQuota();
+                    }
+
                     if (result.data.hintLevel >= 3) {
                         btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Đã hết gợi ý</span>`;
                         btn.disabled = true;
@@ -483,6 +521,11 @@
                         btn.innerHTML = `<i class="fa-solid fa-robot"></i> <span>Gợi ý tiếp theo</span>`;
                         btn.disabled = false;
                     }
+                } else if (result.quotaExceeded) {
+                    disableAllHintButtons('Hết lượt gợi ý hôm nay');
+                    hintQuota.remaining = 0;
+                    renderHintQuota();
+                    alert(result.message || "Bạn đã dùng hết lượt gợi ý AI hôm nay. Nâng gói để dùng không giới hạn.");
                 } else {
                     alert(result.message || "Không thể lấy gợi ý lúc này.");
                     btn.innerHTML = originalContent;

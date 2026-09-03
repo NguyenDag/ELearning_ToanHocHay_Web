@@ -13,12 +13,22 @@ namespace ToanHocHay.WebApp.Services
     public class ExamApiService
     {
         private readonly HttpClient _httpClient;
+        private readonly ApiClient _api;
         private readonly JsonSerializerOptions _jsonOptions = ApiJson.Options;
 
-        public ExamApiService(HttpClient httpClient)
+        public ExamApiService(HttpClient httpClient, ApiClient api)
         {
             _httpClient = httpClient;
+            _api = api;
         }
+
+        /// <summary>Trạng thái sinh nhận xét AI nền cho lượt làm bài (poll ở trang kết quả).</summary>
+        public Task<ApiResult<FeedbackStatusDto>> GetFeedbackStatusAsync(int attemptId)
+            => _api.GetAsync<FeedbackStatusDto>(ApiRoutes.ExerciseAttempts.FeedbackStatus(attemptId));
+
+        /// <summary>Hạn mức gợi ý AI còn lại trong ngày.</summary>
+        public Task<ApiResult<AiHintQuotaDto>> GetHintQuotaAsync()
+            => _api.GetAsync<AiHintQuotaDto>(ApiRoutes.AiHints.Quota);
 
         public async Task<List<int>> GetCompletedExerciseIdsAsync(int studentId)
         {
@@ -82,27 +92,17 @@ namespace ToanHocHay.WebApp.Services
         }
 
         // 3. Bắt đầu làm bài (Tạo AttemptId).
-        // Backend nay lấy StudentId TỪ TOKEN (client gửi cũng bị ghi đè); 403 nếu tier gói < RequiredTier.
-        public async Task<(int attemptId, string? error)> StartExercise(int exerciseId, int studentId)
+        // Backend lấy StudentId TỪ TOKEN. 403 khi tier gói < Exercise.RequiredTier;
+        // 409/400 khi hết lượt (MaxAttempts) hoặc đề chưa publish.
+        public async Task<(int attemptId, bool needUpgrade, string? error)> StartExercise(int exerciseId)
         {
-            try
-            {
-                var payload = new { ExerciseId = exerciseId, StudentId = studentId };
-                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.ExerciseAttempts.Start, payload, _jsonOptions);
-                var resString = await response.Content.ReadAsStringAsync();
+            var r = await _api.PostAsync<ExerciseAttemptDto>(
+                ApiRoutes.ExerciseAttempts.Start, new { ExerciseId = exerciseId });
 
-                var apiResult = JsonSerializer.Deserialize<ApiResponse<ExerciseAttemptDto>>(resString, _jsonOptions);
+            if (r.IsSuccess && r.Data is { AttemptId: > 0 })
+                return (r.Data.AttemptId, false, null);
 
-                if (response.IsSuccessStatusCode && apiResult is { Success: true, Data: not null })
-                    return (apiResult.Data.AttemptId, null);
-
-                return (0, apiResult?.Message ?? "Không thể khởi tạo bài thi.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"--- DEBUG START EXERCISE ERROR: {ex}");
-                return (0, "Lỗi kết nối hoặc dữ liệu không hợp lệ.");
-            }
+            return (0, r.IsForbidden, r.DisplayMessage);
         }
 
         // 4. Nộp từng câu trả lời (Ajax/Realtime)
@@ -150,25 +150,12 @@ namespace ToanHocHay.WebApp.Services
             catch { return null; }
         }
 
-        // 7. Gọi AI Gợi ý — route đổi thành api/ai-hints; 429 khi hết lượt hôm nay (xử lý ở Đợt 3).
-        public async Task<AIHintDto?> GetAIHintAsync(AIHintRequestDto dto)
+        // 7. Gọi AI Gợi ý — api/ai-hints; 429 khi hết hạn mức ngày.
+        public async Task<(AIHintDto? hint, bool quotaExceeded, string? error)> GetAIHintAsync(AIHintRequestDto dto)
         {
-            try
-            {
-                var response = await _httpClient.PostAsJsonAsync(ApiRoutes.AiHints.Create, dto, _jsonOptions);
-                if (response.IsSuccessStatusCode)
-                {
-                    var resString = await response.Content.ReadAsStringAsync();
-                    var apiResponse = JsonSerializer.Deserialize<ApiResponse<AIHintDto>>(resString, _jsonOptions);
-                    return apiResponse?.Data;
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"--- Lỗi GetAIHint: {ex.Message} ---");
-                return null;
-            }
+            var r = await _api.PostAsync<AIHintDto>(ApiRoutes.AiHints.Create, dto);
+            if (r.IsSuccess && r.Data != null) return (r.Data, false, null);
+            return (null, r.IsTooManyRequests, r.DisplayMessage);
         }
 
         // 8. Báo cáo chuyển tab — gửi email cho phụ huynh

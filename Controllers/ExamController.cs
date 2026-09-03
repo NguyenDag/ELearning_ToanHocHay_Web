@@ -64,12 +64,16 @@ namespace ToanHocHay.WebApp.Controllers
                 }
             }
 
-            int studentId = int.Parse(studentIdClaim.Value);
-            var (attemptId, error) = await _examService.StartExercise(id, studentId);
+            var (attemptId, needUpgrade, error) = await _examService.StartExercise(id);
 
             if (attemptId == 0)
             {
-                TempData["ErrorMessage"] = error ?? "Lỗi dữ liệu không hợp lệ.";
+                if (needUpgrade)
+                {
+                    TempData["UpgradeMsg"] = error ?? "Đề thi này yêu cầu gói cao hơn.";
+                    return RedirectToAction("Index", "Package");
+                }
+                TempData["ErrorMessage"] = error ?? "Không thể bắt đầu làm bài (có thể bạn đã hết lượt).";
                 return RedirectToAction("Index");
             }
 
@@ -98,9 +102,32 @@ namespace ToanHocHay.WebApp.Controllers
 
             var result = await _examService.CompleteExercise(payload.AttemptId);
 
+            // complete trả kết quả chấm ngay; nhận xét AI chạy nền — trang kết quả sẽ poll.
             return result
-                ? Ok(new { message = "Nộp bài thành công!" })
-                : BadRequest("Lỗi khi hoàn tất bài thi.");
+                ? Ok(new { success = true, attemptId = payload.AttemptId, message = "Nộp bài thành công!" })
+                : BadRequest(new { success = false, message = "Lỗi khi hoàn tất bài thi." });
+        }
+
+        // Poll trạng thái sinh nhận xét AI (trang kết quả gọi).
+        [HttpGet]
+        public async Task<IActionResult> FeedbackStatus(int attemptId)
+        {
+            var r = await _examService.GetFeedbackStatusAsync(attemptId);
+            if (!r.IsSuccess || r.Data == null)
+                return Json(new { isComplete = true, pending = 0, ready = 0 });
+
+            return Json(new { isComplete = r.Data.IsComplete, pending = r.Data.Pending, ready = r.Data.Ready, totalWrong = r.Data.TotalWrong });
+        }
+
+        // Hạn mức gợi ý AI còn lại hôm nay (trang làm bài gọi khi tải).
+        [HttpGet]
+        public async Task<IActionResult> HintQuota()
+        {
+            var r = await _examService.GetHintQuotaAsync();
+            if (!r.IsSuccess || r.Data == null)
+                return Json(new { available = true, unlimited = false, remaining = (int?)null });
+
+            return Json(new { available = true, unlimited = r.Data.Unlimited, remaining = r.Data.Remaining, used = r.Data.Used, limit = r.Data.Limit });
         }
 
         // 4. Trang kết quả
@@ -128,13 +155,18 @@ namespace ToanHocHay.WebApp.Controllers
         {
             if (payload == null) return BadRequest("Dữ liệu không hợp lệ.");
 
-            var hint = await _examService.GetAIHintAsync(payload);
+            var (hint, quotaExceeded, error) = await _examService.GetAIHintAsync(payload);
             if (hint != null)
-            {
                 return Ok(new { success = true, data = hint });
-            }
 
-            return BadRequest(new { success = false, message = "Không thể lấy gợi ý từ AI." });
+            return Ok(new
+            {
+                success = false,
+                quotaExceeded,
+                message = quotaExceeded
+                    ? (error ?? "Bạn đã dùng hết lượt gợi ý AI hôm nay. Nâng gói để dùng không giới hạn.")
+                    : (error ?? "Không thể lấy gợi ý từ AI lúc này.")
+            });
         }
 
         // 6. Báo cáo chuyển tab - gửi thông báo cho phụ huynh

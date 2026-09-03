@@ -135,6 +135,22 @@
                 </div>
             </div>
 
+            @{
+                var wrongNeedingFeedback = Model.AnswerDetails
+                    .Count(d => !d.IsCorrect
+                        && string.IsNullOrEmpty(d.FullSolution)
+                        && string.IsNullOrEmpty(d.MistakeAnalysis));
+            }
+            @if (wrongNeedingFeedback > 0)
+            {
+                <div id="ai-feedback-banner"
+                     class="mb-8 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 text-sm flex items-center gap-3"
+                     data-attempt-id="@Model.AttemptId">
+                    <i class="fa-solid fa-robot animate-pulse"></i>
+                    <span>AI đang soạn nhận xét cho <b>@wrongNeedingFeedback</b> câu sai… trang sẽ tự cập nhật.</span>
+                </div>
+            }
+
             <div class="flex flex-col md:flex-row gap-4 justify-center mb-10">
                 <a href="/Exam/DoExam/@Model.ExerciseId"
                    class="px-8 py-3 rounded-xl bg-white border-2 border-blue-100 text-blue-600 font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2">
@@ -264,6 +280,27 @@
                 }, 250);
             }
         });
+
+        // ── Poll nhận xét AI (chạy nền phía backend) ──────────────────
+        (function () {
+            const banner = document.getElementById('ai-feedback-banner');
+            if (!banner) return;
+            const attemptId = banner.getAttribute('data-attempt-id');
+            let tries = 0;
+            const timer = setInterval(async () => {
+                tries++;
+                if (tries > 20) { clearInterval(timer); return; } // ~1.5 phút thì thôi
+                try {
+                    const r = await fetch(`/Exam/FeedbackStatus/${attemptId}`);
+                    const s = await r.json();
+                    if (s.isComplete || s.pending <= 0) {
+                        clearInterval(timer);
+                        banner.innerHTML = '<i class="fa-solid fa-circle-check text-green-600"></i> <span>Đã có nhận xét AI. Đang tải lại…</span>';
+                        setTimeout(() => location.reload(), 800);
+                    }
+                } catch { /* thử lại lần sau */ }
+            }, 4500);
+        })();
 
         function toggleDetails() {
             const section = document.getElementById('details-section');
