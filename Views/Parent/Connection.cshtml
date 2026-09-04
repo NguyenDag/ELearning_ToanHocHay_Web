@@ -206,6 +206,33 @@
                     </div>
                 </div>
 
+                <!-- Mời con qua email -->
+                <div class="glass p-6">
+                    <h3 class="font-black text-slate-800 mb-4 flex items-center gap-2">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fa-solid fa-envelope text-purple-600 text-sm"></i>
+                        </div>
+                        Mời con qua email
+                    </h3>
+                    <form asp-controller="Parent" asp-action="Invite" method="post" class="space-y-3">
+                        @Html.AntiForgeryToken()
+                        <input type="email" name="InviteeEmail" placeholder="email của con (tuỳ chọn)"
+                               class="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-purple-500 focus:outline-none text-sm" />
+                        <div class="flex gap-2">
+                            <select name="Relationship" class="px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm">
+                                <option value="Guardian">Người giám hộ</option>
+                                <option value="Father">Bố</option>
+                                <option value="Mother">Mẹ</option>
+                                <option value="Other">Khác</option>
+                            </select>
+                            <button type="submit" class="flex-1 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700">
+                                Tạo lời mời
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400">Bỏ trống email nếu chỉ cần mã lời mời để đọc cho con.</p>
+                    </form>
+                </div>
+
                 <!-- Hướng dẫn -->
                 <div class="glass p-6">
                     <h3 class="font-black text-slate-800 mb-5 flex items-center gap-2">
@@ -284,9 +311,23 @@
                                     <p class="text-xs text-slate-400 font-bold">Lớp ${c.gradeLevel||c.GradeLevel||6}</p>
                                 </div>
                             </div>
-                            <i class="fa-solid fa-circle-check text-sky-500 text-lg"></i>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-check text-sky-500 text-lg"></i>
+                                <button type="button" onclick="revokeChild(${c.studentId||c.StudentId}, this)"
+                                        class="text-[11px] font-bold text-red-500 hover:underline">Huỷ liên kết</button>
+                            </div>
                         </div>`).join('')}
                 </div>`;
+        }
+
+        function revokeChild(studentId, btn) {
+            if (!confirm('Huỷ liên kết với học sinh này? Bạn sẽ không xem được tiến độ của con nữa.')) return;
+            btn.disabled = true;
+            const f = document.createElement('form');
+            f.method = 'post'; f.action = '/Parent/RevokeChild';
+            f.innerHTML = `<input type="hidden" name="studentId" value="${studentId}">` +
+                document.querySelector('input[name="__RequestVerificationToken"]').outerHTML;
+            document.body.appendChild(f); f.submit();
         }
 
         function renderNoChildren() {

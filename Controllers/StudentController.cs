@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
+using ToanHocHay.WebApp.Models.DTOs.Parent;
 using ToanHocHay.WebApp.Services;
 using ToanHocHay.WebApp.Services.Http;
 
@@ -18,20 +19,20 @@ namespace ToanHocHay.WebApp.Controllers
     {
         private readonly AuthApiService _authApiService;
         private readonly CourseApiService _courseApiService;
-        private readonly HttpClient _httpClient;
+        private readonly ParentApiService _parents;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ITokenStore _tokenStore;
 
         public StudentController(
             AuthApiService authApiService,
             CourseApiService courseApiService,
-            IHttpClientFactory httpClientFactory,
+            ParentApiService parents,
             IHttpContextAccessor httpContextAccessor,
             ITokenStore tokenStore)
         {
             _authApiService = authApiService;
             _courseApiService = courseApiService;
-            _httpClient = httpClientFactory.CreateClient("ApiClient");
+            _parents = parents;
             _httpContextAccessor = httpContextAccessor;
             _tokenStore = tokenStore;
         }
@@ -99,74 +100,31 @@ namespace ToanHocHay.WebApp.Controllers
             return Json(new { success = false, message = result.Message, errors = result.Errors });
         }
 
-        // POST /Student/ConnectParent — học sinh nhập mã phụ huynh
+        // POST /Student/ConnectParent — học sinh nhập mã liên kết của phụ huynh (hoặc token lời mời)
         [HttpPost]
         public async Task<IActionResult> ConnectParent([FromBody] ConnectParentDto model)
         {
-            var studentIdStr = User.FindFirst("StudentId")?.Value;
-            if (string.IsNullOrEmpty(studentIdStr))
+            if (User.FindFirst("StudentId") == null)
                 return Unauthorized(new { success = false, message = "Không xác định được học sinh" });
 
-            try
+            var r = await _parents.LinkByCodeAsync(new LinkParentInputDto
             {
-                var token = _httpContextAccessor.HttpContext?.Session.GetString("Token")
-                         ?? _httpContextAccessor.HttpContext?.User.FindFirst("Token")?.Value;
+                Code = model.ConnectionCode?.Trim() ?? "",
+                Relationship = (ParentRelationship)Math.Clamp(model.Relationship, 0, 3)
+            });
 
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token?.Trim() ?? "");
+            if (r.IsSuccess)
+                return Ok(new { success = true, message = "Kết nối với phụ huynh thành công!" });
 
-                // Route đổi: /api/StudentParent/connect → /api/parents/link (LinkParentDto { Code, Relationship }).
-                // Luồng liên kết đầy đủ (mời qua email, huỷ liên kết...) làm ở Đợt 7.
-                var response = await _httpClient.PostAsJsonAsync(
-    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Parents.Link}",
-    new { Code = model.ConnectionCode, Relationship = model.Relationship },
-    ToanHocHay.WebApp.Services.Http.ApiJson.Options);
-
-                var json = await response.Content.ReadAsStringAsync();
-                Console.WriteLine($"=== CONNECT RESPONSE: Status={response.StatusCode}, Body={json} ===");
-
-                if (response.IsSuccessStatusCode)
-                    return Ok(new { success = true, message = "Kết nối thành công!" });
-
-                // Check empty TRƯỚC khi parse
-                if (string.IsNullOrEmpty(json))
-                    return BadRequest(new { success = false, message = "Lỗi không xác định" });
-
-                var result = JsonSerializer.Deserialize<JsonElement>(json);
-                var msg = result.TryGetProperty("Message", out var m) ? m.GetString()
-                        : result.TryGetProperty("message", out var m2) ? m2.GetString()
-                        : "Mã không hợp lệ";
-                return BadRequest(new { success = false, message = msg });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = ex.Message });
-            }
+            // 404 mã sai · 409 đã liên kết · 410/400 hết hạn
+            return StatusCode(r.StatusCode == 0 ? 500 : r.StatusCode,
+                new { success = false, message = r.DisplayMessage });
         }
 
-        // GET danh sách phụ huynh đã kết nối
-        private async Task<List<ConnectedParentDto>> GetConnectedParentsAsync(int studentId)
-        {
-            try
-            {
-                var token = _httpContextAccessor.HttpContext?.Session.GetString("Token")
-                         ?? _httpContextAccessor.HttpContext?.User.FindFirst("Token")?.Value;
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token?.Trim() ?? "");
-
-                // TODO(Đợt 7): backend chưa có GET /api/students/{id}/parents — đề nghị bổ sung,
-                // hoặc lấy từ GET /api/parents/{parentId}/children ở phía phụ huynh.
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/students/{studentId}/parents");
-                if (!response.IsSuccessStatusCode) return new();
-
-                var wrapper = await response.Content
-                    .ReadFromJsonAsync<ApiResponse<List<ConnectedParentDto>>>(
-                        ToanHocHay.WebApp.Services.Http.ApiJson.Options);
-                return wrapper?.Data ?? new();
-            }
-            catch { return new(); }
-        }
+        // GET danh sách phụ huynh đã kết nối — backend CHƯA có GET /api/students/{id}/parents.
+        // TODO(backend): bổ sung endpoint này; tạm thời trả rỗng (trang Hồ sơ ẩn mục nếu rỗng).
+        private Task<List<ConnectedParentDto>> GetConnectedParentsAsync(int studentId)
+            => Task.FromResult(new List<ConnectedParentDto>());
     }
 
     public class ConnectParentDto

@@ -42,17 +42,18 @@ builder.Services.AddHttpClient<CourseApiService>(client => client.BaseAddress = 
     .AddHttpMessageHandler<AuthTokenHandler>();
 builder.Services.AddHttpClient<ExamApiService>(client => client.BaseAddress = finalApiUrl)
     .AddHttpMessageHandler<AuthTokenHandler>();
-builder.Services.AddHttpClient<ChatApiService>(client => client.BaseAddress = finalApiUrl)
-    .AddHttpMessageHandler<AuthTokenHandler>();
 builder.Services.AddScoped<IDashboardApiService, DashboardApiService>();
 builder.Services.AddHttpClient<PackageApiService>(client => client.BaseAddress = finalApiUrl)
     .AddHttpMessageHandler<AuthTokenHandler>();
 
-// Các service dùng ApiClient (P2/P4/P5).
+// Các service dùng ApiClient (P2/P4/P5/P6).
 builder.Services.AddScoped<ContentApiService>();
 builder.Services.AddScoped<SubscriptionApiService>();
 builder.Services.AddScoped<PaymentApiService>();
 builder.Services.AddScoped<RefundApiService>();
+builder.Services.AddScoped<NotificationApiService>();
+builder.Services.AddScoped<ChatApiService>();
+builder.Services.AddScoped<ParentApiService>();
 
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();

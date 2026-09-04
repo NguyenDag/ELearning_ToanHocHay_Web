@@ -1,0 +1,74 @@
+@using ToanHocHay.WebApp.Models.DTOs.Notification
+@using ToanHocHay.WebApp.Models.DTOs.Payment
+@model PagedResultDto<NotificationDto>
+@{
+    ViewData["Title"] = "Thông báo";
+    string Icon(NotificationType t) => t switch
+    {
+        NotificationType.Warning => "fa-triangle-exclamation text-amber-500",
+        NotificationType.Error => "fa-circle-xmark text-red-500",
+        NotificationType.Success => "fa-circle-check text-green-500",
+        NotificationType.Reminder => "fa-clock text-blue-500",
+        _ => "fa-circle-info text-blue-500"
+    };
+}
+
+<div class="container mx-auto px-4 py-10 max-w-2xl">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-black text-gray-800">Thông báo</h1>
+        <div class="flex gap-3">
+            <button onclick="markAll()" class="text-sm font-bold text-blue-600 hover:underline">Đánh dấu đã đọc tất cả</button>
+            <a href="/Notification/Preferences" class="text-sm font-bold text-gray-500 hover:underline">Cài đặt</a>
+        </div>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center text-gray-400">
+            Chưa có thông báo nào.
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50">
+            @foreach (var n in Model.Items)
+            {
+                <div class="p-4 flex gap-3 @(n.IsRead ? "" : "bg-blue-50/40")" data-id="@n.NotificationId">
+                    <i class="fa-solid @Icon(n.NotificationType) mt-1"></i>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-gray-800">@n.Title</p>
+                        <p class="text-sm text-gray-600" style="white-space:pre-line">@n.Message</p>
+                        <p class="text-xs text-gray-400 mt-1">@n.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    @if (!n.IsRead)
+                    {
+                        <button onclick="markRead(@n.NotificationId, this)" class="text-xs font-bold text-blue-600 hover:underline self-start">Đã đọc</button>
+                    }
+                </div>
+            }
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="flex justify-center gap-2 mt-6 text-sm">
+                @if (Model.HasPrev) { <a href="?page=@(Model.Page - 1)" class="px-3 py-1.5 rounded border border-gray-200">← Trước</a> }
+                <span class="px-3 py-1.5">Trang @Model.Page / @Model.TotalPages</span>
+                @if (Model.HasNext) { <a href="?page=@(Model.Page + 1)" class="px-3 py-1.5 rounded border border-gray-200">Sau →</a> }
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script>
+        async function markRead(id, btn) {
+            await fetch('/Notification/MarkRead?id=' + id, { method: 'POST' });
+            btn.closest('[data-id]').classList.remove('bg-blue-50/40');
+            btn.remove();
+        }
+        async function markAll() {
+            await fetch('/Notification/MarkAllRead', { method: 'POST' });
+            location.reload();
+        }
+    </script>
+}

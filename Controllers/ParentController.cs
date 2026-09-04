@@ -1,35 +1,26 @@
-﻿// FILE: ToanHocHay.WebApp/Controllers/ParentController.cs
-
+// FILE: ToanHocHay.WebApp/Controllers/ParentController.cs
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http.Headers;
-using System.Text.Json;
-using ToanHocHay.WebApp.Common.Constants;
+using ToanHocHay.WebApp.Models.DTOs.Parent;
+using ToanHocHay.WebApp.Services;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Controllers
 {
     [Authorize]
     public class ParentController : Controller
     {
-        private readonly IHttpClientFactory _factory;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ParentApiService _parents;
+        private readonly IDashboardApiService _dashboard;
 
-        public ParentController(IHttpClientFactory factory, IHttpContextAccessor httpContextAccessor)
+        public ParentController(ParentApiService parents, IDashboardApiService dashboard)
         {
-            _factory = factory;
-            _httpContextAccessor = httpContextAccessor;
+            _parents = parents;
+            _dashboard = dashboard;
         }
 
-        private HttpClient CreateAuthClient()
-        {
-            var client = _factory.CreateClient();
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("Token")
-                      ?? _httpContextAccessor.HttpContext?.User.FindFirst("Token")?.Value;
-            if (!string.IsNullOrEmpty(token))
-                client.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token);
-            return client;
-        }
+        private int? ParentId =>
+            int.TryParse(User.FindFirst("ParentId")?.Value, out var id) ? id : null;
 
         // GET /Parent/Dashboard
         public IActionResult Dashboard()
@@ -44,46 +35,15 @@ namespace ToanHocHay.WebApp.Controllers
             ViewData["ParentName"] = User.Identity?.Name ?? "Phụ huynh";
             ViewData["ConnectionCode"] = "--------";
 
-            try
+            if (ParentId is { } pid)
             {
-                var parentIdStr = User.FindFirst("ParentId")?.Value;
-                if (string.IsNullOrEmpty(parentIdStr))
+                var info = await _parents.GetInfoAsync(pid);
+                if (info.IsSuccess && info.Data != null)
                 {
-                    ViewData["ConnectionCode"] = "Không tìm thấy mã";
-                    return View("~/Views/Parent/Connection.cshtml");
-                }
-
-                var client = CreateAuthClient();
-                var res = await client.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/parents/{parentIdStr}");
-
-                if (res.IsSuccessStatusCode)
-                {
-                    var json = await res.Content.ReadAsStringAsync();
-                    var wrapper = JsonSerializer.Deserialize<JsonElement>(json);
-
-                    // BE trả về PascalCase: Data, ConnectionCode, Children
-                    if (wrapper.TryGetProperty("Data", out var data))
-                    {
-                        if (data.TryGetProperty("ConnectionCode", out var code))
-                            ViewData["ConnectionCode"] = code.GetString() ?? "--------";
-
-                        if (data.TryGetProperty("Children", out var children) &&
-                            children.ValueKind == JsonValueKind.Array)
-                        {
-                            var students = children.EnumerateArray()
-                                .Select(ch => new ConnectedStudentVm
-                                {
-                                    FullName = ch.TryGetProperty("FullName", out var fn) ? fn.GetString() ?? "" : "",
-                                    GradeLevel = ch.TryGetProperty("GradeLevel", out var gl) ? gl.GetInt32() : 6,
-                                }).ToList();
-                            ViewData["ConnectedStudents"] = students;
-                        }
-                    }
+                    ViewData["ConnectionCode"] = info.Data.ConnectionCode;
+                    ViewData["ConnectedStudents"] = info.Data.Children;
                 }
             }
-            catch { }
-
             return View("~/Views/Parent/Connection.cshtml");
         }
 
@@ -94,88 +54,87 @@ namespace ToanHocHay.WebApp.Controllers
             return View("~/Views/Parent/Report.cshtml");
         }
 
-        // GET /Parent/GetStudentReport?studentId=xx — AJAX cho Report page
-        [HttpGet]
-        public async Task<IActionResult> GetStudentReport(int studentId)
-        {
-            try
-            {
-                var client = CreateAuthClient();
-                var res = await client.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/students/{studentId}/dashboard/overview");
-
-                if (!res.IsSuccessStatusCode)
-                    return Json(new { success = false, message = "Không tải được dữ liệu" });
-
-                var json = await res.Content.ReadAsStringAsync();
-                var data = JsonSerializer.Deserialize<JsonElement>(json);
-                return Json(new { success = true, data });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-
-        // GET /Parent/GetInfo — AJAX endpoint cho Dashboard & Connection page
+        // GET /Parent/GetInfo — AJAX cho Dashboard & Connection: mã liên kết + danh sách con
         [HttpGet]
         public async Task<IActionResult> GetInfo()
         {
-            try
+            if (ParentId is not { } pid)
+                return Json(new { connectionCode = "--------", children = Array.Empty<object>() });
+
+            var info = await _parents.GetInfoAsync(pid);
+            var children = await _parents.GetChildrenAsync(pid);
+
+            var kids = (children.IsSuccess ? children.Data : null)?
+                .Where(l => l.Status == LinkStatus.Active)
+                .Select(l => new { studentId = l.StudentId, fullName = l.StudentName, gradeLevel = 0, status = l.Status.ToString() })
+                .ToList();
+
+            return Json(new
             {
-                var parentIdStr = User.FindFirst("ParentId")?.Value;
-
-                if (string.IsNullOrEmpty(parentIdStr))
-                    return Json(new { connectionCode = "--------", children = new object[0] });
-
-                var client = CreateAuthClient();
-                var res = await client.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/parents/{parentIdStr}");
-
-                if (!res.IsSuccessStatusCode)
-                    return Json(new { connectionCode = "--------", children = new object[0] });
-
-                var json = await res.Content.ReadAsStringAsync();
-                var wrapper = JsonSerializer.Deserialize<JsonElement>(json);
-
-                // BE trả về PascalCase: Data, ConnectionCode, Children
-                if (wrapper.TryGetProperty("Data", out var data))
-                {
-                    var code = data.TryGetProperty("ConnectionCode", out var c)
-                        ? c.GetString() ?? "--------"
-                        : "--------";
-
-                    var children = new List<object>();
-
-                    if (data.TryGetProperty("Children", out var ch) &&
-    ch.ValueKind == JsonValueKind.Array)
-                    {
-                        foreach (var child in ch.EnumerateArray())
-                        {
-                            children.Add(new
-                            {
-                                studentId = child.TryGetProperty("StudentId", out var sid) ? sid.GetInt32() : 0,
-                                fullName = child.TryGetProperty("FullName", out var fn) ? fn.GetString() : "",
-                                gradeLevel = child.TryGetProperty("GradeLevel", out var gl) ? gl.GetInt32() : 6,
-                            });
-                        }
-                    }
-
-                    return Json(new { connectionCode = code, children });
-                }
-
-                return Json(new { connectionCode = "--------", children = new object[0] });
-            }
-            catch
-            {
-                return Json(new { connectionCode = "--------", children = new object[0] });
-            }
+                connectionCode = info.IsSuccess ? info.Data?.ConnectionCode ?? "--------" : "--------",
+                children = (object?)kids ?? Array.Empty<object>()
+            });
         }
-    }
 
-    public class ConnectedStudentVm
-    {
-        public string FullName { get; set; } = "";
-        public int GradeLevel { get; set; }
+        // GET /Parent/Overview — AJAX: tổng quan nhiều con (streak, điểm tuần...)
+        [HttpGet]
+        public async Task<IActionResult> Overview()
+        {
+            if (ParentId is not { } pid) return Json(Array.Empty<object>());
+            var r = await _parents.GetOverviewAsync(pid);
+            return Json(r.IsSuccess ? r.Data ?? new() : new());
+        }
+
+        // POST /Parent/Invite — mời con qua email / tạo mã lời mời một lần
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Invite(CreateParentInviteDto model)
+        {
+            if (ParentId is not { } pid)
+            {
+                TempData[ApiResultExtensions.TempDataError] = "Không xác định được phụ huynh.";
+                return RedirectToAction("Connection");
+            }
+
+            var r = await _parents.CreateInviteAsync(pid, model);
+            if (r.IsSuccess && r.Data != null)
+            {
+                TempData[ApiResultExtensions.TempDataSuccess] =
+                    $"Đã tạo lời mời. Mã: {r.Data.Token} (hết hạn {r.Data.ExpiresAt:dd/MM/yyyy})"
+                    + (string.IsNullOrEmpty(model.InviteeEmail) ? "" : $" — đã gửi tới {model.InviteeEmail}.");
+            }
+            else
+            {
+                TempData[ApiResultExtensions.TempDataError] = r.DisplayMessage;
+            }
+            return RedirectToAction("Connection");
+        }
+
+        // POST /Parent/RevokeChild — huỷ liên kết một con
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RevokeChild(int studentId)
+        {
+            if (ParentId is not { } pid) return RedirectToAction("Connection");
+
+            var r = await _parents.RevokeChildAsync(pid, studentId);
+            TempData[r.IsSuccess ? ApiResultExtensions.TempDataSuccess : ApiResultExtensions.TempDataError] =
+                r.IsSuccess ? "Đã huỷ liên kết với học sinh này." : r.DisplayMessage;
+            return RedirectToAction("Connection");
+        }
+
+        // GET /Parent/GetStudentReport?studentId=xx — AJAX cho trang Report
+        [HttpGet]
+        public async Task<IActionResult> GetStudentReport(int studentId)
+        {
+            var r = await _dashboard.GetStudentDashboardAsync(studentId);
+
+            if (r.IsForbidden)
+                return Json(new { success = false, message = "Bạn chưa liên kết (hoặc đã huỷ liên kết) với học sinh này." });
+            if (!r.IsSuccess || r.Data == null)
+                return Json(new { success = false, message = r.DisplayMessage });
+
+            return Json(new { success = true, data = r.Data });
+        }
     }
 }

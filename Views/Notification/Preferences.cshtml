@@ -1,0 +1,33 @@
+@using ToanHocHay.WebApp.Models.DTOs.Notification
+@model List<NotificationPreferenceDto>
+@{
+    ViewData["Title"] = "Cài đặt thông báo";
+}
+
+<div class="container mx-auto px-4 py-10 max-w-xl">
+    <h1 class="text-2xl font-black text-gray-800 mb-2">Cài đặt thông báo</h1>
+    <p class="text-sm text-gray-500 mb-6">Chọn những loại thông báo bạn muốn nhận.</p>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50">
+        @foreach (var p in Model)
+        {
+            <form asp-action="Preferences" method="post" class="flex items-center justify-between p-4">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="ruleKey" value="@p.RuleKey" />
+                <span class="text-sm font-semibold text-gray-700 pr-4">@p.Label</span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="enabled" value="true" class="sr-only peer" @(p.Enabled ? "checked" : "")
+                           onchange="this.form.submit()" />
+                    <input type="hidden" name="enabled" value="false" />
+                    <div class="w-11 h-6 bg-gray-200 peer-checked:bg-indigo-600 rounded-full transition
+                                after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white
+                                after:rounded-full after:h-5 after:w-5 after:transition peer-checked:after:translate-x-5"></div>
+                </label>
+            </form>
+        }
+        @if (!Model.Any())
+        {
+            <p class="p-6 text-center text-sm text-gray-400">Không tải được cài đặt.</p>
+        }
+    </div>
+</div>

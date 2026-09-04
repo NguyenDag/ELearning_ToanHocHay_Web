@@ -171,6 +171,24 @@
                                         <span>Dashboard</span>
                                     </a>
 
+                                    @* ── Chuông thông báo ── *@
+                                    <div class="relative group" id="notif-bell-wrap">
+                                        <a href="/Notification" class="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-50 transition" title="Thông báo">
+                                            <i class="fa-regular fa-bell text-gray-500 text-lg"></i>
+                                            <span id="notif-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center"></span>
+                                        </a>
+                                        <div class="dropdown-menu absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                                            <div class="flex items-center justify-between px-4 py-2.5 border-b border-gray-50">
+                                                <span class="text-xs font-black text-gray-400 uppercase">Thông báo</span>
+                                                <button type="button" onclick="notifMarkAll()" class="text-[11px] font-bold text-blue-600 hover:underline">Đọc tất cả</button>
+                                            </div>
+                                            <div id="notif-list" class="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                                                <p class="px-4 py-6 text-center text-xs text-gray-400">Đang tải…</p>
+                                            </div>
+                                            <a href="/Notification" class="block px-4 py-2.5 text-center text-xs font-bold text-blue-600 hover:bg-blue-50 border-t border-gray-50">Xem tất cả</a>
+                                        </div>
+                                    </div>
+
                                     <div class="relative group">
                                         <button class="flex items-center gap-3 px-2 py-1.5 rounded-full hover:bg-gray-50 transition-all duration-300">
                                             <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=@User.Identity.Name"
@@ -194,6 +212,9 @@
                                             </a>
                                             <a href="/Payment/History" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition">
                                                 <i class="fa-solid fa-receipt w-6 text-center"></i> Lịch sử thanh toán
+                                            </a>
+                                            <a href="/Notification/Preferences" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition">
+                                                <i class="fa-solid fa-bell w-6 text-center"></i> Cài đặt thông báo
                                             </a>
                                             <a href="/Account/Logout" class="block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition">
                                                 <i class="fa-solid fa-right-from-bracket w-6 text-center"></i> Đăng xuất
@@ -390,6 +411,17 @@
                 <div class="flex gap-2"></div>
             </div>
 
+            <div id="chat-health-banner" class="hidden px-4 py-2 bg-amber-50 border-t border-amber-200 text-amber-700 text-[11px] font-bold text-center">
+                Trợ lý AI đang tạm nghỉ — bạn vẫn có thể để lại tin nhắn.
+            </div>
+
+            <div class="px-4 pt-2 bg-white flex justify-end">
+                <button type="button" id="chat-request-human"
+                        class="text-[11px] font-bold text-blue-600 hover:underline">
+                    <i class="fa-solid fa-headset mr-1"></i> Gặp nhân viên hỗ trợ
+                </button>
+            </div>
+
             <div class="p-4 bg-white border-t border-gray-100">
                 <div class="relative">
                     <input type="text" id="chat-input" placeholder="Nhập câu hỏi của bạn..."
@@ -560,6 +592,86 @@
         const CURRENT_USER_ID = "@(User.Identity?.IsAuthenticated == true ? User.Identity.Name : Context.Session.Id)";
     </script>
     <script src="~/js/chatbot.js" asp-append-version="true"></script>
+
+    <script>
+        // ── Chatbot: trạng thái AI + gặp nhân viên ──────────────────
+        (function () {
+            fetch('/Chat/Health').then(r => r.json()).then(d => {
+                const b = document.getElementById('chat-health-banner');
+                if (b && !d.healthy) b.classList.remove('hidden');
+            }).catch(() => { });
+
+            const btn = document.getElementById('chat-request-human');
+            btn?.addEventListener('click', async () => {
+                btn.disabled = true;
+                try {
+                    const r = await fetch('/Chat/RequestHuman', { method: 'POST' });
+                    const d = await r.json();
+                    const msg = (d.response && d.response.message) || 'Đã chuyển yêu cầu tới nhân viên hỗ trợ.';
+                    if (typeof appendMessage === 'function') appendMessage(msg, 'bot');
+                    else alert(msg);
+                } catch { }
+                finally { setTimeout(() => btn.disabled = false, 3000); }
+            });
+        })();
+    </script>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <script>
+        // ── Chuông thông báo ──────────────────────────────────────
+        (function () {
+            const badge = document.getElementById('notif-badge');
+            const list = document.getElementById('notif-list');
+            if (!badge) return;
+
+            function timeAgo(iso) {
+                const s = Math.floor((Date.now() - new Date(iso)) / 1000);
+                if (s < 60) return 'vừa xong';
+                if (s < 3600) return Math.floor(s / 60) + ' phút trước';
+                if (s < 86400) return Math.floor(s / 3600) + ' giờ trước';
+                return Math.floor(s / 86400) + ' ngày trước';
+            }
+            const icon = t => ({ Warning: 'fa-triangle-exclamation text-amber-500', Error: 'fa-circle-xmark text-red-500', Success: 'fa-circle-check text-green-500', Reminder: 'fa-clock text-blue-500' }[t] || 'fa-circle-info text-blue-500');
+
+            async function refreshCount() {
+                try {
+                    const r = await fetch('/Notification/UnreadCount');
+                    const d = await r.json();
+                    if (d.count > 0) { badge.textContent = d.count > 99 ? '99+' : d.count; badge.classList.remove('hidden'); }
+                    else badge.classList.add('hidden');
+                } catch { }
+            }
+            async function refreshList() {
+                try {
+                    const r = await fetch('/Notification/Recent');
+                    const items = await r.json();
+                    if (!items.length) { list.innerHTML = '<p class="px-4 py-6 text-center text-xs text-gray-400">Chưa có thông báo</p>'; return; }
+                    list.innerHTML = items.map(n => `
+                        <div class="px-4 py-3 ${n.isRead ? '' : 'bg-blue-50/40'}">
+                            <div class="flex gap-3">
+                                <i class="fa-solid ${icon(n.type)} mt-0.5"></i>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-gray-800 truncate">${n.title}</p>
+                                    <p class="text-xs text-gray-500 line-clamp-2">${n.message}</p>
+                                    <p class="text-[10px] text-gray-400 mt-0.5">${timeAgo(n.createdAt)}</p>
+                                </div>
+                            </div>
+                        </div>`).join('');
+                } catch { }
+            }
+            window.notifMarkAll = async function () {
+                try { await fetch('/Notification/MarkAllRead', { method: 'POST' }); } catch { }
+                refreshCount(); refreshList();
+            };
+
+            const wrap = document.getElementById('notif-bell-wrap');
+            wrap?.addEventListener('mouseenter', refreshList);
+            refreshCount();
+            setInterval(refreshCount, 60000);
+        })();
+        </script>
+    }
 
     <script>
         function updateGlobalAvatar(newStyle, seed) {
