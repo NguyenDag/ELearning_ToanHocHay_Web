@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Controllers
 {
@@ -70,10 +71,11 @@ namespace ToanHocHay.WebApp.Controllers
             {
                 if (needUpgrade)
                 {
-                    TempData["UpgradeMsg"] = error ?? "Đề thi này yêu cầu gói cao hơn.";
+                    TempData[ApiResultExtensions.TempDataError] = error ?? "Đề thi này yêu cầu gói cao hơn.";
                     return RedirectToAction("Index", "Package");
                 }
-                TempData["ErrorMessage"] = error ?? "Không thể bắt đầu làm bài (có thể bạn đã hết lượt).";
+                TempData[ApiResultExtensions.TempDataError] =
+                    error ?? "Không thể bắt đầu làm bài — có thể bạn đã dùng hết số lượt cho phép của đề này.";
                 return RedirectToAction("Index");
             }
 

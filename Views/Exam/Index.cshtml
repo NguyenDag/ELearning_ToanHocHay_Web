@@ -223,9 +223,11 @@
 
                         <!-- CTA -->
                         @{
-                            var pkgClaim = User.FindFirst("PackageType")?.Value ?? "0";
-                            int userPkg = int.TryParse(pkgClaim, out var pk) ? pk : 0;
-                            bool canAccess = exam.IsFree || userPkg >= 2;
+                            // Gợi ý UI: bài không miễn phí thì cần gói trả phí bất kỳ; backend quyết định
+                            // cuối theo Exercise.RequiredTier (DoExam xử lý 403 → chuyển trang Gói).
+                            var tierClaim = User.FindFirst("PackageTier")?.Value ?? "Free";
+                            bool canAccess = exam.IsFree ||
+                                !string.Equals(tierClaim, "Free", StringComparison.OrdinalIgnoreCase);
                         }
 
                         @if (canAccess)
