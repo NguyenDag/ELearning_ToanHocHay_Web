@@ -1,0 +1,49 @@
+@using ToanHocHay.WebApp.Models.DTOs
+@model SubscriptionInfoDto
+@{
+    ViewData["Title"] = "Gói của tôi";
+}
+
+<div class="container mx-auto px-4 py-10 max-w-2xl">
+    <h1 class="text-2xl font-black text-gray-800 mb-6">Gói của tôi</h1>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-400 uppercase">Gói hiện tại</p>
+                <p class="text-xl font-black text-indigo-700">@Model.PackageName</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-bold @(Model.IsActive ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500")">
+                @(Model.IsActive ? "Đang hoạt động" : "Không hoạt động")
+            </span>
+        </div>
+
+        @if (Model.IsActive)
+        {
+            <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                <div><span class="text-gray-400">Hạn dùng:</span> <b>@(Model.EndDate?.ToString("dd/MM/yyyy") ?? "—")</b></div>
+                <div><span class="text-gray-400">Còn lại:</span> <b>@Model.DaysRemaining ngày</b></div>
+            </div>
+        }
+
+        <div class="mt-6 border-t border-gray-100 pt-4">
+            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Quyền lợi</p>
+            <ul class="text-sm text-gray-700 space-y-1">
+                <li><i class="fa-solid @(Model.UnlimitedAiHint ? "fa-check text-green-500" : "fa-xmark text-gray-300") mr-2"></i> Gợi ý AI @(Model.UnlimitedAiHint ? "không giới hạn" : Model.AiHintLimitDaily is > 0 ? $"{Model.AiHintLimitDaily}/ngày" : "—")</li>
+                <li><i class="fa-solid @(Model.PersonalizedPath ? "fa-check text-green-500" : "fa-xmark text-gray-300") mr-2"></i> Lộ trình cá nhân hoá</li>
+                <li><i class="fa-solid @(Model.MistakeRetry ? "fa-check text-green-500" : "fa-xmark text-gray-300") mr-2"></i> Luyện lại câu sai</li>
+                <li><i class="fa-solid @(Model.SmartReminder ? "fa-check text-green-500" : "fa-xmark text-gray-300") mr-2"></i> Nhắc học thông minh</li>
+                <li><i class="fa-solid @(Model.PrioritySupport ? "fa-check text-green-500" : "fa-xmark text-gray-300") mr-2"></i> Hỗ trợ ưu tiên</li>
+            </ul>
+        </div>
+
+        <div class="mt-6 flex gap-3">
+            <a href="/Package" class="px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700">
+                @(Model.IsActive ? "Đổi / gia hạn gói" : "Xem các gói")
+            </a>
+            <a href="/Payment/History" class="px-5 py-2.5 rounded-lg border border-gray-300 font-bold text-gray-700 hover:bg-gray-50">
+                Lịch sử thanh toán
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,62 @@
+@using ToanHocHay.WebApp.Models.DTOs.Payment
+@model RefundRequestDetailDto
+@{
+    ViewData["Title"] = "Chi tiết yêu cầu hoàn tiền";
+
+    string EventLabel(RefundEventType t) => t switch
+    {
+        RefundEventType.Created => "Đã tạo yêu cầu",
+        RefundEventType.Approved => "Tài chính đã duyệt",
+        RefundEventType.SecondApproved => "Duyệt bước 2",
+        RefundEventType.Rejected => "Bị từ chối",
+        RefundEventType.Cancelled => "Đã huỷ",
+        RefundEventType.AddedToBatch => "Đưa vào lô chi",
+        RefundEventType.BatchExported => "Xuất file chi hộ",
+        RefundEventType.MarkedDisbursed => "Đã chuyển khoản",
+        RefundEventType.Confirmed => "Xác nhận hoàn tất",
+        RefundEventType.MarkedFailed => "Đánh dấu thất bại",
+        RefundEventType.Retried => "Thử lại",
+        _ => t.ToString()
+    };
+}
+
+<div class="container mx-auto px-4 py-10 max-w-2xl">
+    <a href="/Payment/MyRefunds" class="text-sm text-gray-400 hover:text-gray-600">← Danh sách yêu cầu</a>
+    <h1 class="text-2xl font-black text-gray-800 mt-2 mb-6">Yêu cầu hoàn tiền #@Model.RefundRequestId</h1>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-sm space-y-2">
+        <div class="flex justify-between"><span class="text-gray-400">Trạng thái</span><b>@Model.Status</b></div>
+        <div class="flex justify-between"><span class="text-gray-400">Số tiền</span><b>@Model.Amount.ToString("#,##0") ₫</b></div>
+        <div class="flex justify-between"><span class="text-gray-400">Giao dịch</span><b>#@Model.PaymentId</b></div>
+        <div class="flex justify-between"><span class="text-gray-400">Lý do</span><b>@Model.ReasonCode</b></div>
+        @if (!string.IsNullOrEmpty(Model.ReasonNote))
+        {
+            <div class="flex justify-between"><span class="text-gray-400">Ghi chú</span><span class="text-right">@Model.ReasonNote</span></div>
+        }
+        <div class="flex justify-between"><span class="text-gray-400">TK nhận</span><b>@Model.BankAccountHolderName · ****@Model.BankAccountNumberLast4</b></div>
+        @if (!string.IsNullOrEmpty(Model.RejectionReason))
+        {
+            <div class="mt-2 p-3 bg-red-50 border border-red-100 rounded-lg text-red-700">Lý do từ chối: @Model.RejectionReason</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.BankTransactionRef))
+        {
+            <div class="flex justify-between"><span class="text-gray-400">Mã CK hoàn</span><b>@Model.BankTransactionRef</b></div>
+        }
+    </div>
+
+    <h2 class="text-sm font-black text-gray-400 uppercase mt-8 mb-3">Diễn tiến</h2>
+    <ol class="relative border-l-2 border-gray-100 ml-2 space-y-5">
+        @foreach (var e in Model.Events.OrderBy(x => x.CreatedAt))
+        {
+            <li class="ml-5">
+                <span class="absolute -left-[7px] w-3 h-3 rounded-full bg-indigo-500"></span>
+                <p class="text-sm font-bold text-gray-800">@EventLabel(e.EventType)</p>
+                <p class="text-xs text-gray-400">@e.CreatedAt.ToString("dd/MM/yyyy HH:mm")@(string.IsNullOrEmpty(e.ActorUserType) ? "" : " · " + e.ActorUserType)</p>
+                @if (!string.IsNullOrEmpty(e.Note))
+                {
+                    <p class="text-xs text-gray-500 mt-1">@e.Note</p>
+                }
+            </li>
+        }
+    </ol>
+</div>

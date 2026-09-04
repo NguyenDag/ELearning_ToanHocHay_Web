@@ -1,0 +1,56 @@
+@using ToanHocHay.WebApp.Models.DTOs.Payment
+@model PagedResultDto<RefundRequestDto>
+@{
+    ViewData["Title"] = "Yêu cầu hoàn tiền của tôi";
+
+    (string label, string cls) Status(RefundRequestStatus s) => s switch
+    {
+        RefundRequestStatus.PendingReview or RefundRequestStatus.PendingSecondApproval => ("Chờ duyệt", "bg-amber-50 text-amber-700"),
+        RefundRequestStatus.Approved or RefundRequestStatus.Batched => ("Đã duyệt", "bg-blue-50 text-blue-700"),
+        RefundRequestStatus.Disbursed => ("Đang chuyển tiền", "bg-blue-50 text-blue-700"),
+        RefundRequestStatus.Completed => ("Đã hoàn tiền", "bg-green-50 text-green-700"),
+        RefundRequestStatus.Rejected => ("Bị từ chối", "bg-red-50 text-red-700"),
+        RefundRequestStatus.Cancelled => ("Đã huỷ", "bg-gray-100 text-gray-500"),
+        RefundRequestStatus.Failed => ("Thất bại", "bg-red-50 text-red-700"),
+        _ => (s.ToString(), "bg-gray-100 text-gray-500")
+    };
+}
+
+<div class="container mx-auto px-4 py-10 max-w-3xl">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-black text-gray-800">Yêu cầu hoàn tiền của tôi</h1>
+        <a href="/Payment/History" class="text-sm font-bold text-indigo-600 hover:underline">← Lịch sử thanh toán</a>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center text-gray-400">
+            Bạn chưa gửi yêu cầu hoàn tiền nào.
+        </div>
+    }
+    else
+    {
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50">
+            @foreach (var r in Model.Items)
+            {
+                var st = Status(r.Status);
+                <a href="/Payment/RefundDetail/@r.RefundRequestId" class="p-5 flex items-center justify-between gap-4 hover:bg-gray-50">
+                    <div>
+                        <p class="font-bold text-gray-800">@r.Amount.ToString("#,##0") ₫</p>
+                        <p class="text-xs text-gray-400">Gửi @r.CreatedAt.ToString("dd/MM/yyyy") · GD #@r.PaymentId · @r.ReasonCode</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold @st.cls">@st.label</span>
+                </a>
+            }
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <div class="flex justify-center gap-2 mt-6 text-sm">
+                @if (Model.HasPrev) { <a href="?page=@(Model.Page - 1)" class="px-3 py-1.5 rounded border border-gray-200">← Trước</a> }
+                <span class="px-3 py-1.5">Trang @Model.Page / @Model.TotalPages</span>
+                @if (Model.HasNext) { <a href="?page=@(Model.Page + 1)" class="px-3 py-1.5 rounded border border-gray-200">Sau →</a> }
+            </div>
+        }
+    }
+</div>

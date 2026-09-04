@@ -1,0 +1,72 @@
+@using ToanHocHay.WebApp.Models.DTOs.Payment
+@model CreateRefundRequestDto
+@{
+    ViewData["Title"] = "Yêu cầu hoàn tiền";
+    var payment = ViewBag.Payment as PaymentDto;
+}
+
+<div class="container mx-auto px-4 py-10 max-w-xl">
+    <h1 class="text-2xl font-black text-gray-800 mb-2">Yêu cầu hoàn tiền</h1>
+    <p class="text-sm text-gray-500 mb-6">
+        Yêu cầu sẽ được bộ phận tài chính xem xét. Chỉ hoàn cho giao dịch đã thanh toán,
+        trong vòng 180 ngày. Tiền hoàn về tài khoản ngân hàng bạn cung cấp.
+    </p>
+
+    @if (payment != null)
+    {
+        <div class="bg-gray-50 rounded-xl border border-gray-100 p-4 mb-6 text-sm">
+            <div class="flex justify-between"><span class="text-gray-400">Giao dịch</span><b>#@payment.PaymentId</b></div>
+            <div class="flex justify-between"><span class="text-gray-400">Số tiền đã trả</span><b>@payment.Amount.ToString("#,##0") ₫</b></div>
+            <div class="flex justify-between"><span class="text-gray-400">Ngày</span><b>@payment.PaymentDate.ToString("dd/MM/yyyy")</b></div>
+        </div>
+    }
+
+    <div asp-validation-summary="All" class="mb-4 text-sm text-red-600"></div>
+
+    <form asp-action="Refund" method="post" class="space-y-4 bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="PaymentId" />
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Lý do</label>
+            <select asp-for="ReasonCode" asp-items="Html.GetEnumSelectList<RefundReasonCode>()"
+                    class="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none"></select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Ghi chú (tuỳ chọn)</label>
+            <textarea asp-for="ReasonNote" rows="2" maxlength="500"
+                      class="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none"></textarea>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Số tiền muốn hoàn (₫) — để trống = hoàn toàn bộ</label>
+            <input asp-for="Amount" type="number" step="1000" min="0"
+                   class="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none" />
+        </div>
+
+        <hr class="border-gray-100" />
+        <p class="text-xs font-bold text-gray-400 uppercase">Tài khoản nhận tiền hoàn</p>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Mã ngân hàng (napas, 4–12 số)</label>
+            <input asp-for="BankBin" inputmode="numeric" placeholder="970436"
+                   class="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none" />
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Số tài khoản (6–20 số)</label>
+            <input asp-for="BankAccountNumber" inputmode="numeric"
+                   class="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none" />
+        </div>
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Tên chủ tài khoản</label>
+            <input asp-for="BankAccountHolderName" placeholder="NGUYEN VAN A"
+                   class="w-full px-3 py-2.5 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none" />
+        </div>
+
+        <button type="submit" class="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700">
+            Gửi yêu cầu hoàn tiền
+        </button>
+        <a href="/Payment/History" class="block text-center text-sm text-gray-400 hover:text-gray-600">← Quay lại lịch sử thanh toán</a>
+    </form>
+</div>

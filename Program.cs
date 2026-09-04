@@ -47,11 +47,12 @@ builder.Services.AddHttpClient<ChatApiService>(client => client.BaseAddress = fi
 builder.Services.AddScoped<IDashboardApiService, DashboardApiService>();
 builder.Services.AddHttpClient<PackageApiService>(client => client.BaseAddress = finalApiUrl)
     .AddHttpMessageHandler<AuthTokenHandler>();
-builder.Services.AddHttpClient<SubscriptionApiService>(client => client.BaseAddress = finalApiUrl)
-    .AddHttpMessageHandler<AuthTokenHandler>();
 
-// Tầng nội dung học mới (P2) — dùng ApiClient.
+// Các service dùng ApiClient (P2/P4/P5).
 builder.Services.AddScoped<ContentApiService>();
+builder.Services.AddScoped<SubscriptionApiService>();
+builder.Services.AddScoped<PaymentApiService>();
+builder.Services.AddScoped<RefundApiService>();
 
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();

@@ -1,106 +1,50 @@
-﻿// FILE: ToanHocHay.WebApp/Services/SubscriptionApiService.cs
-using System.Net.Http.Headers;
-using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
+    /// <summary>
+    /// Gói &amp; subscription (P5). Backend: giá lấy từ <c>Package.Price</c> (KHÔNG nhận
+    /// <c>AmountPaid</c>); vòng đời tự động (Active hết hạn → Expired, Pending quá 30′ → Cancelled).
+    /// </summary>
     public class SubscriptionApiService
     {
-        private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JsonSerializerOptions _jsonOptions;
+        private readonly ApiClient _api;
 
-        public SubscriptionApiService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
+        public SubscriptionApiService(ApiClient api) => _api = api;
+
+        /// <summary>POST /api/subscriptions — trả { subscriptionId, amount, qrUrl }.</summary>
+        public async Task<CreateSubscriptionResultDto?> CreateSubscriptionAsync(int studentId, int packageId, decimal amount = 0)
         {
-            _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
-            _jsonOptions = ApiJson.Options;
+            var r = await _api.PostAsync<CreateSubscriptionResultDto>(
+                ApiRoutes.Subscriptions.Create, new { StudentId = studentId, PackageId = packageId });
+            return r.IsSuccess ? r.Data : null;
         }
 
-        private void AddAuthHeader()
-        {
-            var token = _httpContextAccessor.HttpContext?.Session.GetString("Token");
-            if (!string.IsNullOrEmpty(token))
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token);
-        }
-
-        private string? GetToken() =>
-            _httpContextAccessor.HttpContext?.Session.GetString("Token")
-            ?? _httpContextAccessor.HttpContext?.User.FindFirst("Token")?.Value;
-
-        /// <summary>
-        /// Tạo subscription + lấy QR URL
-        /// POST /api/Subscription
-        /// </summary>
-        public async Task<CreateSubscriptionResultDto?> CreateSubscriptionAsync(int studentId, int packageId, decimal amount)
-        {
-            try
-            {
-                AddAuthHeader();
-                // Backend nay tự lấy giá từ Package.Price — KHÔNG nhận AmountPaid nữa (Đợt 5 dọn tiếp).
-                var payload = new { StudentId = studentId, PackageId = packageId };
-                var response = await _httpClient.PostAsJsonAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Subscriptions.Create}", payload, _jsonOptions);
-                if (!response.IsSuccessStatusCode) return null;
-                // Backend bọc vỏ ApiResponse<{ subscriptionId, amount, qrUrl }>.
-                var wrapper = await response.Content
-                    .ReadFromJsonAsync<ApiResponse<CreateSubscriptionResultDto>>(_jsonOptions);
-                return wrapper?.Success == true ? wrapper.Data : null;
-            }
-            catch { return null; }
-        }
-
-        /// <summary>
-        /// Lấy subscription hiện tại của học sinh
-        /// GET /api/student/{studentId}/subscription/current
-        /// Trả về SubscriptionInfoDto (dùng PackageType để map sang PackageId)
-        /// </summary>
+        /// <summary>GET /api/students/{id}/subscription/current — dùng cho phụ huynh xem con.</summary>
         public async Task<SubscriptionInfoDto?> GetCurrentSubscriptionAsync(int studentId)
         {
-            try
-            {
-                var token = GetToken();
-                if (string.IsNullOrEmpty(token)) return null;
-
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token.Trim());
-
-                // Route đổi: student → students (A5)
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.CurrentSubscription(studentId)}");
-
-                if (!response.IsSuccessStatusCode) return null;
-
-                var wrapper = await response.Content
-                    .ReadFromJsonAsync<ApiResponse<SubscriptionInfoDto>>(_jsonOptions);
-
-                return wrapper?.Success == true ? wrapper.Data : null;
-            }
-            catch { return null; }
+            var r = await _api.GetAsync<SubscriptionInfoDto>(ApiRoutes.Students.CurrentSubscription(studentId));
+            return r.IsSuccess ? r.Data : null;
         }
 
-        /// <summary>
-        /// Kiểm tra trạng thái subscription theo ID
-        /// GET /api/Subscription/{id}
-        /// </summary>
+        /// <summary>GET /api/subscriptions/me — gói của chính người đăng nhập (Free khi chưa có).</summary>
+        public async Task<SubscriptionInfoDto?> GetMySubscriptionAsync()
+        {
+            var r = await _api.GetAsync<SubscriptionInfoDto>(ApiRoutes.Subscriptions.Mine);
+            return r.IsSuccess ? r.Data : null;
+        }
+
+        /// <summary>GET /api/subscriptions/status/{id} — { status, endDate } cho màn QR.</summary>
         public async Task<SubscriptionStatusDto?> GetSubscriptionStatusAsync(int subscriptionId)
         {
-            try
-            {
-                AddAuthHeader();
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Subscriptions.Status(subscriptionId)}");
-                if (!response.IsSuccessStatusCode) return null;
-                // Backend bọc vỏ ApiResponse<{ status, endDate }>.
-                var wrapper = await response.Content
-                    .ReadFromJsonAsync<ApiResponse<SubscriptionStatusDto>>(_jsonOptions);
-                return wrapper?.Success == true ? wrapper.Data : null;
-            }
-            catch { return null; }
+            var r = await _api.GetAsync<SubscriptionStatusDto>(ApiRoutes.Subscriptions.Status(subscriptionId));
+            return r.IsSuccess ? r.Data : null;
         }
+
+        /// <summary>PUT /api/subscriptions/cancel/{id}.</summary>
+        public Task<ApiResult> CancelAsync(int subscriptionId)
+            => _api.PutAsync(ApiRoutes.Subscriptions.Cancel(subscriptionId));
     }
 }

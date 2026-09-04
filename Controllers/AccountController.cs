@@ -21,17 +21,20 @@ namespace ToanHocHay.WebApp.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly HttpClient _httpClient;
         private readonly ITokenStore _tokenStore;
+        private readonly SubscriptionApiService _subscriptions;
 
         public AccountController(
             AuthApiService authService,
             ILogger<AccountController> logger,
             IHttpClientFactory httpClientFactory,
-            ITokenStore tokenStore)
+            ITokenStore tokenStore,
+            SubscriptionApiService subscriptions)
         {
             _authService = authService;
             _logger = logger;
             _httpClient = httpClientFactory.CreateClient();
             _tokenStore = tokenStore;
+            _subscriptions = subscriptions;
         }
 
         /// <summary>Bậc gói → số cũ (0=Free,1=Standard,2=Premium/Yearly) cho claim "PackageType" — giữ
@@ -268,6 +271,32 @@ namespace ToanHocHay.WebApp.Controllers
             HttpContext.Session.Clear();
             Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
             return RedirectToAction("Login", "Account");
+        }
+
+        // ================= ĐỒNG BỘ GÓI SAU KHI THANH TOÁN =================
+        // Sau khi mua gói, claim "PackageTier" trong cookie vẫn cũ (30' theo access token).
+        // Gọi endpoint này (từ trang thanh toán thành công) để cập nhật claim ngay, không cần đăng nhập lại.
+        [HttpPost]
+        [Microsoft.AspNetCore.Authorization.Authorize]
+        public async Task<IActionResult> SyncPackage()
+        {
+            var info = await _subscriptions.GetMySubscriptionAsync();
+            var tier = info?.PackageTier ?? PackageTier.Free;
+
+            var identity = (ClaimsIdentity)User.Identity!;
+            foreach (var name in new[] { "PackageTier", "PackageType" })
+            {
+                var old = identity.FindFirst(name);
+                if (old != null) identity.RemoveClaim(old);
+            }
+            identity.AddClaim(new Claim("PackageTier", tier.ToString()));
+            identity.AddClaim(new Claim("PackageType", LegacyPackageLevel(tier).ToString()));
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(identity),
+                new AuthenticationProperties { IsPersistent = true });
+
+            return Json(new { ok = true, tier = tier.ToString(), packageName = info?.PackageName ?? "Free" });
         }
 
         // ================= QUÊN / ĐẶT LẠI MẬT KHẨU =================
