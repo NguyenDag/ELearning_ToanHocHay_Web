@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 namespace ToanHocHay.WebApp.Models.DTOs
 {
+    public enum TrendDirection { Up, Down, Same }
+
     // Cấu trúc dữ liệu chuẩn để hứng JSON từ Backend
     public class CoreDashboardDto
     {
@@ -9,7 +11,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public OverviewStatsDto Stats { get; set; }
         public List<RecentLessonDto> RecentLessons { get; set; }
         public List<ChapterProgressSummaryDto> ChapterProgress { get; set; }
-        public int PackageType { get; set; }
+        public PackageTier PackageTier { get; set; }
         public DashboardLinksDto Links { get; set; }
 
         // ── THÊM MỚI ──────────────────────────────────────────────
@@ -38,10 +40,10 @@ namespace ToanHocHay.WebApp.Models.DTOs
     }
     public class ComparisonDto
     {
-        public double ScoreChange { get; set; }
+        public int ScoreChange { get; set; }
         public int StudyTimeChange { get; set; }
         public int ExerciseCountChange { get; set; }
-        public int Direction { get; set; }
+        public TrendDirection Direction { get; set; }
     }
     public class RecentLessonDto
     {
@@ -49,8 +51,8 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public string LessonName { get; set; }
         public string TopicName { get; set; }
         public string ChapterName { get; set; }
-        public DateTime CompletedAt { get; set; }
-        public int DurationMinutes { get; set; }
+        public DateTime? CompletedAt { get; set; }
+        public int? DurationMinutes { get; set; }
         public bool IsCompleted { get; set; }
         public int ProgressPercentage { get; set; }
         public double? Score { get; set; }
@@ -66,7 +68,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public int CompletedTopics { get; set; }
         public int TotalTopics { get; set; }
         public bool IsLocked { get; set; }
-        public double CurrentMastery { get; set; }
+        public string? CurrentMastery { get; set; }   // NotStarted | Beginner | Intermediate | Advanced | Mastered
     }
     public class DashboardLinksDto
     {

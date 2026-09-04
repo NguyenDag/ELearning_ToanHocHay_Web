@@ -1,9 +1,9 @@
 // FILE: ToanHocHay.WebApp/Controllers/DashboardController.cs
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Controllers
 {
@@ -24,119 +24,98 @@ namespace ToanHocHay.WebApp.Controllers
             _logger = logger;
         }
 
+        private int? StudentId =>
+            int.TryParse(User.FindFirst("StudentId")?.Value, out var id) ? id : null;
+
         public async Task<IActionResult> Index()
         {
-            try
+            if (StudentId is not { } studentId)
+                return RedirectToAction("Login", "Account");
+
+            var res = await _apiService.GetStudentDashboardAsync(studentId);
+
+            if (res.IsUnauthorized)
+                return RedirectToAction("Login", "Account");
+            if (!res.IsSuccess || res.Data == null)
             {
-                var studentIdClaim = User.FindFirst("StudentId")?.Value;
-                if (string.IsNullOrEmpty(studentIdClaim))
-                {
-                    _logger.LogWarning("Không tìm thấy StudentId trong Claims.");
-                    return RedirectToAction("Login", "Account");
-                }
-
-                int studentId = int.Parse(studentIdClaim);
-
-                // 1. Lấy dashboard data
-                var data = await _apiService.GetStudentDashboardAsync(studentId);
-                if (data == null)
-                {
-                    _logger.LogError("API trả về NULL cho StudentId: {Id}", studentId);
-                    return RedirectToAction("Login", "Account");
-                }
-
-                // 2. Nếu backend chưa trả SubscriptionInfo (PackageType = 0, IsActive = false)
-                //    → gọi riêng subscription endpoint để lấy đúng gói
-                bool subInfoMissing = data.SubscriptionInfo == null
-                                   || (!data.SubscriptionInfo.IsActive && data.SubscriptionInfo.PackageType == 0);
-
-                if (subInfoMissing)
-                {
-                    var sub = await _subscriptionService.GetCurrentSubscriptionAsync(studentId);
-                    if (sub != null)
-                    {
-                        data.SubscriptionInfo = sub;
-                        // Đồng bộ PackageType ở root DTO để tương thích backward
-                        data.PackageType = sub.PackageType;
-                    }
-                    else
-                    {
-                        // Không có subscription → Free
-                        data.SubscriptionInfo ??= new SubscriptionInfoDto
-                        {
-                            PackageType = 0,
-                            PackageName = "Free",
-                            IsActive = false,
-                            AiHintLimitDaily = 0,
-                        };
-                    }
-                }
-
-                // 3. Xóa bài tập lặp (GroupBy LessonId)
-                if (data.RecentLessons != null)
-                {
-                    data.RecentLessons = data.RecentLessons
-                        .GroupBy(l => l.LessonId)
-                        .Select(g => g.OrderByDescending(x => x.CompletedAt).First())
-                        .Take(5)
-                        .ToList();
-                }
-
-                return View("~/Views/Student/Dashboard.cshtml", data);
+                TempData[ApiResultExtensions.TempDataError] = res.DisplayMessage;
+                return View("~/Views/Student/Dashboard.cshtml", new CoreDashboardDto());
             }
-            catch (Exception ex)
+
+            var data = res.Data;
+
+            // Bổ sung SubscriptionInfo nếu backend chưa kèm.
+            if (data.SubscriptionInfo == null || (!data.SubscriptionInfo.IsActive && data.SubscriptionInfo.PackageTier == PackageTier.Free))
             {
-                _logger.LogError(ex, "Lỗi Dashboard");
-                return View("Error");
+                var sub = await _subscriptionService.GetCurrentSubscriptionAsync(studentId);
+                if (sub != null)
+                {
+                    data.SubscriptionInfo = sub;
+                    data.PackageTier = sub.PackageTier;
+                }
+                else
+                {
+                    data.SubscriptionInfo ??= new SubscriptionInfoDto();
+                }
             }
+
+            if (data.RecentLessons != null)
+            {
+                data.RecentLessons = data.RecentLessons
+                    .GroupBy(l => l.LessonId)
+                    .Select(g => g.OrderByDescending(x => x.CompletedAt ?? DateTime.MinValue).First())
+                    .Take(5)
+                    .ToList();
+            }
+
+            // Tier gating cho phần UI nâng cao — backend đã null-hoá Link tương ứng theo gói.
+            ViewBag.CanChart = data.Links?.Charts != null || data.PackageTier >= PackageTier.Standard;
+            ViewBag.CanAI = data.Links?.AIInsights != null || data.PackageTier >= PackageTier.Premium;
+
+            return View("~/Views/Student/Dashboard.cshtml", data);
         }
 
-        // GET /Dashboard/ChartData — AJAX cho biểu đồ Standard+
+        // GET /Dashboard/ChartData — AJAX cho biểu đồ (Standard+)
         [HttpGet]
         public async Task<IActionResult> ChartData()
         {
-            var studentIdClaim = User.FindFirst("StudentId")?.Value;
-            if (string.IsNullOrEmpty(studentIdClaim))
-                return Unauthorized();
+            if (StudentId is not { } studentId) return Unauthorized();
 
-            int studentId = int.Parse(studentIdClaim);
-            var data = await _apiService.GetChapterScoreComparisonAsync(studentId);
+            var res = await _apiService.GetChapterScoreComparisonAsync(studentId);
 
-            // DEBUG TẠM
-            Console.WriteLine($"=== CHART DEBUG: studentId={studentId}, data={data?.Count ?? -1} ===");
+            if (res.IsForbidden)
+                return Json(new { success = false, upgradeRequired = true, message = "Biểu đồ điểm theo chương cần gói Tiêu chuẩn trở lên." });
+            if (!res.IsSuccess)
+                return Json(new { success = false, message = res.DisplayMessage });
 
-            if (data == null)
-                return Json(new { success = false, reason = "data_null" });
-            if (data.Count == 0)
-                return Json(new { success = false, reason = "data_empty" });
-
-            return Json(new { success = true, data });
+            var data = res.Data ?? new List<ChapterScoreDto>();
+            return data.Count == 0
+                ? Json(new { success = false, reason = "data_empty" })
+                : Json(new { success = true, data });
         }
 
         [HttpGet]
-        public async Task<IActionResult> AIAssessment()
-        {
-            var studentIdClaim = User.FindFirst("StudentId")?.Value;
-            if (string.IsNullOrEmpty(studentIdClaim)) return Unauthorized();
-
-            int studentId = int.Parse(studentIdClaim);
-            var result = await _apiService.GetAIAssessmentAsync(studentId);
-            if (result == null) return Json(new { success = false, message = "Không thể kết nối máy chủ AI" });
-
-            return Json(new { success = true, data = result });
-        }
+        public Task<IActionResult> AIAssessment() => AiInsight(assessment: true);
 
         [HttpGet]
-        public async Task<IActionResult> AIRoadmap()
+        public Task<IActionResult> AIRoadmap() => AiInsight(assessment: false);
+
+        private async Task<IActionResult> AiInsight(bool assessment)
         {
-            var studentIdClaim = User.FindFirst("StudentId")?.Value;
-            if (string.IsNullOrEmpty(studentIdClaim)) return Unauthorized();
+            if (StudentId is not { } studentId) return Unauthorized();
 
-            int studentId = int.Parse(studentIdClaim);
-            var result = await _apiService.GetAIRoadmapAsync(studentId);
-            if (result == null) return Json(new { success = false, message = "Không thể kết nối máy chủ AI" });
+            var res = assessment
+                ? await _apiService.GetAIAssessmentAsync(studentId)
+                : await _apiService.GetAIRoadmapAsync(studentId);
 
-            return Json(new { success = true, data = result });
+            if (res.IsForbidden)
+                return Json(new { success = false, upgradeRequired = true, message = "Tính năng phân tích AI cần gói Premium." });
+            if (res.IsNotFound)
+                return Json(new { success = false, message = "Chưa đủ dữ liệu học tập để AI phân tích. Hãy làm thêm bài tập nhé!" });
+            if (!res.IsSuccess || res.Data == null)
+                return Json(new { success = false, message = res.DisplayMessage });
+
+            return Json(new { success = true, data = res.Data });
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     public class SubscriptionInfoDto
     {
-        public int PackageType { get; set; } = 0;
+        public PackageTier PackageTier { get; set; } = PackageTier.Free;
         public string PackageName { get; set; } = "Free";
         public DateTime? EndDate { get; set; }
         public bool IsActive { get; set; } = false;

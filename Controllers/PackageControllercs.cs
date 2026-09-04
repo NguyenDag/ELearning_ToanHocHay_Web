@@ -34,15 +34,13 @@ namespace ToanHocHay.WebApp.Controllers
 
                     if (sub != null && sub.IsActive)
                     {
-                        // Map PackageType (0=Free,1=Standard,2=Premium) → PackageId thực trong DB
-                        int? matchedPackageId = null;
-                        if (packages != null)
-                        {
-                            matchedPackageId = packages.FirstOrDefault(p => p.PackageId == sub.PackageType)?.PackageId;
-                        }
+                        // Khớp gói đang dùng theo TÊN (backend trả PackageTier + PackageName, không phải PackageId).
+                        var matched = packages?.FirstOrDefault(p =>
+                            string.Equals(p.PackageName?.Trim(), sub.PackageName?.Trim(), StringComparison.OrdinalIgnoreCase));
 
-                        ViewData["CurrentPackageId"] = matchedPackageId;
+                        ViewData["CurrentPackageId"] = matched?.PackageId;
                         ViewData["CurrentPackageName"] = sub.PackageName;
+                        ViewData["CurrentPackageTier"] = sub.PackageTier.ToString();
                         ViewData["SubEndDate"] = sub.EndDate?.ToString("dd/MM/yyyy") ?? "";
                     }
                 }

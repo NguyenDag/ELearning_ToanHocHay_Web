@@ -8,18 +8,18 @@
     bool isDbConnected = Model?.StudentInfo != null && Model.StudentInfo.StudentId > 0;
 
     var sub = Model?.SubscriptionInfo ?? new SubscriptionInfoDto();
-    int packageType = sub.PackageType;
-    bool isFree = packageType == 0;
-    bool isTrial = packageType == 1;
-    bool isStandard = packageType >= 2;
-    bool isPremium = packageType >= 3;
+    var tier = Model?.PackageTier ?? sub.PackageTier;
+    bool isFree = tier == PackageTier.Free;
+    bool isStandard = tier >= PackageTier.Standard;                 // Standard / Premium / Yearly
+    bool isPremium = tier == PackageTier.Premium || tier == PackageTier.Yearly;
+    bool isTrial = isStandard && !isPremium;                        // "Tiêu chuẩn" ~ bản dùng thử nâng cao
 
-    bool canChart = isStandard;
-    bool canAiHint = isTrial || isStandard;
+    bool canChart = (ViewBag.CanChart as bool?) ?? isStandard;
+    bool canAiHint = isStandard || sub.AiHintLimitDaily > 0 || sub.UnlimitedAiHint;
     bool canUnlimitedHint = isPremium || sub.UnlimitedAiHint;
     bool canPersonalPath = isPremium || sub.PersonalizedPath;
     bool canMistakeRetry = isStandard || sub.MistakeRetry;
-    bool canAiAssessment = isPremium;
+    bool canAiAssessment = (ViewBag.CanAI as bool?) ?? isPremium;
 
     string hintDisplay = canUnlimitedHint ? "∞"
                        : canAiHint ? $"0/{sub.AiHintLimitDaily ?? 5}"
@@ -262,10 +262,11 @@
                             </div>
                         </div>
                         <div id="chart-empty" class="hidden absolute inset-0 flex items-center justify-center">
-                            <div class="text-center">
+                            <div class="text-center px-4">
                                 <i class="fa-solid fa-chart-bar text-slate-200 text-4xl mb-3"></i>
-                                <p class="text-slate-400 font-bold text-sm">Chưa có dữ liệu bài tập</p>
-                                <p class="text-slate-300 text-xs font-bold mt-1">Hãy làm bài tập để xem biểu đồ</p>
+                                <p id="chart-empty-title" class="text-slate-400 font-bold text-sm">Chưa có dữ liệu bài tập</p>
+                                <p id="chart-empty-sub" class="text-slate-300 text-xs font-bold mt-1">Hãy làm bài tập để xem biểu đồ</p>
+                                <a id="chart-upgrade-link" href="/Package" class="hidden inline-block mt-3 px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold">Nâng cấp gói</a>
                             </div>
                         </div>
                     </div>
@@ -376,7 +377,7 @@
                                             </div>
                                             <div class="max-w-[150px]">
                                                 <p class="font-black text-slate-700 text-sm leading-tight truncate">@item.LessonName</p>
-                                                <p class="text-[10px] text-slate-400 font-bold uppercase mt-1 italic">@item.CompletedAt.ToString("dd/MM")</p>
+                                                <p class="text-[10px] text-slate-400 font-bold uppercase mt-1 italic">@(item.CompletedAt?.ToString("dd/MM") ?? "—")</p>
                                             </div>
                                         </div>
                                         <span class="text-sm font-black text-slate-800">
@@ -511,6 +512,11 @@
                 if (!json.success || !json.data || json.data.length === 0) {
                     document.getElementById('chart-empty')?.classList.remove('hidden');
                     document.getElementById('chart-legend')?.classList.add('hidden');
+                    if (json.upgradeRequired) {
+                        document.getElementById('chart-empty-title').textContent = json.message || 'Tính năng cần gói cao hơn';
+                        document.getElementById('chart-empty-sub').textContent = '';
+                        document.getElementById('chart-upgrade-link')?.classList.remove('hidden');
+                    }
                     return;
                 }
 

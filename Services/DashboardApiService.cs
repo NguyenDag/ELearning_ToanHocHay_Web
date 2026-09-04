@@ -1,152 +1,39 @@
-// FILE: ToanHocHay.WebApp/Services/DashboardApiService.cs
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text.Json;
 using ToanHocHay.WebApp.Common.Constants;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Services
 {
+    /// <summary>
+    /// Dashboard học sinh (P4). Mọi endpoint nay bọc vỏ <c>ApiResponse&lt;T&gt;</c> và có
+    /// tier-gating: <c>chapter-score-comparison</c> cần Standard+, <c>ai-assessment</c> /
+    /// <c>ai-roadmap</c> cần Premium+ → trả <b>403</b> khi không đủ (giữ trong <see cref="ApiResult{T}"/>).
+    /// </summary>
     public interface IDashboardApiService
     {
-        Task<CoreDashboardDto?> GetStudentDashboardAsync(int studentId);
-        Task<List<ChapterScoreDto>?> GetChapterScoreComparisonAsync(int studentId);
-        Task<AIInsightResponse?> GetAIAssessmentAsync(int studentId);
-        Task<AIInsightResponse?> GetAIRoadmapAsync(int studentId);
+        Task<ApiResult<CoreDashboardDto>> GetStudentDashboardAsync(int studentId);
+        Task<ApiResult<List<ChapterScoreDto>>> GetChapterScoreComparisonAsync(int studentId);
+        Task<ApiResult<AIInsightResponse>> GetAIAssessmentAsync(int studentId);
+        Task<ApiResult<AIInsightResponse>> GetAIRoadmapAsync(int studentId);
     }
 
     public class DashboardApiService : IDashboardApiService
     {
-        private readonly HttpClient _httpClient;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JsonSerializerOptions _jsonOptions;
+        private readonly ApiClient _api;
 
-        public DashboardApiService(HttpClient httpClient, IHttpContextAccessor httpContextAccessor)
-        {
-            _httpClient = httpClient;
-            _httpContextAccessor = httpContextAccessor;
-            _jsonOptions = ApiJson.Options;
-        }
+        public DashboardApiService(ApiClient api) => _api = api;
 
-        private void SetStatus(string status)
-        {
-            if (_httpContextAccessor.HttpContext != null)
-                _httpContextAccessor.HttpContext.Items["LastApiStatus"] = status;
-        }
+        public Task<ApiResult<CoreDashboardDto>> GetStudentDashboardAsync(int studentId)
+            => _api.GetAsync<CoreDashboardDto>(ApiRoutes.Students.DashboardOverview(studentId));
 
-        private string? GetToken()
-        {
-            var ctx = _httpContextAccessor.HttpContext;
-            if (ctx == null) return null;
+        public Task<ApiResult<List<ChapterScoreDto>>> GetChapterScoreComparisonAsync(int studentId)
+            => _api.GetAsync<List<ChapterScoreDto>>(ApiRoutes.Students.ChapterScoreComparison(studentId));
 
-            var sessionToken = ctx.Session.GetString("Token")
-                            ?? ctx.Session.GetString("JWT");
-            if (!string.IsNullOrEmpty(sessionToken)) return sessionToken;
+        public Task<ApiResult<AIInsightResponse>> GetAIAssessmentAsync(int studentId)
+            => _api.GetAsync<AIInsightResponse>(ApiRoutes.Students.AiAssessment(studentId));
 
-            return ctx.User.FindFirst("Token")?.Value
-                ?? ctx.User.FindFirst("jwt")?.Value;
-        }
-
-        public async Task<CoreDashboardDto?> GetStudentDashboardAsync(int studentId)
-        {
-            try
-            {
-                var token = GetToken();
-                if (string.IsNullOrEmpty(token))
-                {
-                    SetStatus("TOKEN_MISSING");
-                    return null;
-                }
-
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token.Trim());
-
-                // Route đổi: /api/student/{id}/dashboard → /api/students/{id}/dashboard/overview (A5)
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.DashboardOverview(studentId)}");
-
-                SetStatus(((int)response.StatusCode).ToString());
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    SetStatus($"{(int)response.StatusCode}:{errorBody[..Math.Min(40, errorBody.Length)]}");
-                    return null;
-                }
-
-                var apiResponse = await response.Content
-                    .ReadFromJsonAsync<ApiResponse<CoreDashboardDto>>(_jsonOptions);
-
-                if (apiResponse == null || !apiResponse.Success)
-                {
-                    SetStatus($"API_FAIL:{apiResponse?.Message ?? "null"}");
-                    return null;
-                }
-
-                _httpContextAccessor.HttpContext?.Session.SetString("Token", token);
-                return apiResponse.Data;
-            }
-            catch (Exception ex)
-            {
-                SetStatus($"ERR:{ex.Message[..Math.Min(30, ex.Message.Length)]}");
-                return null;
-            }
-        }
-
-        public async Task<List<ChapterScoreDto>?> GetChapterScoreComparisonAsync(int studentId)
-        {
-            try
-            {
-                var token = GetToken();
-                if (string.IsNullOrEmpty(token)) return null;
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token.Trim());
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.ChapterScoreComparison(studentId)}");
-                if (!response.IsSuccessStatusCode) return null;
-
-                // FIX: deserialize List directly since backend returns Ok(result) without ApiResponse wrapper
-                var data = await response.Content
-                    .ReadFromJsonAsync<List<ChapterScoreDto>>(ApiJson.Options);
-                return data;
-            }
-            catch { return null; }
-        }
-
-        public async Task<AIInsightResponse?> GetAIAssessmentAsync(int studentId)
-        {
-            try
-            {
-                var token = GetToken();
-                if (string.IsNullOrEmpty(token)) return null;
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token.Trim());
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.AiAssessment(studentId)}");
-                if (!response.IsSuccessStatusCode) return null;
-
-                return await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);
-            }
-            catch { return null; }
-        }
-
-        public async Task<AIInsightResponse?> GetAIRoadmapAsync(int studentId)
-        {
-            try
-            {
-                var token = GetToken();
-                if (string.IsNullOrEmpty(token)) return null;
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", token.Trim());
-                var response = await _httpClient.GetAsync(
-                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Students.AiRoadmap(studentId)}");
-                if (!response.IsSuccessStatusCode) return null;
-
-                return await response.Content.ReadFromJsonAsync<AIInsightResponse>(_jsonOptions);
-            }
-            catch { return null; }
-        }
+        public Task<ApiResult<AIInsightResponse>> GetAIRoadmapAsync(int studentId)
+            => _api.GetAsync<AIInsightResponse>(ApiRoutes.Students.AiRoadmap(studentId));
     }
 
     public class ChapterScoreDto

@@ -44,8 +44,7 @@ builder.Services.AddHttpClient<ExamApiService>(client => client.BaseAddress = fi
     .AddHttpMessageHandler<AuthTokenHandler>();
 builder.Services.AddHttpClient<ChatApiService>(client => client.BaseAddress = finalApiUrl)
     .AddHttpMessageHandler<AuthTokenHandler>();
-builder.Services.AddHttpClient<IDashboardApiService, DashboardApiService>(client => client.BaseAddress = finalApiUrl)
-    .AddHttpMessageHandler<AuthTokenHandler>();
+builder.Services.AddScoped<IDashboardApiService, DashboardApiService>();
 builder.Services.AddHttpClient<PackageApiService>(client => client.BaseAddress = finalApiUrl)
     .AddHttpMessageHandler<AuthTokenHandler>();
 builder.Services.AddHttpClient<SubscriptionApiService>(client => client.BaseAddress = finalApiUrl)

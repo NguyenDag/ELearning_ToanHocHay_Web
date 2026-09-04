@@ -38,8 +38,9 @@ namespace ToanHocHay.WebApp.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
-            var studentIdClaim = User.FindFirst("StudentId")?.Value;
-            int studentId = string.IsNullOrEmpty(studentIdClaim) ? 5 : int.Parse(studentIdClaim);
+            if (!int.TryParse(User.FindFirst("StudentId")?.Value, out var studentId))
+                return RedirectToAction("Login", "Account");
+
             var stats = await _courseApiService.GetStudentDashboardStatsAsync(studentId);
             return View(stats ?? new CoreDashboardDto());
         }
