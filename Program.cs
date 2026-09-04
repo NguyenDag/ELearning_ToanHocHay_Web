@@ -27,6 +27,15 @@ builder.Services.AddHttpContextAccessor();
 // --- TẦNG GỌI API CHUẨN HOÁ ---
 builder.Services.AddScoped<ITokenStore, SessionTokenStore>();
 builder.Services.AddTransient<AuthTokenHandler>();
+builder.Services.AddTransient<ClientContextHandler>();
+
+// Gắn ClientContextHandler (X-Client-Key) vào MỌI HttpClient gọi Backend — kể cả client
+// mặc định và client "thô" — để rate limiter phía Backend phân vùng theo người dùng cuối.
+builder.Services.ConfigureAll<Microsoft.Extensions.Http.HttpClientFactoryOptions>(options =>
+{
+    options.HttpMessageHandlerBuilderActions.Add(b =>
+        b.AdditionalHandlers.Add(b.Services.GetRequiredService<ClientContextHandler>()));
+});
 
 // Client "thô" chỉ dùng cho refresh-token — KHÔNG gắn AuthTokenHandler (tránh đệ quy).
 builder.Services.AddHttpClient(AuthTokenHandler.RawClientName, c => c.BaseAddress = finalApiUrl);
