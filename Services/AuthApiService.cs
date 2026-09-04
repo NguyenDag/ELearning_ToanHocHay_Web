@@ -20,29 +20,64 @@ namespace ToanHocHay.WebApp.Services
         // 1. Đăng nhập
         public async Task<(LoginResponseDto? data, string? error)> Login(LoginRequestDto request)
         {
-            var response = await _httpClient.PostAsJsonAsync(ApiRoutes.Auth.Login, request, _jsonOptions);
-            var resString = await response.Content.ReadAsStringAsync();
-            var apiResponse = JsonSerializer.Deserialize<ApiResponse<LoginResponseDto>>(resString, _jsonOptions);
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.PostAsJsonAsync(ApiRoutes.Auth.Login, request, _jsonOptions);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                return (null, "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.");
+            }
+
+            var apiResponse = await TryReadEnvelopeAsync<LoginResponseDto>(response);
 
             if (!response.IsSuccessStatusCode)
-            {
-                return (null, apiResponse?.Message ?? "Đăng nhập thất bại");
-            }
-            return (apiResponse!.Data, null);
+                return (null, apiResponse?.Message ?? FallbackByStatus(response, "Đăng nhập thất bại"));
+
+            return (apiResponse?.Data, apiResponse?.Data == null ? "Đăng nhập thất bại" : null);
         }
 
         // 2. Đăng ký
         public async Task<(bool success, string? error)> Register(RegisterRequestDto request)
         {
-            var response = await _httpClient.PostAsJsonAsync(ApiRoutes.Auth.Register, request, _jsonOptions);
-            var apiResponse = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.PostAsJsonAsync(ApiRoutes.Auth.Register, request, _jsonOptions);
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+            {
+                return (false, "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.");
+            }
+
+            var apiResponse = await TryReadEnvelopeAsync<bool>(response);
 
             if (!response.IsSuccessStatusCode || apiResponse == null || !apiResponse.Success)
-            {
-                return (false, apiResponse?.Message ?? "Đăng ký thất bại");
-            }
+                return (false, apiResponse?.Message ?? FallbackByStatus(response, "Đăng ký thất bại"));
+
             return (true, null);
         }
+
+        /// <summary>Đọc vỏ ApiResponse&lt;T&gt; an toàn — body rỗng / không phải JSON (vd 429 không body) → null.</summary>
+        private async Task<ApiResponse<T>?> TryReadEnvelopeAsync<T>(HttpResponseMessage response)
+        {
+            try
+            {
+                var raw = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(raw)) return null;
+                return JsonSerializer.Deserialize<ApiResponse<T>>(raw, _jsonOptions);
+            }
+            catch (JsonException) { return null; }
+        }
+
+        private static string FallbackByStatus(HttpResponseMessage r, string generic) => (int)r.StatusCode switch
+        {
+            429 => "Bạn thao tác quá nhanh. Vui lòng chờ một lát rồi thử lại.",
+            401 or 403 => generic,
+            >= 500 => "Máy chủ đang gặp sự cố. Vui lòng thử lại sau.",
+            _ => generic
+        };
 
         // 3. Lấy thông tin Profile mới nhất — route đổi /api/user/{id} → /api/users/{id}
         public async Task<UserDto?> GetProfileAsync(int userId)
@@ -122,12 +157,15 @@ namespace ToanHocHay.WebApp.Services
             {
                 var response = await _httpClient.PostAsJsonAsync(
                     ApiRoutes.Auth.ForgotPassword, new { email }, _jsonOptions);
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
+                var result = await TryReadEnvelopeAsync<bool>(response);
+                if (!response.IsSuccessStatusCode)
+                    return ApiResponse<bool>.ErrorResponse(
+                        result?.Message ?? FallbackByStatus(response, "Không gửi được yêu cầu. Vui lòng thử lại."));
                 return result ?? ApiResponse<bool>.SuccessResponse(true);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                return ApiResponse<bool>.ErrorResponse("Lỗi kết nối: " + ex.Message);
+                return ApiResponse<bool>.ErrorResponse("Không kết nối được máy chủ. Vui lòng thử lại.");
             }
         }
 
@@ -138,12 +176,15 @@ namespace ToanHocHay.WebApp.Services
             {
                 var response = await _httpClient.PostAsJsonAsync(
                     ApiRoutes.Auth.ResetPassword, new { token, newPassword }, _jsonOptions);
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>(_jsonOptions);
-                return result ?? ApiResponse<bool>.ErrorResponse("Phản hồi từ server không hợp lệ");
+                var result = await TryReadEnvelopeAsync<bool>(response);
+                if (!response.IsSuccessStatusCode)
+                    return ApiResponse<bool>.ErrorResponse(
+                        result?.Message ?? FallbackByStatus(response, "Không đặt lại được mật khẩu. Liên kết có thể đã hết hạn."));
+                return result ?? ApiResponse<bool>.ErrorResponse("Phản hồi từ máy chủ không hợp lệ");
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                return ApiResponse<bool>.ErrorResponse("Lỗi kết nối: " + ex.Message);
+                return ApiResponse<bool>.ErrorResponse("Không kết nối được máy chủ. Vui lòng thử lại.");
             }
         }
     }
