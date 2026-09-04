@@ -73,7 +73,12 @@ namespace ToanHocHay.WebApp.Controllers
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdStr)) return Unauthorized();
             var result = await _authApiService.UpdateProfileAsync(int.Parse(userIdStr), model);
-            return result.Success ? Ok(result) : BadRequest(result);
+            var message = string.IsNullOrWhiteSpace(result.Message)
+                ? (result.Success ? "Cập nhật thông tin thành công!" : "Không cập nhật được thông tin. Vui lòng thử lại.")
+                : result.Message;
+            return result.Success
+                ? Ok(new { ok = true, message })
+                : BadRequest(new { ok = false, message });
         }
 
         [HttpPost]
@@ -92,12 +97,24 @@ namespace ToanHocHay.WebApp.Controllers
                 _tokenStore.Clear();
                 HttpContext.Session.Clear();
                 Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
-                TempData["SuccessMsg"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+                this.PushToastSuccess("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
 
-                return Json(new { success = true, message = result.Message, redirect = Url.Action("Login", "Account") });
+                return Json(new
+                {
+                    success = true,
+                    message = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.",
+                    redirect = Url.Action("Login", "Account")
+                });
             }
 
-            return Json(new { success = false, message = result.Message, errors = result.Errors });
+            return Json(new
+            {
+                success = false,
+                message = string.IsNullOrWhiteSpace(result.Message)
+                    ? "Không đổi được mật khẩu. Vui lòng kiểm tra lại mật khẩu hiện tại."
+                    : result.Message,
+                errors = result.Errors
+            });
         }
 
         // POST /Student/ConnectParent — học sinh nhập mã liên kết của phụ huynh (hoặc token lời mời)

@@ -410,7 +410,7 @@
         function saveNote() {
             const noteInput = document.getElementById('note-input');
             const noteText = noteInput.value.trim();
-            if (!noteText) { alert('Vui lòng nhập nội dung ghi chú!'); return; }
+            if (!noteText) { THHToast.warning('Vui lòng nhập nội dung ghi chú!'); return; }
 
             const notes = JSON.parse(localStorage.getItem(storageKey) || '[]');
             notes.unshift({
@@ -466,11 +466,7 @@
         }
 
         function showNotification(message) {
-            const n = document.createElement('div');
-            n.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg font-bold text-sm z-50 animate-bounce';
-            n.innerHTML = `<i class="fa-solid fa-check-circle mr-2"></i>${message}`;
-            document.body.appendChild(n);
-            setTimeout(() => n.remove(), 2000);
+            if (window.THHToast) THHToast.success(message);
         }
 
         setInterval(updateTimestamp, 60000);
@@ -515,7 +511,7 @@
 
             // Lưu tiến trình lên server
             try {
-                await fetch('/Course/UpdateProgress', {
+                const resp = await fetch('/Course/UpdateProgress', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -523,8 +519,19 @@
                         watchTime: currentTime
                     })
                 });
+                const data = await resp.json().catch(() => ({}));
+                if (data.ok) {
+                    if (window.THHToast) THHToast.success('Đã ghi nhận hoàn thành bài học!');
+                } else if (data.needEnroll) {
+                    if (window.THHToast) THHToast.warning(
+                        data.message || 'Hãy ghi danh khoá học để lưu tiến độ.',
+                        { action: { label: 'Ghi danh', href: '/Course/Index/' + (@(ViewBag.CourseId ?? 0)) } });
+                } else if (data.message) {
+                    if (window.THHToast) THHToast.info(data.message);
+                }
             } catch(e) {
                 console.error('Không thể lưu tiến trình:', e);
+                if (window.THHToast) THHToast.error('Không lưu được tiến trình học. Vui lòng thử lại.');
             }
                 const currentLessonId = @Model.LessonId;
         document.querySelectorAll('a[href="/Course/Learning/' + currentLessonId + '"] i').forEach(icon => {

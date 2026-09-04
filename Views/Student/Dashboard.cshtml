@@ -696,8 +696,10 @@
             if (json.success) {
                 renderAIResponse(json.data, 'assessment');
             } else {
-                alert(json.message || 'Có lỗi xảy ra khi gọi AI');
                 closeAIModal();
+                THHToast.show(json.message || 'Không gọi được phân tích AI lúc này.',
+                    json.upgradeRequired ? 'warning' : 'error',
+                    json.upgradeRequired ? { action: { label: 'Nâng cấp gói', href: '/Package' } } : undefined);
             }
         } catch (e) {
             console.error(e);
@@ -714,8 +716,10 @@
             if (json.success) {
                 renderAIResponse(json.data, 'roadmap');
             } else {
-                alert(json.message || 'Có lỗi xảy ra khi gọi AI');
                 closeAIModal();
+                THHToast.show(json.message || 'Không gọi được lộ trình AI lúc này.',
+                    json.upgradeRequired ? 'warning' : 'error',
+                    json.upgradeRequired ? { action: { label: 'Nâng cấp gói', href: '/Package' } } : undefined);
             }
         } catch (e) {
             console.error(e);

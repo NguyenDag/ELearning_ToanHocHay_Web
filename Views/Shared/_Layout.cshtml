@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="~/js/toast.js" asp-append-version="true" defer></script>
 
     @RenderSection("Styles", required: false)
 
@@ -297,9 +298,10 @@
     </header>
 
     <main role="main" class="flex-grow">
-        <partial name="_ApiAlerts" />
         @RenderBody()
     </main>
+
+    <partial name="_ToastHost" />
 
     <footer class="bg-gradient-to-br from-[#1e3a5f] via-[#2a4074] to-[#1e3a5f] text-white pt-16 pb-8 mt-auto relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400"></div>
@@ -609,7 +611,7 @@
                     const d = await r.json();
                     const msg = (d.response && d.response.message) || 'Đã chuyển yêu cầu tới nhân viên hỗ trợ.';
                     if (typeof appendMessage === 'function') appendMessage(msg, 'bot');
-                    else alert(msg);
+                    else if (window.THHToast) THHToast.info(msg);
                 } catch { }
                 finally { setTimeout(() => btn.disabled = false, 3000); }
             });
@@ -661,7 +663,13 @@
                 } catch { }
             }
             window.notifMarkAll = async function () {
-                try { await fetch('/Notification/MarkAllRead', { method: 'POST' }); } catch { }
+                try {
+                    const r = await fetch('/Notification/MarkAllRead', { method: 'POST' });
+                    const d = await r.json().catch(() => ({}));
+                    if (window.THHToast) THHToast.success(d.message || 'Đã đánh dấu tất cả là đã đọc.');
+                } catch {
+                    if (window.THHToast) THHToast.error('Không thực hiện được. Vui lòng thử lại.');
+                }
                 refreshCount(); refreshList();
             };
 

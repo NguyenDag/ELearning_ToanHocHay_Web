@@ -25,19 +25,44 @@ namespace ToanHocHay.WebApp.Services.Http
         public bool IsTooManyRequests => StatusCode == 429;
         public bool IsValidationError => StatusCode == (int)HttpStatusCode.BadRequest;     // 400
 
-        /// <summary>Thông điệp gọn để hiển thị cho người dùng.</summary>
-        public string DisplayMessage => !string.IsNullOrWhiteSpace(Message)
-            ? Message!
-            : StatusCode switch
+        /// <summary>Thông điệp gọn (tiếng Việt) để hiển thị cho người dùng.</summary>
+        public string DisplayMessage =>
+            (!string.IsNullOrWhiteSpace(Message) && !LooksEnglish(Message!))
+                ? Message!
+                : GenericByStatus;
+
+        private string GenericByStatus => StatusCode switch
+        {
+            400 => "Yêu cầu không hợp lệ. Vui lòng kiểm tra lại thông tin.",
+            401 => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+            403 => "Bạn không có quyền thực hiện thao tác này.",
+            404 => "Không tìm thấy dữ liệu.",
+            409 => "Dữ liệu đã tồn tại hoặc đã được xử lý.",
+            429 => "Bạn thao tác quá nhanh hoặc đã hết lượt. Vui lòng thử lại sau.",
+            >= 500 => "Máy chủ đang gặp sự cố. Vui lòng thử lại sau.",
+            _ => "Đã xảy ra lỗi khi kết nối máy chủ."
+        };
+
+        /// <summary>
+        /// Lưới an toàn: nếu message backend còn lọt tiếng Anh (không có dấu tiếng Việt và có từ khoá
+        /// tiếng Anh phổ biến) thì bỏ qua, dùng câu chung theo mã lỗi. Backend đã được Việt hoá — đây
+        /// chỉ để phòng chỗ sót.
+        /// </summary>
+        private static bool LooksEnglish(string m)
+        {
+            foreach (var ch in m)
+                if (ch >= 'À' && ch <= 'ỹ') return false; // có ký tự tiếng Việt → coi là tiếng Việt
+            var lower = m.ToLowerInvariant();
+            string[] tokens =
             {
-                401 => "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
-                403 => "Bạn không có quyền thực hiện thao tác này.",
-                404 => "Không tìm thấy dữ liệu.",
-                409 => "Dữ liệu đã tồn tại hoặc đã được xử lý.",
-                429 => "Bạn thao tác quá nhanh hoặc đã hết lượt. Vui lòng thử lại sau.",
-                >= 500 => "Máy chủ đang gặp sự cố. Vui lòng thử lại sau.",
-                _ => "Đã xảy ra lỗi khi kết nối máy chủ."
+                " not found", "not found", "failed", "invalid", "required", "already exists",
+                "already", "must be", "cannot ", "does not", "not allowed", "successfully",
+                "please ", "you have", "you cannot", "unable to", "no longer", "expired"
             };
+            foreach (var t in tokens)
+                if (lower.Contains(t)) return true;
+            return false;
+        }
 
         public static ApiResult<T> Fail(int status, string? message = null, IReadOnlyList<string>? errors = null,
             string? correlationId = null) => new()

@@ -38,7 +38,7 @@ namespace ToanHocHay.WebApp.Controllers
                 return RedirectToAction("Login", "Account");
             if (!res.IsSuccess || res.Data == null)
             {
-                TempData[ApiResultExtensions.TempDataError] = res.DisplayMessage;
+                this.ShowToastError(res);
                 return View("~/Views/Student/Dashboard.cshtml", new CoreDashboardDto());
             }
 

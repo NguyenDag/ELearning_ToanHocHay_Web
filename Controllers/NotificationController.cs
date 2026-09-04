@@ -54,14 +54,14 @@ namespace ToanHocHay.WebApp.Controllers
         public async Task<IActionResult> MarkRead(int id)
         {
             var r = await _api.MarkReadAsync(id);
-            return Json(new { ok = r.IsSuccess });
+            return Json(new { ok = r.IsSuccess, message = r.IsSuccess ? "Đã đánh dấu là đã đọc." : r.DisplayMessage });
         }
 
         [HttpPost]
         public async Task<IActionResult> MarkAllRead()
         {
             var r = await _api.MarkAllReadAsync();
-            return Json(new { ok = r.IsSuccess });
+            return Json(new { ok = r.IsSuccess, message = r.IsSuccess ? "Đã đánh dấu tất cả là đã đọc." : r.DisplayMessage });
         }
 
         // GET /Notification/Preferences
@@ -77,8 +77,7 @@ namespace ToanHocHay.WebApp.Controllers
         public async Task<IActionResult> Preferences(string ruleKey, bool enabled)
         {
             var r = await _api.SetPreferenceAsync(ruleKey, enabled);
-            TempData[r.IsSuccess ? ApiResultExtensions.TempDataSuccess : ApiResultExtensions.TempDataError] =
-                r.IsSuccess ? "Đã cập nhật tuỳ chọn thông báo." : r.DisplayMessage;
+            this.PushToastResult(r, "Đã cập nhật tuỳ chọn thông báo.");
             return RedirectToAction("Preferences");
         }
     }

@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Nếu backend báo lỗi
         if (isSuccess === false && errorMsg) {
-            appendMessage(`Lỗi hệ thống: ${errorMsg}`, 'bot');
+            appendMessage(`Đã xảy ra lỗi: ${errorMsg}`, 'bot');
             return;
         }
 
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (message) {
             appendMessage(message, 'bot');
         } else if (isSuccess === false) {
-            appendMessage("AI Server hiện không có phản hồi hợp lệ.", 'bot');
+            appendMessage("Trợ lý AI hiện chưa có phản hồi. Vui lòng thử lại sau.", 'bot');
         } else {
             // Debug: nếu ko tìm thấy message thì hiện JSON để biết nó là gì
             console.warn("[Chatbot] No message found in data", data);

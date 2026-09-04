@@ -44,6 +44,9 @@ namespace ToanHocHay.WebApp.Controllers
             if (res.IsTooManyRequests)
             {
                 ViewBag.GuestLimited = true;
+                this.ShowToast(
+                    "Bạn đã dùng hết lượt xem thử dành cho khách. Đăng nhập để tiếp tục học nhé!",
+                    "warning", "Đăng nhập", "/Account/Login");
                 return View("Index", new CurriculumDto());
             }
             if (!res.IsSuccess || res.Data == null)
@@ -82,8 +85,8 @@ namespace ToanHocHay.WebApp.Controllers
             }
             if (res.IsTooManyRequests)
             {
-                TempData[ApiResultExtensions.TempDataError] =
-                    "Bạn đã xem hết số bài học thử dành cho khách. Vui lòng đăng nhập để tiếp tục.";
+                this.PushToastWarning(
+                    "Bạn đã xem hết số bài học thử dành cho khách. Vui lòng đăng nhập để tiếp tục.");
                 return RedirectToAction("Login", "Account");
             }
             if (!res.IsSuccess || res.Data == null)
@@ -148,13 +151,12 @@ namespace ToanHocHay.WebApp.Controllers
         {
             if (CurrentStudentId == null)
             {
-                TempData[ApiResultExtensions.TempDataError] = "Chỉ học sinh mới ghi danh được khoá học.";
+                this.PushToastError("Chỉ học sinh mới ghi danh được khoá học.");
                 return RedirectToAction("Index", new { id = courseId });
             }
 
             var r = await _content.EnrollAsync(courseId);
-            TempData[r.IsSuccess ? ApiResultExtensions.TempDataSuccess : ApiResultExtensions.TempDataError] =
-                r.IsSuccess ? "Ghi danh khoá học thành công!" : r.DisplayMessage;
+            this.PushToastResult(r, "Ghi danh khoá học thành công!");
 
             return RedirectToAction("Index", new { id = courseId });
         }

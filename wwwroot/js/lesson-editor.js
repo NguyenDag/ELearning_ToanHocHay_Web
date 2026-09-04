@@ -68,5 +68,6 @@ document.getElementById("btnSave").onclick = async () => {
         body: JSON.stringify(payload)
     });
 
-    alert("Saved!");
+    if (window.THHToast) THHToast.success("Đã lưu!");
+    else alert("Đã lưu!");
 };

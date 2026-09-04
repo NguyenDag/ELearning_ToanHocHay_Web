@@ -92,20 +92,20 @@ namespace ToanHocHay.WebApp.Controllers
         {
             if (ParentId is not { } pid)
             {
-                TempData[ApiResultExtensions.TempDataError] = "Không xác định được phụ huynh.";
+                this.PushToastError("Không xác định được phụ huynh.");
                 return RedirectToAction("Connection");
             }
 
             var r = await _parents.CreateInviteAsync(pid, model);
             if (r.IsSuccess && r.Data != null)
             {
-                TempData[ApiResultExtensions.TempDataSuccess] =
+                this.PushToastSuccess(
                     $"Đã tạo lời mời. Mã: {r.Data.Token} (hết hạn {r.Data.ExpiresAt:dd/MM/yyyy})"
-                    + (string.IsNullOrEmpty(model.InviteeEmail) ? "" : $" — đã gửi tới {model.InviteeEmail}.");
+                    + (string.IsNullOrEmpty(model.InviteeEmail) ? "" : $" — đã gửi tới {model.InviteeEmail}."));
             }
             else
             {
-                TempData[ApiResultExtensions.TempDataError] = r.DisplayMessage;
+                this.PushToastError(r);
             }
             return RedirectToAction("Connection");
         }
@@ -118,8 +118,7 @@ namespace ToanHocHay.WebApp.Controllers
             if (ParentId is not { } pid) return RedirectToAction("Connection");
 
             var r = await _parents.RevokeChildAsync(pid, studentId);
-            TempData[r.IsSuccess ? ApiResultExtensions.TempDataSuccess : ApiResultExtensions.TempDataError] =
-                r.IsSuccess ? "Đã huỷ liên kết với học sinh này." : r.DisplayMessage;
+            this.PushToastResult(r, "Đã huỷ liên kết với học sinh này.");
             return RedirectToAction("Connection");
         }
 

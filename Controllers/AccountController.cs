@@ -74,7 +74,7 @@ namespace ToanHocHay.WebApp.Controllers
 
             if (error != null)
             {
-                ViewBag.Error = error;
+                this.ShowToastError(error);
                 ViewBag.Mode = "login";
                 ViewBag.Email = email;
                 return View("Login");
@@ -160,8 +160,11 @@ namespace ToanHocHay.WebApp.Controllers
         {
             if (string.IsNullOrEmpty(password) || password.Length < 6)
             {
-                ViewBag.Error = "Mật khẩu phải có ít nhất 6 ký tự.";
+                this.ShowToastError("Mật khẩu phải có ít nhất 6 ký tự.");
                 ViewBag.Mode = "register";
+                ViewBag.FullName = fullName;
+                ViewBag.Email = email;
+                ViewBag.Role = role;
                 return View("Login");
             }
 
@@ -181,7 +184,7 @@ namespace ToanHocHay.WebApp.Controllers
 
             if (!success)
             {
-                ViewBag.Error = error ?? "Đăng ký không thành công.";
+                this.ShowToastError(error ?? "Đăng ký không thành công.");
                 ViewBag.Mode = "register";
                 ViewBag.Role = role;
                 ViewBag.FullName = fullName;
@@ -189,22 +192,13 @@ namespace ToanHocHay.WebApp.Controllers
                 return View("Login");
             }
 
-            TempData["SuccessMsg"] = "Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.";
+            this.PushToastSuccess("Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.");
             return RedirectToAction("Login");
         }
 
         // ================= PROFILE & UPDATE =================
         [HttpGet]
-        public async Task<IActionResult> Profile()
-        {
-            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdStr)) return RedirectToAction("Login");
-
-            var profile = await _authService.GetProfileAsync(int.Parse(userIdStr));
-            if (profile == null) return RedirectToAction("Login");
-
-            return View(profile);
-        }
+        public IActionResult Profile() => RedirectToAction("Profile", "Student");
 
         [HttpPost]
         public async Task<IActionResult> UpdateProfile(UpdateProfileDto model)
@@ -224,13 +218,14 @@ namespace ToanHocHay.WebApp.Controllers
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                     new ClaimsPrincipal(identity), new AuthenticationProperties { IsPersistent = true });
 
-                TempData["Success"] = "Cập nhật thông tin thành công!";
+                this.PushToastSuccess("Cập nhật thông tin thành công!");
             }
             else
             {
-                ViewBag.Error = response.Message;
+                this.PushToastError(string.IsNullOrWhiteSpace(response.Message)
+                    ? "Không cập nhật được thông tin. Vui lòng thử lại." : response.Message);
             }
-            return RedirectToAction("Profile");
+            return RedirectToAction("Profile", "Student");
         }
 
         [HttpPost]
@@ -250,13 +245,13 @@ namespace ToanHocHay.WebApp.Controllers
                 HttpContext.Session.Clear();
                 Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
 
-                TempData["SuccessMsg"] = "Đổi mật khẩu thành công! Vui lòng đăng nhập lại.";
+                this.PushToastSuccess("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
                 return RedirectToAction("Login");
             }
 
-            ViewBag.Error = response.Message;
-            var userProfile = await _authService.GetProfileAsync(int.Parse(userIdStr));
-            return View("Profile", userProfile);
+            this.PushToastError(string.IsNullOrWhiteSpace(response.Message)
+                ? "Không đổi được mật khẩu. Vui lòng kiểm tra lại mật khẩu hiện tại." : response.Message);
+            return RedirectToAction("Profile", "Student");
         }
 
         // ================= LOGOUT =================
@@ -316,7 +311,7 @@ namespace ToanHocHay.WebApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(email))
             {
-                ViewBag.Error = "Vui lòng nhập email.";
+                this.ShowToastError("Vui lòng nhập email.");
                 return View();
             }
 
@@ -335,7 +330,7 @@ namespace ToanHocHay.WebApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(token))
             {
-                ViewBag.Error = "Liên kết đặt lại mật khẩu không hợp lệ.";
+                this.ShowToastError("Liên kết đặt lại mật khẩu không hợp lệ.");
                 ViewBag.Invalid = true;
             }
             ViewBag.Token = token;
@@ -352,29 +347,30 @@ namespace ToanHocHay.WebApp.Controllers
 
             if (string.IsNullOrWhiteSpace(token))
             {
-                ViewBag.Error = "Liên kết đặt lại mật khẩu không hợp lệ.";
+                this.ShowToastError("Liên kết đặt lại mật khẩu không hợp lệ.");
                 ViewBag.Invalid = true;
                 return View();
             }
             if (string.IsNullOrEmpty(newPassword) || newPassword.Length < 6)
             {
-                ViewBag.Error = "Mật khẩu mới phải có ít nhất 6 ký tự.";
+                this.ShowToastError("Mật khẩu mới phải có ít nhất 6 ký tự.");
                 return View();
             }
             if (newPassword != confirmPassword)
             {
-                ViewBag.Error = "Mật khẩu xác nhận không khớp.";
+                this.ShowToastError("Mật khẩu xác nhận không khớp.");
                 return View();
             }
 
             var result = await _authService.ResetPasswordAsync(token, newPassword);
             if (result.Success)
             {
-                TempData["SuccessMsg"] = "Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.";
+                this.PushToastSuccess("Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.");
                 return RedirectToAction("Login");
             }
 
-            ViewBag.Error = result.Message ?? "Không đặt lại được mật khẩu. Liên kết có thể đã hết hạn hoặc đã dùng.";
+            this.ShowToastError(string.IsNullOrWhiteSpace(result.Message)
+                ? "Không đặt lại được mật khẩu. Liên kết có thể đã hết hạn hoặc đã dùng." : result.Message);
             return View();
         }
 
@@ -394,6 +390,9 @@ namespace ToanHocHay.WebApp.Controllers
             return View("ConfirmEmailSuccess");
         }
 
+        [HttpGet]
+        public IActionResult ResendConfirmationEmail() => View();
+
         [HttpPost]
         public async Task<IActionResult> ResendConfirmationEmail(string email)
         {
@@ -403,14 +402,14 @@ namespace ToanHocHay.WebApp.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["SuccessMsg"] = "Nếu email hợp lệ và chưa xác nhận, chúng tôi đã gửi lại email xác nhận.";
+                this.PushToastSuccess("Nếu email hợp lệ và chưa xác nhận, chúng tôi đã gửi lại email xác nhận.");
                 return RedirectToAction("Login");
             }
 
-            ViewBag.Error = (int)response.StatusCode == 429
+            this.PushToastError((int)response.StatusCode == 429
                 ? "Bạn yêu cầu quá nhanh. Vui lòng thử lại sau ít phút."
-                : "Không gửi lại được email xác nhận. Vui lòng thử lại sau.";
-            return View("ConfirmEmailFailed");
+                : "Không gửi lại được email xác nhận. Vui lòng thử lại sau.");
+            return RedirectToAction("Login");
         }
     }
 }

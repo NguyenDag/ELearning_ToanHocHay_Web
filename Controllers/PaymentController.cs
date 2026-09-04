@@ -40,8 +40,7 @@ namespace ToanHocHay.WebApp.Controllers
         public async Task<IActionResult> CancelSubscription(int subscriptionId)
         {
             var r = await _subscriptions.CancelAsync(subscriptionId);
-            TempData[r.IsSuccess ? ApiResultExtensions.TempDataSuccess : ApiResultExtensions.TempDataError] =
-                r.IsSuccess ? "Đã huỷ gói. Bạn vẫn dùng được đến hết hạn hiện tại." : r.DisplayMessage;
+            this.PushToastResult(r, "Đã huỷ gói. Bạn vẫn dùng được đến hết hạn hiện tại.");
             return RedirectToAction("MySubscription");
         }
 
@@ -54,7 +53,7 @@ namespace ToanHocHay.WebApp.Controllers
             var data = r.IsSuccess && r.Data != null
                 ? r.Data
                 : new PagedResultDto<PaymentDto> { Page = page, PageSize = 20 };
-            if (!r.IsSuccess) this.SetApiError(r);
+            if (!r.IsSuccess) this.ShowToastError(r);
             return View(data);
         }
 
@@ -68,7 +67,7 @@ namespace ToanHocHay.WebApp.Controllers
             var p = await _payments.GetPaymentAsync(paymentId);
             if (!p.IsSuccess || p.Data == null)
             {
-                TempData[ApiResultExtensions.TempDataError] = "Không tìm thấy giao dịch.";
+                this.PushToastError("Không tìm thấy giao dịch.");
                 return RedirectToAction("History");
             }
 
@@ -92,15 +91,13 @@ namespace ToanHocHay.WebApp.Controllers
 
             if (r.IsSuccess)
             {
-                TempData[ApiResultExtensions.TempDataSuccess] =
-                    "Đã gửi yêu cầu hoàn tiền. Bộ phận tài chính sẽ xử lý trong vài ngày làm việc.";
+                this.PushToastSuccess(
+                    "Đã gửi yêu cầu hoàn tiền. Bộ phận tài chính sẽ xử lý trong vài ngày làm việc.");
                 return RedirectToAction("MyRefunds");
             }
 
-            // 400 điều kiện · 409 đã có yêu cầu / hết hạn mức · 429 quá nhanh
-            ModelState.AddModelError(string.Empty, r.DisplayMessage);
-            foreach (var e in r.Errors) ModelState.AddModelError(string.Empty, e);
-
+            // 400 điều kiện · 409 đã có yêu cầu / hết hạn mức · 429 quá nhanh → toast
+            this.ShowToastError(r);
             var pay = await _payments.GetPaymentAsync(model.PaymentId);
             ViewBag.Payment = pay.Data;
             return View(model);
@@ -115,7 +112,7 @@ namespace ToanHocHay.WebApp.Controllers
             var data = r.IsSuccess && r.Data != null
                 ? r.Data
                 : new PagedResultDto<RefundRequestDto> { Page = page, PageSize = 20 };
-            if (!r.IsSuccess) this.SetApiError(r);
+            if (!r.IsSuccess) this.ShowToastError(r);
             return View(data);
         }
 
@@ -125,7 +122,7 @@ namespace ToanHocHay.WebApp.Controllers
             var r = await _refunds.GetAsync(id);
             if (!r.IsSuccess || r.Data == null)
             {
-                TempData[ApiResultExtensions.TempDataError] = r.DisplayMessage;
+                this.PushToastError(r);
                 return RedirectToAction("MyRefunds");
             }
             return View(r.Data);

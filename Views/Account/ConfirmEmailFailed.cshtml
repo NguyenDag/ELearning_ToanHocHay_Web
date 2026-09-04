@@ -1,34 +1,24 @@
-﻿@{
+@{
     ViewData["Title"] = "Xác nhận email thất bại";
 }
 
-<div class="container d-flex justify-content-center align-items-center py-5">
-    <div class="card shadow-lg border-0 rounded-4 p-4 text-center">
-        <div class="mb-3">
-            <i class="fa-solid fa-circle-xmark text-danger" style="font-size: 64px;"></i>
-        </div>
-
-        <h2 class="fw-bold text-danger mb-3">
-            Xác nhận thất bại
-        </h2>
-
-        <p class="text-muted mb-4">
+<div class="container mx-auto px-4 py-16 flex justify-center">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
+        <i class="fa-solid fa-circle-xmark text-red-500 text-5xl"></i>
+        <h1 class="mt-4 text-xl font-bold text-red-600">Xác nhận thất bại</h1>
+        <p class="mt-2 text-sm text-gray-500">
             Liên kết xác nhận không hợp lệ hoặc đã hết hạn.<br />
             Vui lòng yêu cầu gửi lại email xác nhận.
         </p>
 
-        <a asp-controller="Account"
-           asp-action="ResendConfirmationEmail"
-           class="btn btn-danger btn-lg rounded-pill px-4">
-            <i class="fa-solid fa-envelope-circle-check me-2"></i>
-            Gửi lại email xác nhận
+        <a asp-controller="Account" asp-action="ResendConfirmationEmail"
+           class="inline-block mt-6 px-5 py-2.5 rounded-lg bg-[#1e3a5f] text-white font-semibold hover:bg-[#2a4074]">
+            <i class="fa-solid fa-envelope-circle-check mr-2"></i> Gửi lại email xác nhận
         </a>
 
-        <div class="mt-3">
-            <a asp-controller="Account"
-               asp-action="Login"
-               class="text-decoration-none text-secondary small">
-                ← Quay lại đăng nhập
+        <div class="mt-4">
+            <a asp-controller="Account" asp-action="Login" class="text-sm text-gray-500 hover:text-blue-600">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Quay lại đăng nhập
             </a>
         </div>
     </div>

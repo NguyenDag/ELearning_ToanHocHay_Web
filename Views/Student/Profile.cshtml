@@ -15,6 +15,7 @@
     <link rel="icon" type="image/x-icon" href="/logo_header.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/toast.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body {
@@ -534,20 +535,10 @@
         }
 
         function showConnectSuccess(msg) {
-            document.getElementById('connect-status').classList.remove('hidden');
-            const s = document.getElementById('connect-success');
-            const er = document.getElementById('connect-error');
-            s.classList.remove('hidden'); s.classList.add('flex');
-            er.classList.add('hidden'); er.classList.remove('flex');
-            document.getElementById('success-msg').textContent = msg;
+            if (window.THHToast) THHToast.success(msg);
         }
         function showConnectError(msg) {
-            document.getElementById('connect-status').classList.remove('hidden');
-            const s = document.getElementById('connect-success');
-            const er = document.getElementById('connect-error');
-            er.classList.remove('hidden'); er.classList.add('flex');
-            s.classList.add('hidden'); s.classList.remove('flex');
-            document.getElementById('error-msg').textContent = msg;
+            if (window.THHToast) THHToast.error(msg);
         }
 
         // Profile update
@@ -561,10 +552,14 @@
                     method:'POST', headers:{'Content-Type':'application/json'},
                     body: JSON.stringify({fullName: document.getElementById('fullName').value.trim(), schoolName:'', grade:0})
                 });
-                const r = await res.json();
-                if (res.ok && r.success !== false) showAlert('success','Cập nhật thành công!').then(() => location.reload());
-                else showAlert('error', r.message || 'Không thể cập nhật');
-            } catch { showAlert('error','Lỗi kết nối'); }
+                const r = await res.json().catch(() => ({}));
+                if (res.ok && r.ok !== false) {
+                    showAlert('success', r.message || 'Cập nhật thông tin thành công!');
+                    setTimeout(() => location.reload(), 900);
+                } else {
+                    showAlert('error', r.message || 'Không cập nhật được thông tin. Vui lòng thử lại.');
+                }
+            } catch { showAlert('error','Mất kết nối với máy chủ. Vui lòng thử lại.'); }
             finally { setLoading(btn, false, orig); }
         });
 
@@ -586,13 +581,13 @@
                         newPassword: np
                     })
                 });
-                const r = await res.json();
+                const r = await res.json().catch(() => ({}));
                 if (r.success) {
-                    await showAlert('success', r.message || 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
-                    window.location.href = r.redirect || '/Account/Login';
+                    showAlert('success', r.message || 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+                    setTimeout(() => { window.location.href = r.redirect || '/Account/Login'; }, 1200);
                 }
-                else showAlert('error', r.message || 'Mật khẩu hiện tại không đúng');
-            } catch { showAlert('error','Lỗi kết nối'); }
+                else showAlert('error', r.message || 'Không đổi được mật khẩu. Vui lòng kiểm tra lại mật khẩu hiện tại.');
+            } catch { showAlert('error','Mất kết nối với máy chủ. Vui lòng thử lại.'); }
             finally { setLoading(btn, false, orig); }
         });
 
@@ -627,8 +622,9 @@
                 .then(r => { if (r.isConfirmed) window.location.href='/Account/Logout'; });
         }
         function showAlert(type, msg) {
-            const titles = {success:'Thành công!',error:'Lỗi!',warning:'Cảnh báo!'};
-            return Swal.fire({title:titles[type],text:msg,icon:type,confirmButtonColor:'#3B82F6',customClass:{popup:'rounded-2xl'}});
+            var t = (type === 'success' || type === 'error' || type === 'warning') ? type : 'info';
+            if (window.THHToast) THHToast.show(msg, t);
+            return Promise.resolve();
         }
         function setLoading(btn, on, orig='') {
             btn.disabled = on;
@@ -639,5 +635,6 @@
         // Mở tab parent nếu có hash
         if (window.location.hash === '#parent') switchTab('parent');
     </script>
+    <partial name="_ToastHost" />
 </body>
 </html>

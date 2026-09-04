@@ -12,6 +12,7 @@
     <link rel="icon" type="image/x-icon" href="/logo_header.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/toast.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         body {
@@ -292,10 +293,10 @@
                 if (data.success) {
                     renderReport(data.data);
                 } else {
-                    showError(data.message || 'Không tải được báo cáo');
+                    showError(data.message || 'Không tải được báo cáo học tập của con.');
                 }
             } catch {
-                showError('Lỗi kết nối');
+                showError('Mất kết nối với máy chủ. Vui lòng thử lại.');
             }
         }
 
@@ -445,9 +446,11 @@
                     <i class="fa-solid fa-circle-exclamation text-red-300 text-3xl mb-3"></i>
                     <p class="font-black text-slate-400">${msg}</p>
                 </div>`;
+            if (window.THHToast) THHToast.error(msg);
         }
 
         init();
     </script>
+    <partial name="_ToastHost" />
 </body>
 </html>

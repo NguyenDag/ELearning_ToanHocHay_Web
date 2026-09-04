@@ -1,0 +1,35 @@
+@using System.Text.Json
+@*
+    Neo cho hệ thông báo popup (toast). Gộp TempData["Toast"] (qua redirect) và
+    ViewData["Toast"] (render tại chỗ) → window.__THH_TOASTS__ để wwwroot/js/toast.js hiển thị.
+    toast.js được nạp riêng (defer) trong <head> của _Layout / view Layout=null.
+    Đặt partial này 1 lần gần cuối <body>.
+*@
+@{
+    var toastParts = new List<string>();
+    if (TempData.TryGetValue("Toast", out var td) && td is string tds && !string.IsNullOrWhiteSpace(tds))
+        toastParts.Add(tds);
+    if (ViewData["Toast"] is string vds && !string.IsNullOrWhiteSpace(vds))
+        toastParts.Add(vds);
+
+    var toastJson = "[]";
+    if (toastParts.Count > 0)
+    {
+        var all = new List<JsonElement>();
+        foreach (var part in toastParts)
+        {
+            try
+            {
+                var arr = JsonSerializer.Deserialize<List<JsonElement>>(part);
+                if (arr != null) all.AddRange(arr);
+            }
+            catch { /* bỏ qua phần hỏng */ }
+        }
+        toastJson = JsonSerializer.Serialize(all);
+    }
+}
+<div id="thh-toast-root" aria-live="polite"></div>
+<script>
+    window.__THH_TOASTS__ = (window.__THH_TOASTS__ || []).concat(@Html.Raw(toastJson));
+    if (window.THHToast && window.THHToast.flushQueue) window.THHToast.flushQueue();
+</script>

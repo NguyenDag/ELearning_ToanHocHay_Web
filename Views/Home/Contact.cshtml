@@ -193,7 +193,8 @@
             btn.disabled = true;
 
             setTimeout(() => {
-                alert('Yêu cầu của bạn đã được gửi thành công! Chúng tôi sẽ liên hệ lại qua Email/SĐT trong vòng 24h.');
+                if (window.THHToast)
+                    THHToast.success('Yêu cầu của bạn đã được gửi! Chúng tôi sẽ liên hệ lại qua Email/SĐT trong vòng 24 giờ.');
                 btn.innerHTML = originalText;
                 btn.disabled = false;
                 this.reset();

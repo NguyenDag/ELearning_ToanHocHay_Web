@@ -13,6 +13,7 @@
     <link rel="icon" type="image/x-icon" href="/logo_header.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/toast.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
@@ -219,11 +220,9 @@
     </div>
 
     <script>
-        // Backend Data
-        const serverError = "@Html.Raw(ViewBag.Error)";
+        // Backend Data — lỗi/thành công hiển thị bằng toast (_ToastHost), không còn banner trong form.
         const serverEmail = "@Html.Raw(ViewBag.Email)";
         const serverFullName = "@Html.Raw(ViewBag.FullName)";
-        const successMsg = "@Html.Raw(TempData["SuccessMsg"])";
         const initialMode = "@initialMode";
 
         // === TEMPLATES ===
@@ -239,26 +238,6 @@
                     <h2 class="text-2xl font-black text-gray-800 mb-1">Chào mừng trở lại! 👋</h2>
                     <p class="text-sm text-gray-500">Đăng nhập để tiếp tục hành trình học tập</p>
                 </div>
-
-                <!-- Success Message -->
-                ${successMsg ? `
-                    <div class="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-lg shadow-sm">
-                        <div class="flex items-center">
-                            <i class="fa-solid fa-circle-check text-green-600 text-xl mr-3"></i>
-                            <span class="text-green-700 font-semibold">${successMsg}</span>
-                        </div>
-                    </div>
-                ` : ''}
-
-                <!-- Error Message -->
-                ${serverError && "@ViewBag.Mode" === "login" ? `
-                    <div class="mb-6 p-4 bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 rounded-lg shadow-sm">
-                        <div class="flex items-center">
-                            <i class="fa-solid fa-circle-exclamation text-red-600 text-xl mr-3"></i>
-                            <span class="text-red-700 font-semibold">${serverError}</span>
-                        </div>
-                    </div>
-                ` : ''}
 
                 <!-- Login Form -->
                     <form action="/Account/Login" method="POST" class="space-y-4">
@@ -448,16 +427,6 @@
                         <p class="text-sm text-gray-500">Tạo tài khoản để bắt đầu hành trình</p>
                     </div>
 
-                    <!-- Error Message -->
-                    ${serverError && "@ViewBag.Mode" === "register" ? `
-                        <div class="mb-6 p-4 bg-gradient-to-r from-red-50 to-pink-50 border-l-4 border-red-500 rounded-lg shadow-sm">
-                            <div class="flex items-center">
-                                <i class="fa-solid fa-circle-exclamation text-red-600 text-xl mr-3"></i>
-                                <span class="text-red-700 font-semibold">${serverError}</span>
-                            </div>
-                        </div>
-                    ` : ''}
-
                     <!-- Register Form -->
                             <form action="/Account/Register" method="POST" onsubmit="return validateForm(this)" class="space-y-4">
         <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name=__RequestVerificationToken]').value}">
@@ -608,20 +577,13 @@
 
         // === INITIALIZATION (PHẦN QUAN TRỌNG NHẤT) ===
         function startApp() {
-            // Đảm bảo các biến từ Server luôn có giá trị mặc định, không bao giờ undefined
-            const sError = "@Html.Raw(ViewBag.Error)" || "";
+            // Lỗi/thành công đã hiển thị bằng toast — chỉ cần khôi phục đúng bước của form.
             const sMode = "@Html.Raw(ViewBag.Mode)" || "login";
             const sRole = "@Html.Raw(ViewBag.Role)" || "";
 
-            console.log("App Start - Mode:", sMode, "Error:", sError, "Role:", sRole);
-
             if (sMode === 'register') {
-                // Nếu có lỗi và có Role thì hiện thẳng form đăng ký đó
-                if (sError !== "" && sRole !== "") {
-                    renderRegister(sRole);
-                } else {
-                    renderRoleSelection();
-                }
+                if (sRole !== "") renderRegister(sRole);
+                else renderRoleSelection();
             } else {
                 renderLogin();
             }
@@ -655,5 +617,6 @@
         }
     </script>
     <div id="antiforgery-container" style="display:none">@Html.AntiForgeryToken()</div>
+    <partial name="_ToastHost" />
 </body>
 </html>

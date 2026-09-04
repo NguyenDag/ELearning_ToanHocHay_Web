@@ -60,7 +60,8 @@ namespace ToanHocHay.WebApp.Controllers
                 var tier = User.FindFirst("PackageTier")?.Value ?? nameof(PackageTier.Free);
                 if (string.Equals(tier, nameof(PackageTier.Free), StringComparison.OrdinalIgnoreCase))
                 {
-                    TempData["UpgradeMsg"] = "Đề thi này yêu cầu gói trả phí. Vui lòng nâng cấp để tiếp tục.";
+                    this.PushToast("Đề thi này yêu cầu gói trả phí. Vui lòng nâng cấp để tiếp tục.",
+                        "warning", "Nâng cấp gói", "/Package");
                     return RedirectToAction("Index", "Package");
                 }
             }
@@ -71,11 +72,12 @@ namespace ToanHocHay.WebApp.Controllers
             {
                 if (needUpgrade)
                 {
-                    TempData[ApiResultExtensions.TempDataError] = error ?? "Đề thi này yêu cầu gói cao hơn.";
+                    this.PushToast(error ?? "Đề thi này yêu cầu gói cao hơn.",
+                        "warning", "Nâng cấp gói", "/Package");
                     return RedirectToAction("Index", "Package");
                 }
-                TempData[ApiResultExtensions.TempDataError] =
-                    error ?? "Không thể bắt đầu làm bài — có thể bạn đã dùng hết số lượt cho phép của đề này.";
+                this.PushToastError(
+                    error ?? "Không thể bắt đầu làm bài — có thể bạn đã dùng hết số lượt cho phép của đề này.");
                 return RedirectToAction("Index");
             }
 
@@ -105,9 +107,12 @@ namespace ToanHocHay.WebApp.Controllers
             var result = await _examService.CompleteExercise(payload.AttemptId);
 
             // complete trả kết quả chấm ngay; nhận xét AI chạy nền — trang kết quả sẽ poll.
-            return result
-                ? Ok(new { success = true, attemptId = payload.AttemptId, message = "Nộp bài thành công!" })
-                : BadRequest(new { success = false, message = "Lỗi khi hoàn tất bài thi." });
+            if (result)
+            {
+                this.PushToastSuccess("Nộp bài thành công!");
+                return Ok(new { success = true, attemptId = payload.AttemptId, message = "Nộp bài thành công!" });
+            }
+            return BadRequest(new { success = false, message = "Không hoàn tất được bài thi. Vui lòng thử lại." });
         }
 
         // Poll trạng thái sinh nhận xét AI (trang kết quả gọi).

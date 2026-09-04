@@ -12,6 +12,7 @@
     <link rel="icon" type="image/x-icon" href="/logo_header.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/js/toast.js" defer></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
@@ -387,7 +388,7 @@
             const answeredCount = Object.keys(userAnswers).length;
 
             if (!force && answeredCount === 0) {
-                alert("Bạn chưa trả lời câu hỏi nào!");
+                THHToast.warning("Bạn chưa trả lời câu hỏi nào!");
                 return;
             }
 
@@ -422,13 +423,13 @@
                 if (response.ok) {
                     window.location.href = `/Exam/Result?attemptId=${attemptId}`;
                 } else {
-                    const err = await response.json();
-                    alert("Lỗi: " + (err.message || "Không thể nộp bài."));
+                    const err = await response.json().catch(() => ({}));
+                    THHToast.error(err.message || "Không nộp được bài. Vui lòng thử lại.");
                     overlay.classList.add('hidden');
                 }
             } catch (error) {
                 console.error("Submit error:", error);
-                alert("Mất kết nối với máy chủ khi đang nộp bài.");
+                THHToast.error("Mất kết nối với máy chủ khi đang nộp bài. Vui lòng thử lại.");
                 overlay.classList.add('hidden');
             }
         }
@@ -525,15 +526,17 @@
                     disableAllHintButtons('Hết lượt gợi ý hôm nay');
                     hintQuota.remaining = 0;
                     renderHintQuota();
-                    alert(result.message || "Bạn đã dùng hết lượt gợi ý AI hôm nay. Nâng gói để dùng không giới hạn.");
+                    THHToast.warning(
+                        result.message || "Bạn đã dùng hết lượt gợi ý AI hôm nay. Nâng gói để dùng không giới hạn.",
+                        { action: { label: "Nâng cấp gói", href: "/Package" } });
                 } else {
-                    alert(result.message || "Không thể lấy gợi ý lúc này.");
+                    THHToast.error(result.message || "Không lấy được gợi ý lúc này. Vui lòng thử lại.");
                     btn.innerHTML = originalContent;
                     btn.disabled = false;
                 }
             } catch (err) {
                 console.error("AI Hint Error:", err);
-                alert("Lỗi kết nối server AI.");
+                THHToast.error("Mất kết nối với máy chủ AI. Vui lòng thử lại.");
                 btn.innerHTML = originalContent;
                 btn.disabled = false;
             }
@@ -572,5 +575,6 @@
             tabSwitchOverlay.classList.add('hidden');
         }
     </script>
+    <partial name="_ToastHost" />
 </body>
 </html>

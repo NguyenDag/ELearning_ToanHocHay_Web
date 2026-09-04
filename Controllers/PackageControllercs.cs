@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Models.DTOs;
 using ToanHocHay.WebApp.Services;
+using ToanHocHay.WebApp.Services.Http;
 
 namespace ToanHocHay.WebApp.Controllers
 {
@@ -66,7 +67,7 @@ namespace ToanHocHay.WebApp.Controllers
             var result = await _subscriptionService.CreateSubscriptionAsync(studentId, id, package.Price);
             if (result == null)
             {
-                TempData["Error"] = "Không thể tạo đơn thanh toán. Vui lòng thử lại.";
+                this.PushToastError("Không thể tạo đơn thanh toán. Vui lòng thử lại.");
                 return RedirectToAction("Index");
             }
 

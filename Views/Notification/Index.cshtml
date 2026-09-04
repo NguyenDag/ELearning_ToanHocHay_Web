@@ -62,13 +62,23 @@
 @section Scripts {
     <script>
         async function markRead(id, btn) {
-            await fetch('/Notification/MarkRead?id=' + id, { method: 'POST' });
-            btn.closest('[data-id]').classList.remove('bg-blue-50/40');
-            btn.remove();
+            try {
+                const r = await fetch('/Notification/MarkRead?id=' + id, { method: 'POST' });
+                const d = await r.json().catch(() => ({}));
+                btn.closest('[data-id]').classList.remove('bg-blue-50/40');
+                btn.remove();
+                if (window.THHToast) THHToast.success(d.message || 'Đã đánh dấu là đã đọc.');
+            } catch {
+                if (window.THHToast) THHToast.error('Không thực hiện được. Vui lòng thử lại.');
+            }
         }
         async function markAll() {
-            await fetch('/Notification/MarkAllRead', { method: 'POST' });
-            location.reload();
+            try {
+                const r = await fetch('/Notification/MarkAllRead', { method: 'POST' });
+                const d = await r.json().catch(() => ({}));
+                if (window.THHToast) THHToast.success(d.message || 'Đã đánh dấu tất cả là đã đọc.');
+            } catch { /* vẫn reload */ }
+            setTimeout(() => location.reload(), 700);
         }
     </script>
 }
