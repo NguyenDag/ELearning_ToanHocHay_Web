@@ -10,7 +10,8 @@ namespace ToanHocHay.WebApp.Common.Constants
     public static class ApiConstant
     {
         /// <summary>URL gốc Backend API (không kèm <c>/api</c>).</summary>
-        public static string apiBaseUrl = "http://103.98.152.182";
+        public static string apiBaseUrl = "https://localhost:7290";
+        //public static string apiBaseUrl = "http://103.98.152.182";
 
         /// <summary>URL công khai của WebApp (dùng cho liên kết tuyệt đối, email...).</summary>
         public static string webBaseUrl = "https://www.toanhochay.com";
