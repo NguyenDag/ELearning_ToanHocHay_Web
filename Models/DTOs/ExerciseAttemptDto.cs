@@ -11,7 +11,10 @@ namespace ToanHocHay.WebApp.Models.DTOs
     }
 
     /// <summary>
-    /// DTO chứa thông tin lượt làm bài trả về từ API cho WebApp
+    /// DTO chứa thông tin lượt làm bài trả về từ API cho WebApp.
+    /// Backend serialize enum thành CHUỖI ("Test", "InProgress", "MultipleChoice") — các trường
+    /// enum phải khai báo đúng kiểu enum, KHÔNG dùng int (deserialize "Test" -> int sẽ ném lỗi
+    /// và khiến "Bắt đầu làm bài" báo lỗi hệ thống).
     /// </summary>
     public class ExerciseAttemptDto
     {
@@ -19,15 +22,15 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public int StudentId { get; set; }
         public int ExerciseId { get; set; }
         public string? ExerciseName { get; set; }
-        public int ExerciseType { get; set; }
+        public ExerciseType ExerciseType { get; set; }
         public DateTime StartTime { get; set; }
-        // Thời điểm PHẢI kết thúc (đếm giờ)
-        public DateTime PlannedEndTime { get; set; }
+        // Thời điểm PHẢI kết thúc (đếm giờ). Null với bài không giới hạn thời gian.
+        public DateTime? PlannedEndTime { get; set; }
 
         // Thời điểm thực sự nộp bài (null nếu chưa submit)
         public DateTime? SubmittedAt { get; set; }
 
-        public int Status { get; set; }
+        public AttemptStatus Status { get; set; }
         public int TotalQuestions { get; set; }
         public bool IsCompleted { get; set; }
 
@@ -41,7 +44,7 @@ namespace ToanHocHay.WebApp.Models.DTOs
     {
         public int QuestionId { get; set; }
         public string? QuestionText { get; set; }
-        public int QuestionType { get; set; }
+        public QuestionType QuestionType { get; set; }
         public double Score { get; set; }
         public string? ImageUrl { get; set; }
         public List<AnswerOptionDto> Options { get; set; } = new();
