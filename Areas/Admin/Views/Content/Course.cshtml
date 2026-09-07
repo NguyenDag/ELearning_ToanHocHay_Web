@@ -1,0 +1,88 @@
+@model CourseDetailVm
+@{
+    var c = Model.Course;
+    ViewData["Title"] = c.Title;
+    string VBadge(VersionState s) => s switch
+    {
+        VersionState.Published => "bg-green-100 text-green-700",
+        VersionState.InReview => "bg-amber-100 text-amber-700",
+        VersionState.Approved => "bg-blue-100 text-blue-700",
+        VersionState.Archived => "bg-gray-200 text-gray-600",
+        _ => "bg-gray-100 text-gray-600"
+    };
+}
+
+<a asp-action="Courses" class="text-sm text-gray-500 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Khoá học</a>
+
+<div class="flex items-start justify-between mt-2 mb-4">
+    <div>
+        <h2 class="text-xl font-black text-gray-800">@c.Title</h2>
+        <p class="text-sm text-gray-400">@c.SubjectName / @c.GradeLevelName · @ContentEnums.CourseStatusLabel(c.Status)</p>
+    </div>
+    <div class="flex gap-2">
+        <a asp-action="EditCourse" asp-route-id="@c.CourseId" class="bg-white border border-gray-200 text-gray-600 font-bold text-sm px-4 py-2 rounded-xl">Sửa thông tin</a>
+        @if (c.Status == CourseStatus.Archived)
+        {
+            <form method="post" asp-action="UnarchiveCourse" asp-route-id="@c.CourseId">
+                @Html.AntiForgeryToken()
+                <button class="bg-green-600 text-white font-bold text-sm px-4 py-2 rounded-xl">Bỏ lưu trữ</button>
+            </form>
+        }
+        else
+        {
+            <form method="post" asp-action="ArchiveCourse" asp-route-id="@c.CourseId" onsubmit="return confirm('Lưu trữ khoá học này?');">
+                @Html.AntiForgeryToken()
+                <button class="bg-gray-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Lưu trữ</button>
+            </form>
+        }
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
+    <h3 class="font-black text-gray-800 mb-3">Tạo phiên bản mới</h3>
+    <form method="post" asp-action="CreateVersion" class="flex flex-wrap gap-2 text-sm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="courseId" value="@c.CourseId" />
+        <input name="label" placeholder="Nhãn (VD: Năm học 2026–2027)" class="flex-1 min-w-[200px] border border-gray-200 rounded-lg px-3 py-2" />
+        <select name="cloneFromVersionId" class="border border-gray-200 rounded-lg px-3 py-2">
+            <option value="">Không sao chép</option>
+            @foreach (var v in Model.Versions)
+            {
+                <option value="@v.CourseVersionId">Sao chép từ v@(v.VersionNumber)</option>
+            }
+        </select>
+        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 rounded-lg">Tạo</button>
+    </form>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Phiên bản</th>
+                <th class="text-left px-4 py-3">Nhãn</th>
+                <th class="text-left px-4 py-3">Trạng thái</th>
+                <th class="text-left px-4 py-3">Tạo lúc</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var v in Model.Versions.OrderByDescending(x => x.VersionNumber))
+        {
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-bold text-gray-800">v@(v.VersionNumber)</td>
+                <td class="px-4 py-3 text-gray-600">@(v.Label ?? "—")</td>
+                <td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs font-bold @VBadge(v.State)">@ContentEnums.VersionStateLabel(v.State)</span></td>
+                <td class="px-4 py-3 text-gray-500">@v.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                <td class="px-4 py-3 text-right">
+                    <a asp-action="Version" asp-route-versionId="@v.CourseVersionId" asp-route-courseId="@c.CourseId" class="text-blue-600 font-bold hover:underline">Mở nội dung</a>
+                </td>
+            </tr>
+        }
+        @if (Model.Versions.Count == 0)
+        {
+            <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">Chưa có phiên bản nào.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

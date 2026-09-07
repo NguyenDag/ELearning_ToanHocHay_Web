@@ -1,0 +1,125 @@
+@model CatalogPageVm
+@{
+    ViewData["Title"] = "Danh mục";
+}
+
+<h2 class="text-xl font-black text-gray-800 mb-4">Danh mục</h2>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    @* -------- Subjects -------- *@
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <h3 class="font-black text-gray-800 mb-3">Môn học</h3>
+        <div class="space-y-1 mb-4 text-sm">
+            @foreach (var s in Model.Subjects)
+            {
+                <details class="border border-gray-100 rounded-lg">
+                    <summary class="px-3 py-2 cursor-pointer flex justify-between">
+                        <span>@s.Name <span class="text-gray-400 text-xs">(@s.Code)</span></span>
+                        <span class="@(s.IsActive ? "text-green-600" : "text-gray-300")">●</span>
+                    </summary>
+                    <form method="post" asp-action="SaveSubject" class="p-3 space-y-2 border-t border-gray-100">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@s.Id" />
+                        <input name="code" value="@s.Code" placeholder="Mã" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <input name="name" value="@s.Name" placeholder="Tên" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <input name="slug" value="@s.Slug" placeholder="Slug" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <input name="displayOrder" type="number" value="@s.DisplayOrder" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <label class="flex items-center gap-2"><input type="checkbox" name="isActive" value="true" @(s.IsActive ? "checked" : "") /> Kích hoạt</label>
+                        <button class="bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded">Lưu</button>
+                    </form>
+                </details>
+            }
+        </div>
+        <form method="post" asp-action="SaveSubject" class="space-y-2 text-sm border-t border-gray-100 pt-3">
+            @Html.AntiForgeryToken()
+            <p class="font-bold text-gray-500">Thêm môn mới</p>
+            <input name="code" placeholder="Mã (VD: MATH)" required class="w-full border border-gray-200 rounded px-2 py-1" />
+            <input name="name" placeholder="Tên" required class="w-full border border-gray-200 rounded px-2 py-1" />
+            <input name="slug" placeholder="Slug" required class="w-full border border-gray-200 rounded px-2 py-1" />
+            <input name="displayOrder" type="number" value="0" class="w-full border border-gray-200 rounded px-2 py-1" />
+            <label class="flex items-center gap-2"><input type="checkbox" name="isActive" value="true" checked /> Kích hoạt</label>
+            <button class="bg-gray-800 text-white font-bold text-xs px-3 py-1.5 rounded">Thêm</button>
+        </form>
+    </div>
+
+    @* -------- Grade levels -------- *@
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <h3 class="font-black text-gray-800 mb-3">Khối lớp</h3>
+        <div class="space-y-1 mb-4 text-sm">
+            @foreach (var g in Model.Grades)
+            {
+                <details class="border border-gray-100 rounded-lg">
+                    <summary class="px-3 py-2 cursor-pointer flex justify-between">
+                        <span>@g.Name <span class="text-gray-400 text-xs">(@g.Code)</span></span>
+                        <span class="@(g.IsActive ? "text-green-600" : "text-gray-300")">●</span>
+                    </summary>
+                    <form method="post" asp-action="SaveGrade" class="p-3 space-y-2 border-t border-gray-100">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@g.Id" />
+                        <input name="code" value="@g.Code" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <input name="name" value="@g.Name" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <select name="stage" class="w-full border border-gray-200 rounded px-2 py-1">
+                            @foreach (var st in Enum.GetValues<EducationStage>())
+                            {
+                                <option value="@st" selected="@(g.Stage == st)">@st</option>
+                            }
+                        </select>
+                        <input name="displayOrder" type="number" value="@g.DisplayOrder" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <label class="flex items-center gap-2"><input type="checkbox" name="isActive" value="true" @(g.IsActive ? "checked" : "") /> Kích hoạt</label>
+                        <button class="bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded">Lưu</button>
+                    </form>
+                </details>
+            }
+        </div>
+        <form method="post" asp-action="SaveGrade" class="space-y-2 text-sm border-t border-gray-100 pt-3">
+            @Html.AntiForgeryToken()
+            <p class="font-bold text-gray-500">Thêm khối lớp</p>
+            <input name="code" placeholder="Mã (VD: G6)" required class="w-full border border-gray-200 rounded px-2 py-1" />
+            <input name="name" placeholder="Tên (VD: Lớp 6)" required class="w-full border border-gray-200 rounded px-2 py-1" />
+            <select name="stage" class="w-full border border-gray-200 rounded px-2 py-1">
+                @foreach (var st in Enum.GetValues<EducationStage>())
+                {
+                    <option value="@st">@st</option>
+                }
+            </select>
+            <input name="displayOrder" type="number" value="0" class="w-full border border-gray-200 rounded px-2 py-1" />
+            <label class="flex items-center gap-2"><input type="checkbox" name="isActive" value="true" checked /> Kích hoạt</label>
+            <button class="bg-gray-800 text-white font-bold text-xs px-3 py-1.5 rounded">Thêm</button>
+        </form>
+    </div>
+
+    @* -------- Frameworks -------- *@
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <h3 class="font-black text-gray-800 mb-3">Bộ sách / khung chương trình</h3>
+        <div class="space-y-1 mb-4 text-sm">
+            @foreach (var fw in Model.Frameworks)
+            {
+                <details class="border border-gray-100 rounded-lg">
+                    <summary class="px-3 py-2 cursor-pointer flex justify-between">
+                        <span>@fw.Name <span class="text-gray-400 text-xs">(@fw.Code)</span></span>
+                        <span class="@(fw.IsActive ? "text-green-600" : "text-gray-300")">●</span>
+                    </summary>
+                    <form method="post" asp-action="SaveFramework" class="p-3 space-y-2 border-t border-gray-100">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@fw.Id" />
+                        <input name="code" value="@fw.Code" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <input name="name" value="@fw.Name" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <input name="publisher" value="@fw.Publisher" placeholder="Nhà xuất bản" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <label class="flex items-center gap-2"><input type="checkbox" name="isActive" value="true" @(fw.IsActive ? "checked" : "") /> Kích hoạt</label>
+                        <button class="bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded">Lưu</button>
+                    </form>
+                </details>
+            }
+        </div>
+        <form method="post" asp-action="SaveFramework" class="space-y-2 text-sm border-t border-gray-100 pt-3">
+            @Html.AntiForgeryToken()
+            <p class="font-bold text-gray-500">Thêm bộ sách</p>
+            <input name="code" placeholder="Mã (VD: KNTT)" required class="w-full border border-gray-200 rounded px-2 py-1" />
+            <input name="name" placeholder="Tên" required class="w-full border border-gray-200 rounded px-2 py-1" />
+            <input name="publisher" placeholder="Nhà xuất bản" class="w-full border border-gray-200 rounded px-2 py-1" />
+            <label class="flex items-center gap-2"><input type="checkbox" name="isActive" value="true" checked /> Kích hoạt</label>
+            <button class="bg-gray-800 text-white font-bold text-xs px-3 py-1.5 rounded">Thêm</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,281 @@
+@model VersionWorkspaceVm
+@{
+    var v = Model.Version;
+    var c = Model.Course;
+    var courseId = c.CourseId;
+    ViewData["Title"] = $"Nội dung · {c.Title} v{v.VersionNumber}";
+    var isDraft = v.State == VersionState.Draft;
+    var node = Model.SelectedNode;
+
+    string VBadge(VersionState s) => s switch
+    {
+        VersionState.Published => "bg-green-100 text-green-700",
+        VersionState.InReview => "bg-amber-100 text-amber-700",
+        VersionState.Approved => "bg-blue-100 text-blue-700",
+        _ => "bg-gray-100 text-gray-600"
+    };
+}
+
+<a href="@Url.Action("Course", new { id = courseId })" class="text-sm text-gray-500 hover:underline">
+    <i class="fa-solid fa-arrow-left mr-1"></i> @c.Title
+</a>
+
+<div class="flex items-center justify-between mt-2 mb-4">
+    <h2 class="text-xl font-black text-gray-800">
+        Nội dung · v@(v.VersionNumber)
+        <span class="px-2 py-1 rounded-full text-xs font-bold @VBadge(v.State)">@ContentEnums.VersionStateLabel(v.State)</span>
+    </h2>
+    <div class="flex gap-2">
+        @if (isDraft)
+        {
+            <form method="post" asp-action="SubmitVersion" asp-route-versionId="@v.CourseVersionId">
+                @Html.AntiForgeryToken()
+                <button class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm px-4 py-2 rounded-xl">Gửi duyệt</button>
+            </form>
+        }
+        @if (v.State == VersionState.InReview)
+        {
+            <form method="post" asp-action="ReviewVersion" asp-route-versionId="@v.CourseVersionId" class="flex gap-2">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="decision" value="Approve" />
+                <button class="bg-green-600 hover:bg-green-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Duyệt</button>
+            </form>
+            <form method="post" asp-action="ReviewVersion" asp-route-versionId="@v.CourseVersionId" class="flex gap-2 items-center">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="decision" value="RequestChanges" />
+                <input name="summary" placeholder="Yêu cầu chỉnh sửa" class="border border-gray-200 rounded px-2 py-1 text-sm" />
+                <button class="bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm px-3 py-2 rounded-xl">Trả lại</button>
+            </form>
+        }
+        @if (v.State == VersionState.Approved)
+        {
+            <form method="post" asp-action="PublishVersion" asp-route-versionId="@v.CourseVersionId">
+                @Html.AntiForgeryToken()
+                <button class="bg-green-600 hover:bg-green-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Xuất bản</button>
+            </form>
+        }
+        @if (v.State != VersionState.Archived && v.State != VersionState.Published)
+        {
+            <form method="post" asp-action="ArchiveVersion" asp-route-versionId="@v.CourseVersionId" onsubmit="return confirm('Lưu trữ phiên bản này?');">
+                @Html.AntiForgeryToken()
+                <button class="bg-gray-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Lưu trữ</button>
+            </form>
+        }
+    </div>
+</div>
+
+@if (!isDraft)
+{
+    <div class="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-xl px-4 py-2 mb-4">
+        Chỉ chỉnh sửa được nội dung khi phiên bản ở trạng thái <b>Nháp</b>.
+    </div>
+}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+    @* ---------------- TREE ---------------- *@
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <h3 class="font-black text-gray-800 mb-3">Cây nội dung</h3>
+        @if (Model.Tree.Count == 0)
+        {
+            <p class="text-sm text-gray-400 mb-3">Chưa có mục nội dung nào.</p>
+        }
+        else
+        {
+            <partial name="_NodeTree" model="@(new NodeTreeVm { Nodes = Model.Tree, VersionId = v.CourseVersionId, CourseId = courseId, SelectedNodeId = node?.NodeId })" />
+        }
+
+        @if (isDraft)
+        {
+            <form method="post" asp-action="CreateNode" class="mt-4 pt-3 border-t border-gray-100 space-y-2 text-sm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="versionId" value="@v.CourseVersionId" />
+                <p class="font-bold text-gray-500">Thêm mục</p>
+                <select name="nodeType" class="w-full border border-gray-200 rounded px-2 py-1">
+                    @foreach (var t in Enum.GetValues<NodeType>())
+                    {
+                        <option value="@t">@ContentEnums.NodeTypeLabel(t)</option>
+                    }
+                </select>
+                <input name="title" placeholder="Tiêu đề" required class="w-full border border-gray-200 rounded px-2 py-1" />
+                <select name="parentNodeId" class="w-full border border-gray-200 rounded px-2 py-1">
+                    <option value="">— Gốc —</option>
+                    @foreach (var flat in Flatten(Model.Tree))
+                    {
+                        <option value="@flat.NodeId" selected="@(node?.NodeId == flat.NodeId)">@(new string('—', flat.Depth)) @flat.Title</option>
+                    }
+                </select>
+                <label class="flex items-center gap-2"><input type="checkbox" name="isFree" value="true" /> Miễn phí</label>
+                <button class="bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded">Thêm</button>
+            </form>
+        }
+    </div>
+
+    @* ---------------- NODE DETAIL + BLOCKS ---------------- *@
+    <div class="lg:col-span-2 space-y-4">
+        @if (node == null)
+        {
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 text-sm text-gray-400">
+                Chọn một mục ở cây nội dung để xem và chỉnh sửa.
+            </div>
+        }
+        else
+        {
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-black text-gray-800">@ContentEnums.NodeTypeLabel(node.NodeType): @node.Title</h3>
+                    @if (isDraft)
+                    {
+                        <form method="post" asp-action="DeleteNode" onsubmit="return confirm('Xoá mục này và toàn bộ mục con?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="versionId" value="@v.CourseVersionId" />
+                            <input type="hidden" name="nodeId" value="@node.NodeId" />
+                            <button class="text-red-600 font-bold text-sm hover:underline">Xoá mục</button>
+                        </form>
+                    }
+                </div>
+
+                @if (isDraft)
+                {
+                    <form method="post" asp-action="UpdateNode" class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="versionId" value="@v.CourseVersionId" />
+                        <input type="hidden" name="nodeId" value="@node.NodeId" />
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Tiêu đề</label>
+                            <input name="title" value="@node.Title" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Slug</label>
+                            <input name="slug" value="@node.Slug" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Thời lượng (phút)</label>
+                            <input name="durationMinutes" type="number" value="@node.DurationMinutes" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        </div>
+                        <div class="flex items-end gap-4">
+                            <label class="flex items-center gap-2 font-bold text-gray-700"><input type="checkbox" name="isFree" value="true" @(node.IsFree ? "checked" : "") /> Miễn phí</label>
+                            <label class="flex items-center gap-2 font-bold text-gray-700"><input type="checkbox" name="isHidden" value="true" @(node.IsHidden ? "checked" : "") /> Ẩn</label>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button class="bg-blue-600 text-white font-bold text-sm px-4 py-2 rounded-xl">Lưu mục</button>
+                        </div>
+                    </form>
+                }
+            </div>
+
+            @* blocks *@
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="font-black text-gray-800 mb-3">Nội dung bài (@node.Blocks.Count block)</h3>
+                <div class="space-y-3">
+                    @foreach (var b in node.Blocks.OrderBy(x => x.OrderIndex))
+                    {
+                        <div class="border border-gray-100 rounded-xl p-3">
+                            <form method="post" asp-action="UpdateBlock" class="space-y-2 text-sm">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="versionId" value="@v.CourseVersionId" />
+                                <input type="hidden" name="nodeId" value="@node.NodeId" />
+                                <input type="hidden" name="blockId" value="@b.BlockId" />
+                                <div class="flex gap-2">
+                                    <select name="blockType" class="border border-gray-200 rounded px-2 py-1">
+                                        @foreach (var t in Enum.GetValues<LessonBlockType>())
+                                        {
+                                            <option value="@t" selected="@(b.BlockType == t)">@ContentEnums.BlockTypeLabel(t)</option>
+                                        }
+                                    </select>
+                                    <input name="orderIndex" type="number" value="@b.OrderIndex" class="w-20 border border-gray-200 rounded px-2 py-1" />
+                                </div>
+                                <textarea name="contentText" rows="2" placeholder="Nội dung văn bản" class="w-full border border-gray-200 rounded px-2 py-1">@b.ContentText</textarea>
+                                <input name="contentUrl" value="@b.ContentUrl" placeholder="URL (ảnh / video / nhúng)" class="w-full border border-gray-200 rounded px-2 py-1" />
+                                <input name="metadataJson" value="@b.MetadataJson" placeholder="Metadata JSON (tuỳ chọn)" class="w-full border border-gray-200 rounded px-2 py-1" />
+                                @if (isDraft)
+                                {
+                                    <div class="flex gap-2">
+                                        <button class="bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded">Lưu</button>
+                                    </div>
+                                }
+                            </form>
+                            @if (isDraft)
+                            {
+                                <form method="post" asp-action="DeleteBlock" class="mt-1" onsubmit="return confirm('Xoá block này?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="versionId" value="@v.CourseVersionId" />
+                                    <input type="hidden" name="nodeId" value="@node.NodeId" />
+                                    <input type="hidden" name="blockId" value="@b.BlockId" />
+                                    <button class="text-red-600 font-bold text-xs hover:underline">Xoá block</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                    @if (node.Blocks.Count == 0)
+                    {
+                        <p class="text-sm text-gray-400">Chưa có block nào.</p>
+                    }
+                </div>
+
+                @if (isDraft)
+                {
+                    <form method="post" asp-action="AddBlock" class="mt-4 pt-3 border-t border-gray-100 space-y-2 text-sm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="versionId" value="@v.CourseVersionId" />
+                        <input type="hidden" name="nodeId" value="@node.NodeId" />
+                        <p class="font-bold text-gray-500">Thêm block</p>
+                        <select name="blockType" class="w-full border border-gray-200 rounded px-2 py-1">
+                            @foreach (var t in Enum.GetValues<LessonBlockType>())
+                            {
+                                <option value="@t">@ContentEnums.BlockTypeLabel(t)</option>
+                            }
+                        </select>
+                        <textarea name="contentText" rows="2" placeholder="Nội dung văn bản" class="w-full border border-gray-200 rounded px-2 py-1"></textarea>
+                        <input name="contentUrl" placeholder="URL (ảnh / video / nhúng)" class="w-full border border-gray-200 rounded px-2 py-1" />
+                        <button class="bg-blue-600 text-white font-bold text-xs px-3 py-1.5 rounded">Thêm block</button>
+                    </form>
+                }
+            </div>
+        }
+
+        @* review history *@
+        @if (Model.Reviews.Count > 0)
+        {
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="font-black text-gray-800 mb-3">Lịch sử duyệt</h3>
+                <div class="space-y-3 text-sm">
+                    @foreach (var r in Model.Reviews.OrderByDescending(x => x.CreatedAt))
+                    {
+                        <div class="border-l-2 border-gray-200 pl-3">
+                            <p class="font-bold text-gray-700">@r.Decision · @r.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                            @if (!string.IsNullOrEmpty(r.Summary)) { <p class="text-gray-500">@r.Summary</p> }
+                            @foreach (var cm in r.Comments)
+                            {
+                                <div class="flex items-center justify-between mt-1 text-xs">
+                                    <span class="@(cm.Status == CommentStatus.Resolved ? "text-gray-400 line-through" : "text-gray-600")">@cm.Body</span>
+                                    @if (cm.Status == CommentStatus.Open)
+                                    {
+                                        <form method="post" asp-action="ResolveComment">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="commentId" value="@cm.CommentId" />
+                                            <input type="hidden" name="versionId" value="@v.CourseVersionId" />
+                                            <button class="text-blue-600 font-bold hover:underline">Đã xử lý</button>
+                                        </form>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    static IEnumerable<ContentNodeDto> Flatten(IEnumerable<ContentNodeDto> nodes)
+    {
+        foreach (var n in nodes.OrderBy(x => x.OrderIndex))
+        {
+            yield return n;
+            foreach (var d in Flatten(n.Children ?? new List<ContentNodeDto>()))
+                yield return d;
+        }
+    }
+}

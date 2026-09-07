@@ -71,6 +71,7 @@ builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ConfigAdminApiServic
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.CatalogAdminApiService>();
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.QuestionBankAdminApiService>();
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ExerciseAdminApiService>();
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ContentAdminApiService>();
 
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();

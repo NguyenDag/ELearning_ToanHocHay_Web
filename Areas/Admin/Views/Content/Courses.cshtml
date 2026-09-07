@@ -1,0 +1,73 @@
+@model CourseListVm
+@{
+    ViewData["Title"] = "Khoá học";
+    string Badge(CourseStatus s) => s switch
+    {
+        CourseStatus.Published => "bg-green-100 text-green-700",
+        CourseStatus.Archived => "bg-gray-200 text-gray-600",
+        _ => "bg-amber-100 text-amber-700"
+    };
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-black text-gray-800">Khoá học <span class="text-sm font-semibold text-gray-400">(@Model.Courses.Count)</span></h2>
+    <div class="flex gap-2">
+        <a asp-action="Catalog" class="bg-white border border-gray-200 text-gray-600 font-bold text-sm px-4 py-2 rounded-xl">Danh mục</a>
+        <a asp-action="CreateCourse" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-plus mr-1"></i> Tạo khoá học
+        </a>
+    </div>
+</div>
+
+<form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 flex flex-wrap gap-3 text-sm">
+    <select name="subjectId" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Môn —</option>
+        @foreach (var s in Model.Subjects)
+        {
+            <option value="@s.Id" selected="@(Model.SubjectId == s.Id)">@s.Name</option>
+        }
+    </select>
+    <select name="gradeLevelId" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Lớp —</option>
+        @foreach (var g in Model.Grades)
+        {
+            <option value="@g.Id" selected="@(Model.GradeLevelId == g.Id)">@g.Name</option>
+        }
+    </select>
+    <button class="bg-gray-800 text-white font-bold px-4 rounded-lg">Lọc</button>
+</form>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Khoá học</th>
+                <th class="text-left px-4 py-3">Môn / Lớp</th>
+                <th class="text-left px-4 py-3">Trạng thái</th>
+                <th class="text-center px-4 py-3">Bản xuất bản</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var c in Model.Courses)
+        {
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-800">@c.Title</p>
+                    <p class="text-gray-400 text-xs">@c.Slug</p>
+                </td>
+                <td class="px-4 py-3 text-gray-600">@c.SubjectName / @c.GradeLevelName</td>
+                <td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs font-bold @Badge(c.Status)">@ContentEnums.CourseStatusLabel(c.Status)</span></td>
+                <td class="px-4 py-3 text-center">@(c.PublishedVersionNumber.HasValue ? $"v{c.PublishedVersionNumber}" : "—")</td>
+                <td class="px-4 py-3 text-right">
+                    <a asp-action="Course" asp-route-id="@c.CourseId" class="text-blue-600 font-bold hover:underline">Mở</a>
+                </td>
+            </tr>
+        }
+        @if (Model.Courses.Count == 0)
+        {
+            <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">Chưa có khoá học nào.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -92,6 +92,42 @@ namespace ToanHocHay.WebApp.Common.Constants
             public const string List = "courses";
             public static string ById(int id) => $"courses/{id}";
             public static string BySlug(string slug) => $"courses/by-slug/{slug}";
+
+            // authoring / workflow
+            public static string Archive(int id) => $"courses/{id}/archive";
+            public static string Unarchive(int id) => $"courses/{id}/unarchive";
+            public static string Versions(int courseId) => $"courses/{courseId}/versions";
+            public static string SubmitVersion(int versionId) => $"courses/versions/{versionId}/submit";
+            public static string ReviewVersion(int versionId) => $"courses/versions/{versionId}/review";
+            public static string PublishVersion(int versionId) => $"courses/versions/{versionId}/publish";
+            public static string ArchiveVersion(int versionId) => $"courses/versions/{versionId}/archive";
+            public static string VersionReviews(int versionId) => $"courses/versions/{versionId}/reviews";
+            public static string ResolveComment(int commentId) => $"courses/reviews/comments/{commentId}/resolve";
+        }
+
+        // ---------- content authoring (cây nội dung + block) ----------
+        public static class ContentAuthoring
+        {
+            public static string Tree(int versionId) => $"content/versions/{versionId}/tree";
+            public static string Node(int nodeId) => $"content/nodes/{nodeId}";
+            public static string CreateNode(int versionId) => $"content/versions/{versionId}/nodes";
+            public static string Reorder(int versionId, int? parentNodeId) =>
+                $"content/versions/{versionId}/nodes/reorder" + (parentNodeId.HasValue ? $"?parentNodeId={parentNodeId}" : "");
+            public static string MoveNode(int nodeId) => $"content/nodes/{nodeId}/move";
+            public static string Blocks(int nodeId) => $"content/nodes/{nodeId}/blocks";
+            public static string Block(int blockId) => $"content/blocks/{blockId}";
+            public static string Resources(int nodeId) => $"content/nodes/{nodeId}/resources";
+            public static string Resource(int resourceId) => $"content/resources/{resourceId}";
+        }
+
+        public static class CatalogAuthoring
+        {
+            public const string Subjects = "catalog/subjects";
+            public static string Subject(int id) => $"catalog/subjects/{id}";
+            public const string GradeLevels = "catalog/grade-levels";
+            public static string GradeLevel(int id) => $"catalog/grade-levels/{id}";
+            public const string Frameworks = "catalog/frameworks";
+            public static string Framework(int id) => $"catalog/frameworks/{id}";
         }
 
         public static class Learn

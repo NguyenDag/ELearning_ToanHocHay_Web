@@ -1,0 +1,21 @@
+@model NodeTreeVm
+<ul class="space-y-0.5">
+    @foreach (var n in Model.Nodes.OrderBy(x => x.OrderIndex))
+    {
+        <li>
+            <a href="@Url.Action("Version", new { versionId = Model.VersionId, courseId = Model.CourseId, nodeId = n.NodeId })"
+               class="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm @(Model.SelectedNodeId == n.NodeId ? "bg-blue-600 text-white font-bold" : "hover:bg-blue-50 text-gray-700")">
+                <span class="text-xs opacity-70">@ContentEnums.NodeTypeLabel(n.NodeType)</span>
+                <span class="truncate">@n.Title</span>
+                @if (n.IsFree) { <span class="text-[10px] px-1 rounded bg-green-100 text-green-700">FREE</span> }
+                @if (n.IsHidden) { <span class="text-[10px] px-1 rounded bg-gray-200 text-gray-500">ẨN</span> }
+            </a>
+            @if (n.Children?.Count > 0)
+            {
+                <div class="ml-4 border-l border-gray-100 pl-2">
+                    <partial name="_NodeTree" model="@(new NodeTreeVm { Nodes = n.Children, VersionId = Model.VersionId, CourseId = Model.CourseId, SelectedNodeId = Model.SelectedNodeId })" />
+                </div>
+            }
+        </li>
+    }
+</ul>
