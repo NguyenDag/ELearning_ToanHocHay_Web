@@ -22,6 +22,17 @@ var cookieExpireDays = builder.Configuration.GetValue<int?>("Auth:CookieExpireDa
 
 var finalApiUrl = new Uri(ApiConstant.apiBaseUrl + "/api/");
 
+// Cảnh báo sớm: trỏ WebApp vào cổng http của backend (localhost) thường khiến backend
+// 307 sang https và rớt header Authorization → mọi API cần đăng nhập trả 401
+// (danh sách khu quản trị trống). Hãy đặt Api:BaseUrl = URL https của backend.
+if (finalApiUrl.Scheme == Uri.UriSchemeHttp &&
+    (finalApiUrl.IsLoopback || finalApiUrl.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)))
+{
+    Console.WriteLine(
+        $"[CẢNH BÁO] Api:BaseUrl đang là HTTP ({ApiConstant.apiBaseUrl}). Nếu backend bật HTTPS redirect, " +
+        "các lời gọi API cần đăng nhập có thể trả 401. Nên đặt Api:BaseUrl sang https://localhost:<port-https>.");
+}
+
 builder.Services.AddHttpContextAccessor();
 
 // --- TẦNG GỌI API CHUẨN HOÁ ---

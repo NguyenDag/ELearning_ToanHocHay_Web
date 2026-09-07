@@ -29,7 +29,7 @@ namespace ToanHocHay.WebApp.Services.Admin
             var r = await _api.GetAsync<PagedResultDto<AuditLogItemDto>>($"{ApiRoutes.Admin.AuditLogs}?{BuildQuery(f)}");
             var facets = await _api.GetAsync<AuditLogFacetsDto>(ApiRoutes.Admin.AuditLogsFacets);
             var data = r.Data ?? new PagedResultDto<AuditLogItemDto>();
-            return new AuditLogIndexVm
+            var vm = new AuditLogIndexVm
             {
                 Filter = f,
                 Items = data.Items,
@@ -38,6 +38,8 @@ namespace ToanHocHay.WebApp.Services.Admin
                 PageSize = data.PageSize == 0 ? f.PageSize : data.PageSize,
                 Facets = facets.Data ?? new AuditLogFacetsDto()
             };
+            if (!r.IsSuccess) vm.SetError(r.StatusCode, r.DisplayMessage);
+            return vm;
         }
 
         public async Task<(byte[] Bytes, string FileName)?> ExportCsvAsync(AuditLogFilterVm f)

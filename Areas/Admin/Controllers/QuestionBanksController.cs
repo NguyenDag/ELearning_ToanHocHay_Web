@@ -18,16 +18,25 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int? subjectId, int? gradeLevelId)
+        public async Task<IActionResult> Index(int? subjectId, int? gradeLevelId, int page = 1, int pageSize = 20)
         {
+            page = AdminPaging.NormalizePage(page);
+            pageSize = AdminPaging.NormalizeSize(pageSize);
+            var (all, status, error) = await _banks.ListBanksAsync(subjectId, gradeLevelId);
+            var slice = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
             var vm = new QuestionBankListVm
             {
-                Banks = await _banks.ListBanksAsync(subjectId, gradeLevelId),
+                Banks = slice,
+                Total = all.Count,
+                Page = page,
+                PageSize = pageSize,
+                SubjectId = subjectId,
+                GradeLevelId = gradeLevelId,
                 Subjects = await _catalog.GetSubjectsAsync(),
                 Grades = await _catalog.GetGradeLevelsAsync()
             };
-            ViewBag.SubjectId = subjectId;
-            ViewBag.GradeLevelId = gradeLevelId;
+            if (error != null) vm.SetError(status, error);
+            if (GuardListError(vm) is { } redirect) return redirect;
             return View(vm);
         }
 
@@ -94,12 +103,14 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
         // ---------- questions in a bank ----------
 
         [HttpGet]
-        public async Task<IActionResult> Questions(int bankId, QuestionStatus? status, string? search, int page = 1)
+        public async Task<IActionResult> Questions(int bankId, QuestionStatus? status, string? search, int page = 1, int pageSize = 20)
         {
             var bank = await _banks.GetBankAsync(bankId);
             if (bank == null) { this.PushToastError("Không tìm thấy ngân hàng."); return RedirectToAction(nameof(Index)); }
-            var vm = await _banks.ListQuestionsAsync(bankId, status, search, page < 1 ? 1 : page, 20);
+            var vm = await _banks.ListQuestionsAsync(bankId, status, search,
+                AdminPaging.NormalizePage(page), AdminPaging.NormalizeSize(pageSize));
             vm.Bank = bank;
+            if (GuardListError(vm) is { } redirect) return redirect;
             return View(vm);
         }
 

@@ -53,16 +53,32 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
         // ================= COURSES =================
 
         [HttpGet]
-        public async Task<IActionResult> Courses(int? subjectId, int? gradeLevelId)
+        public async Task<IActionResult> Courses(int? subjectId, int? gradeLevelId, string? search, int page = 1, int pageSize = 20)
         {
+            page = AdminPaging.NormalizePage(page);
+            pageSize = AdminPaging.NormalizeSize(pageSize);
+            var (all, status, error) = await _content.ListCoursesAsync(subjectId, gradeLevelId);
+
+            IEnumerable<CourseAdminDto> q = all.OrderBy(c => c.DisplayOrder).ThenBy(c => c.Title);
+            if (!string.IsNullOrWhiteSpace(search))
+                q = q.Where(c => c.Title.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase)
+                                 || (c.Slug?.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase) ?? false));
+            var list = q.ToList();
+
             var vm = new CourseListVm
             {
-                Courses = await _content.ListCoursesAsync(subjectId, gradeLevelId),
+                Courses = list.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+                Total = list.Count,
+                Page = page,
+                PageSize = pageSize,
                 Subjects = await _catalog.GetSubjectsAsync(),
                 Grades = await _catalog.GetGradeLevelsAsync(),
                 SubjectId = subjectId,
-                GradeLevelId = gradeLevelId
+                GradeLevelId = gradeLevelId,
+                Search = search
             };
+            if (error != null) vm.SetError(status, error);
+            if (GuardListError(vm) is { } redirect) return redirect;
             return View(vm);
         }
 
@@ -186,7 +202,7 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
         private async Task<int?> ResolveCourseIdAsync(int versionId)
         {
             // Duyệt các khoá học để tìm phiên bản. Chỉ dùng khi mở trực tiếp bằng versionId.
-            var courses = await _content.ListCoursesAsync(null, null);
+            var (courses, _, _) = await _content.ListCoursesAsync(null, null);
             foreach (var c in courses)
             {
                 var vs = await _content.ListVersionsAsync(c.CourseId);

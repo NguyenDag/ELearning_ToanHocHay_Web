@@ -12,12 +12,28 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
         public ExercisesController(ExerciseAdminApiService ex) => _ex = ex;
 
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, int page = 1, int pageSize = 20)
         {
-            var items = (await _ex.ListAsync())
-                .OrderByDescending(e => e.CreatedAt)
-                .ToList();
-            return View(items);
+            page = AdminPaging.NormalizePage(page);
+            pageSize = AdminPaging.NormalizeSize(pageSize);
+            var (all, status, error) = await _ex.ListAsync();
+
+            IEnumerable<ExerciseAdminDto> q = all.OrderByDescending(e => e.CreatedAt);
+            if (!string.IsNullOrWhiteSpace(search))
+                q = q.Where(e => e.ExerciseName.Contains(search.Trim(), StringComparison.OrdinalIgnoreCase));
+            var list = q.ToList();
+
+            var vm = new ExerciseListVm
+            {
+                Items = list.Skip((page - 1) * pageSize).Take(pageSize).ToList(),
+                Total = list.Count,
+                Page = page,
+                PageSize = pageSize,
+                Search = search
+            };
+            if (error != null) vm.SetError(status, error);
+            if (GuardListError(vm) is { } redirect) return redirect;
+            return View(vm);
         }
 
         [HttpGet]

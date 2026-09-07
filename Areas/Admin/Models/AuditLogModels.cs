@@ -33,7 +33,7 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public int PageSize { get; set; } = 50;
     }
 
-    public class AuditLogIndexVm
+    public class AuditLogIndexVm : AdminListVmBase
     {
         public AuditLogFilterVm Filter { get; set; } = new();
         public List<AuditLogItemDto> Items { get; set; } = new();
@@ -41,6 +41,6 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public int Page { get; set; }
         public int PageSize { get; set; }
         public AuditLogFacetsDto Facets { get; set; } = new();
-        public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(Total / (double)PageSize) : 1;
+        public int TotalPages => PageSize > 0 ? Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize)) : 1;
     }
 }

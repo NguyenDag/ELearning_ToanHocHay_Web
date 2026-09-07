@@ -13,13 +13,13 @@ namespace ToanHocHay.WebApp.Services.Admin
         public QuestionBankAdminApiService(ApiClient api) => _api = api;
 
         // ---------- banks ----------
-        public async Task<List<QuestionBankDto>> ListBanksAsync(int? subjectId, int? gradeLevelId)
+        public async Task<(List<QuestionBankDto> Items, int Status, string? Error)> ListBanksAsync(int? subjectId, int? gradeLevelId)
         {
             var qs = new List<string> { "includeInactive=true" };
             if (subjectId is > 0) qs.Add($"subjectId={subjectId}");
             if (gradeLevelId is > 0) qs.Add($"gradeLevelId={gradeLevelId}");
             var r = await _api.GetAsync<List<QuestionBankDto>>($"{ApiRoutes.QuestionBanks.List}?{string.Join('&', qs)}");
-            return r.IsSuccess && r.Data != null ? r.Data : new();
+            return (r.Data ?? new(), r.StatusCode, r.IsSuccess ? null : r.DisplayMessage);
         }
 
         public async Task<QuestionBankDto?> GetBankAsync(int bankId)
@@ -45,7 +45,7 @@ namespace ToanHocHay.WebApp.Services.Admin
             if (!string.IsNullOrWhiteSpace(search)) qs.Add($"search={Uri.EscapeDataString(search.Trim())}");
             var r = await _api.GetAsync<PagedResultDto<AdminQuestionDto>>($"{ApiRoutes.QuestionBanks.Questions(bankId)}?{string.Join('&', qs)}");
             var data = r.Data ?? new PagedResultDto<AdminQuestionDto>();
-            return new QuestionListVm
+            var vm = new QuestionListVm
             {
                 Items = data.Items,
                 Total = data.Total,
@@ -54,6 +54,8 @@ namespace ToanHocHay.WebApp.Services.Admin
                 Status = status,
                 Search = search
             };
+            if (!r.IsSuccess) vm.SetError(r.StatusCode, r.DisplayMessage);
+            return vm;
         }
 
         public async Task<AdminQuestionDto?> GetQuestionAsync(int questionId)

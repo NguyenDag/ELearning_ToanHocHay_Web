@@ -21,6 +21,14 @@
     </a>
 </div>
 
+@if (Model.Failed)
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">
+        <b>Không tải được danh sách người dùng</b> (mã @Model.ErrorStatus): @Model.Error
+        <br />Kiểm tra: Backend API đang chạy? Đăng nhập lại? Xem log máy chủ để biết thêm.
+    </div>
+}
+
 <form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 grid grid-cols-1 md:grid-cols-6 gap-3 text-sm">
     <input name="Search" value="@f.Search" placeholder="Tìm email / họ tên"
            class="md:col-span-2 border border-gray-200 rounded-lg px-3 py-2" />
@@ -41,13 +49,19 @@
         <option value="true" selected="@Sel(f.Locked, true)">Đang khoá</option>
         <option value="false" selected="@Sel(f.Locked, false)">Không khoá</option>
     </select>
+    <select name="EmailConfirmed" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Email —</option>
+        <option value="true" selected="@Sel(f.EmailConfirmed, true)">Đã xác nhận</option>
+        <option value="false" selected="@Sel(f.EmailConfirmed, false)">Chưa xác nhận</option>
+    </select>
     <div class="flex gap-2">
-        <select name="EmailConfirmed" class="flex-1 border border-gray-200 rounded-lg px-3 py-2">
-            <option value="">— Email —</option>
-            <option value="true" selected="@Sel(f.EmailConfirmed, true)">Đã xác nhận</option>
-            <option value="false" selected="@Sel(f.EmailConfirmed, false)">Chưa xác nhận</option>
+        <select name="PageSize" class="border border-gray-200 rounded-lg px-3 py-2">
+            @foreach (var n in new[] { 10, 20, 50, 100 })
+            {
+                <option value="@n" selected="@(f.PageSize == n)">@n / trang</option>
+            }
         </select>
-        <button class="bg-gray-800 text-white font-bold px-4 rounded-lg">Lọc</button>
+        <button class="flex-1 bg-gray-800 text-white font-bold px-4 rounded-lg">Lọc</button>
     </div>
 </form>
 
@@ -105,18 +119,27 @@
     </table>
 </div>
 
+@{
+    var users_rv = new Dictionary<string, string>
+    {
+        ["PageSize"] = f.PageSize.ToString(),
+        ["Search"] = f.Search ?? "",
+        ["UserType"] = f.UserType?.ToString() ?? "",
+        ["IsActive"] = f.IsActive?.ToString() ?? "",
+        ["Locked"] = f.Locked?.ToString() ?? "",
+        ["EmailConfirmed"] = f.EmailConfirmed?.ToString() ?? ""
+    };
+}
 @if (Model.TotalPages > 1)
 {
-    <div class="flex justify-center gap-1 mt-4">
-        @for (var p = 1; p <= Model.TotalPages; p++)
-        {
-            <a asp-action="Index"
-               asp-route-Page="@p" asp-route-PageSize="@f.PageSize"
-               asp-route-Search="@f.Search" asp-route-UserType="@f.UserType"
-               asp-route-IsActive="@f.IsActive" asp-route-Locked="@f.Locked" asp-route-EmailConfirmed="@f.EmailConfirmed"
-               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">
-                @p
-            </a>
-        }
+    <div class="flex justify-between items-center mt-4 text-sm">
+        <span class="text-gray-400">Trang @Model.Page / @Model.TotalPages · @Model.Total tài khoản</span>
+        <div class="flex gap-1 flex-wrap">
+            @for (var p = Math.Max(1, Model.Page - 3); p <= Math.Min(Model.TotalPages, Model.Page + 3); p++)
+            {
+                <a asp-action="Index" asp-route-Page="@p" asp-all-route-data="users_rv"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">@p</a>
+            }
+        </div>
     </div>
 }

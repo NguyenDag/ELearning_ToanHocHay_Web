@@ -10,7 +10,7 @@
 }
 
 <div class="flex items-center justify-between mb-4">
-    <h2 class="text-xl font-black text-gray-800">Khoá học <span class="text-sm font-semibold text-gray-400">(@Model.Courses.Count)</span></h2>
+    <h2 class="text-xl font-black text-gray-800">Khoá học <span class="text-sm font-semibold text-gray-400">(@Model.Total)</span></h2>
     <div class="flex gap-2">
         <a asp-action="Catalog" class="bg-white border border-gray-200 text-gray-600 font-bold text-sm px-4 py-2 rounded-xl">Danh mục</a>
         <a asp-action="CreateCourse" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
@@ -19,7 +19,15 @@
     </div>
 </div>
 
+@if (Model.Failed)
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">
+        <b>Không tải được danh sách khoá học</b> (mã @Model.ErrorStatus): @Model.Error
+    </div>
+}
+
 <form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 flex flex-wrap gap-3 text-sm">
+    <input name="search" value="@Model.Search" placeholder="Tìm tiêu đề / slug" class="flex-1 min-w-[180px] border border-gray-200 rounded-lg px-3 py-2" />
     <select name="subjectId" class="border border-gray-200 rounded-lg px-3 py-2">
         <option value="">— Môn —</option>
         @foreach (var s in Model.Subjects)
@@ -32,6 +40,12 @@
         @foreach (var g in Model.Grades)
         {
             <option value="@g.Id" selected="@(Model.GradeLevelId == g.Id)">@g.Name</option>
+        }
+    </select>
+    <select name="pageSize" class="border border-gray-200 rounded-lg px-3 py-2">
+        @foreach (var n in new[] { 10, 20, 50, 100 })
+        {
+            <option value="@n" selected="@(Model.PageSize == n)">@n / trang</option>
         }
     </select>
     <button class="bg-gray-800 text-white font-bold px-4 rounded-lg">Lọc</button>
@@ -64,10 +78,25 @@
                 </td>
             </tr>
         }
-        @if (Model.Courses.Count == 0)
+        @if (Model.Courses.Count == 0 && !Model.Failed)
         {
             <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">Chưa có khoá học nào.</td></tr>
         }
         </tbody>
     </table>
 </div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="flex justify-between items-center mt-4 text-sm">
+        <span class="text-gray-400">Trang @Model.Page / @Model.TotalPages · @Model.Total khoá học</span>
+        <div class="flex gap-1 flex-wrap">
+            @for (var p = Math.Max(1, Model.Page - 3); p <= Math.Min(Model.TotalPages, Model.Page + 3); p++)
+            {
+                <a asp-action="Courses" asp-route-page="@p" asp-route-pageSize="@Model.PageSize"
+                   asp-route-search="@Model.Search" asp-route-subjectId="@Model.SubjectId" asp-route-gradeLevelId="@Model.GradeLevelId"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">@p</a>
+            }
+        </div>
+    </div>
+}

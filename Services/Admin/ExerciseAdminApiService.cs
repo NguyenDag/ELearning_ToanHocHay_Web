@@ -11,10 +11,10 @@ namespace ToanHocHay.WebApp.Services.Admin
 
         public ExerciseAdminApiService(ApiClient api) => _api = api;
 
-        public async Task<List<ExerciseAdminDto>> ListAsync()
+        public async Task<(List<ExerciseAdminDto> Items, int Status, string? Error)> ListAsync()
         {
             var r = await _api.GetAsync<List<ExerciseAdminDto>>(ApiRoutes.ExercisesAdmin.List);
-            return r.IsSuccess && r.Data != null ? r.Data : new();
+            return (r.Data ?? new(), r.StatusCode, r.IsSuccess ? null : r.DisplayMessage);
         }
 
         public async Task<ExerciseAdminDto?> GetAsync(int id)

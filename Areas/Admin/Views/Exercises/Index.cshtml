@@ -1,4 +1,4 @@
-@model List<ExerciseAdminDto>
+@model ExerciseListVm
 @{
     ViewData["Title"] = "Bài kiểm tra";
     string Badge(ExerciseStatus s) => s switch
@@ -10,11 +10,29 @@
 }
 
 <div class="flex items-center justify-between mb-4">
-    <h2 class="text-xl font-black text-gray-800">Bài kiểm tra <span class="text-sm font-semibold text-gray-400">(@Model.Count)</span></h2>
+    <h2 class="text-xl font-black text-gray-800">Bài kiểm tra <span class="text-sm font-semibold text-gray-400">(@Model.Total)</span></h2>
     <a asp-action="Create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
         <i class="fa-solid fa-plus mr-1"></i> Tạo bài kiểm tra
     </a>
 </div>
+
+@if (Model.Failed)
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">
+        <b>Không tải được danh sách bài kiểm tra</b> (mã @Model.ErrorStatus): @Model.Error
+    </div>
+}
+
+<form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 flex flex-wrap gap-3 text-sm">
+    <input name="search" value="@Model.Search" placeholder="Tìm theo tên" class="flex-1 min-w-[200px] border border-gray-200 rounded-lg px-3 py-2" />
+    <select name="pageSize" class="border border-gray-200 rounded-lg px-3 py-2">
+        @foreach (var n in new[] { 10, 20, 50, 100 })
+        {
+            <option value="@n" selected="@(Model.PageSize == n)">@n / trang</option>
+        }
+    </select>
+    <button class="bg-gray-800 text-white font-bold px-4 rounded-lg">Lọc</button>
+</form>
 
 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
     <table class="w-full text-sm">
@@ -29,7 +47,7 @@
             </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
-        @foreach (var e in Model)
+        @foreach (var e in Model.Items)
         {
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 font-bold text-gray-800">@e.ExerciseName</td>
@@ -44,10 +62,24 @@
                 </td>
             </tr>
         }
-        @if (Model.Count == 0)
+        @if (Model.Items.Count == 0 && !Model.Failed)
         {
-            <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">Chưa có bài kiểm tra nào.</td></tr>
+            <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">Không có bài kiểm tra nào.</td></tr>
         }
         </tbody>
     </table>
 </div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="flex justify-between items-center mt-4 text-sm">
+        <span class="text-gray-400">Trang @Model.Page / @Model.TotalPages · @Model.Total bài</span>
+        <div class="flex gap-1 flex-wrap">
+            @for (var p = Math.Max(1, Model.Page - 3); p <= Math.Min(Model.TotalPages, Model.Page + 3); p++)
+            {
+                <a asp-action="Index" asp-route-page="@p" asp-route-pageSize="@Model.PageSize" asp-route-search="@Model.Search"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">@p</a>
+            }
+        </div>
+    </div>
+}

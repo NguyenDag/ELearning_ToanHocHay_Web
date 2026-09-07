@@ -1,16 +1,23 @@
 @model QuestionBankListVm
 @{
     ViewData["Title"] = "Ngân hàng câu hỏi";
-    int? subjectId = ViewBag.SubjectId;
-    int? gradeLevelId = ViewBag.GradeLevelId;
+    var subjectId = Model.SubjectId;
+    var gradeLevelId = Model.GradeLevelId;
 }
 
 <div class="flex items-center justify-between mb-4">
-    <h2 class="text-xl font-black text-gray-800">Ngân hàng câu hỏi <span class="text-sm font-semibold text-gray-400">(@Model.Banks.Count)</span></h2>
+    <h2 class="text-xl font-black text-gray-800">Ngân hàng câu hỏi <span class="text-sm font-semibold text-gray-400">(@Model.Total)</span></h2>
     <a asp-action="Create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
         <i class="fa-solid fa-plus mr-1"></i> Tạo ngân hàng
     </a>
 </div>
+
+@if (Model.Failed)
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">
+        <b>Không tải được danh sách ngân hàng câu hỏi</b> (mã @Model.ErrorStatus): @Model.Error
+    </div>
+}
 
 <form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 flex flex-wrap gap-3 text-sm">
     <select name="subjectId" class="border border-gray-200 rounded-lg px-3 py-2">
@@ -68,10 +75,25 @@
                 </td>
             </tr>
         }
-        @if (Model.Banks.Count == 0)
+        @if (Model.Banks.Count == 0 && !Model.Failed)
         {
             <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">Chưa có ngân hàng câu hỏi nào.</td></tr>
         }
         </tbody>
     </table>
 </div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="flex justify-between items-center mt-4 text-sm">
+        <span class="text-gray-400">Trang @Model.Page / @Model.TotalPages · @Model.Total ngân hàng</span>
+        <div class="flex gap-1 flex-wrap">
+            @for (var p = Math.Max(1, Model.Page - 3); p <= Math.Min(Model.TotalPages, Model.Page + 3); p++)
+            {
+                <a asp-action="Index" asp-route-page="@p" asp-route-pageSize="@Model.PageSize"
+                   asp-route-subjectId="@subjectId" asp-route-gradeLevelId="@gradeLevelId"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">@p</a>
+            }
+        </div>
+    </div>
+}

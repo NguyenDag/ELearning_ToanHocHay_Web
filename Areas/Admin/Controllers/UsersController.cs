@@ -15,9 +15,10 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index([FromQuery] AdminUserFilter filter)
         {
-            if (filter.Page < 1) filter.Page = 1;
-            if (filter.PageSize is < 1 or > 100) filter.PageSize = 20;
+            filter.Page = AdminPaging.NormalizePage(filter.Page);
+            filter.PageSize = AdminPaging.NormalizeSize(filter.PageSize);
             var vm = await _users.ListAsync(filter);
+            if (GuardListError(vm) is { } redirect) return redirect;
             return View(vm);
         }
 

@@ -23,6 +23,13 @@
     </div>
 </div>
 
+@if (Model.Failed)
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mt-4">
+        <b>Không tải được danh sách câu hỏi</b> (mã @Model.ErrorStatus): @Model.Error
+    </div>
+}
+
 <form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 my-4 flex flex-wrap gap-3 text-sm">
     <input type="hidden" name="bankId" value="@Model.Bank.BankId" />
     <select name="status" class="border border-gray-200 rounded-lg px-3 py-2">

@@ -39,13 +39,13 @@ namespace ToanHocHay.WebApp.Services.Admin
                          : _api.PostAsync(ApiRoutes.CatalogAuthoring.Frameworks, body);
 
         // ---------------- courses ----------------
-        public async Task<List<CourseAdminDto>> ListCoursesAsync(int? subjectId, int? gradeLevelId)
+        public async Task<(List<CourseAdminDto> Items, int Status, string? Error)> ListCoursesAsync(int? subjectId, int? gradeLevelId)
         {
             var qs = new List<string> { "includeUnpublished=true" };
             if (subjectId is > 0) qs.Add($"subjectId={subjectId}");
             if (gradeLevelId is > 0) qs.Add($"gradeLevelId={gradeLevelId}");
             var r = await _api.GetAsync<List<CourseAdminDto>>($"{ApiRoutes.Courses.List}?{string.Join('&', qs)}");
-            return r.IsSuccess && r.Data != null ? r.Data : new();
+            return (r.Data ?? new(), r.StatusCode, r.IsSuccess ? null : r.DisplayMessage);
         }
 
         public async Task<CourseAdminDto?> GetCourseAsync(int id)

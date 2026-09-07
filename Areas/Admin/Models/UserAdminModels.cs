@@ -67,14 +67,14 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public bool CanViewAuditLog { get; set; }
     }
 
-    public class UsersIndexVm
+    public class UsersIndexVm : AdminListVmBase
     {
         public AdminUserFilter Filter { get; set; } = new();
         public List<AdminUserDto> Items { get; set; } = new();
         public int Total { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
-        public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(Total / (double)PageSize) : 1;
+        public int TotalPages => PageSize > 0 ? Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize)) : 1;
     }
 
     public static class AdminRoles

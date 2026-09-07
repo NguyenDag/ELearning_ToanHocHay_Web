@@ -28,7 +28,7 @@ namespace ToanHocHay.WebApp.Services.Admin
 
             var r = await _api.GetAsync<PagedResultDto<AdminUserDto>>($"{ApiRoutes.Users.List}?{string.Join('&', qs)}");
             var data = r.Data ?? new PagedResultDto<AdminUserDto>();
-            return new UsersIndexVm
+            var vm = new UsersIndexVm
             {
                 Filter = f,
                 Items = data.Items,
@@ -36,6 +36,8 @@ namespace ToanHocHay.WebApp.Services.Admin
                 Page = data.Page == 0 ? f.Page : data.Page,
                 PageSize = data.PageSize == 0 ? f.PageSize : data.PageSize
             };
+            if (!r.IsSuccess) vm.SetError(r.StatusCode, r.DisplayMessage);
+            return vm;
         }
 
         public async Task<AdminUserDto?> GetAsync(int id)

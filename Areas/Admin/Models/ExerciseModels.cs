@@ -74,4 +74,14 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public List<ExerciseQuestionRowDto> Questions { get; set; } = new();
         public bool IsNew => Exercise.ExerciseId == 0;
     }
+
+    public class ExerciseListVm : AdminListVmBase
+    {
+        public List<ExerciseAdminDto> Items { get; set; } = new();
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public int Total { get; set; }
+        public string? Search { get; set; }
+        public int TotalPages => PageSize > 0 ? Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize)) : 1;
+    }
 }

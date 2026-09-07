@@ -17,6 +17,7 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
             if (filter.Page < 1) filter.Page = 1;
             if (filter.PageSize is < 1 or > 200) filter.PageSize = 50;
             var vm = await _audit.ListAsync(filter);
+            if (GuardListError(vm) is { } redirect) return redirect;
             return View(vm);
         }
 

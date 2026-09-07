@@ -93,14 +93,20 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public List<int> CorrectIndexes { get; set; } = new();
     }
 
-    public class QuestionBankListVm
+    public class QuestionBankListVm : AdminListVmBase
     {
         public List<QuestionBankDto> Banks { get; set; } = new();
         public List<CatalogRefDto> Subjects { get; set; } = new();
         public List<CatalogRefDto> Grades { get; set; } = new();
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 20;
+        public int Total { get; set; }
+        public int? SubjectId { get; set; }
+        public int? GradeLevelId { get; set; }
+        public int TotalPages => PageSize > 0 ? Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize)) : 1;
     }
 
-    public class QuestionListVm
+    public class QuestionListVm : AdminListVmBase
     {
         public QuestionBankDto Bank { get; set; } = new();
         public List<AdminQuestionDto> Items { get; set; } = new();
@@ -109,7 +115,7 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public int PageSize { get; set; } = 20;
         public QuestionStatus? Status { get; set; }
         public string? Search { get; set; }
-        public int TotalPages => PageSize > 0 ? (int)Math.Ceiling(Total / (double)PageSize) : 1;
+        public int TotalPages => PageSize > 0 ? Math.Max(1, (int)Math.Ceiling(Total / (double)PageSize)) : 1;
     }
 
     public class CatalogRefDto
