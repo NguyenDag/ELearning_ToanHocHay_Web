@@ -1,0 +1,52 @@
+@model CreateStaffUserVm
+@{
+    ViewData["Title"] = "Tạo tài khoản nhân sự";
+}
+
+<div class="max-w-xl">
+    <a asp-action="Index" class="text-sm text-gray-500 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Danh sách người dùng</a>
+    <h2 class="text-xl font-black text-gray-800 mt-2 mb-4">Tạo tài khoản nhân sự</h2>
+
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <form method="post" class="space-y-4 text-sm">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="All" class="text-red-600 text-sm"></div>
+
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Họ tên</label>
+                <input asp-for="FullName" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                <span asp-validation-for="FullName" class="text-red-600 text-xs"></span>
+            </div>
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Email</label>
+                <input asp-for="Email" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                <span asp-validation-for="Email" class="text-red-600 text-xs"></span>
+            </div>
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Mật khẩu tạm</label>
+                <input asp-for="Password" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                <span asp-validation-for="Password" class="text-red-600 text-xs"></span>
+                <p class="text-gray-400 text-xs mt-1">Người dùng nên đổi mật khẩu sau lần đăng nhập đầu.</p>
+            </div>
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Số điện thoại (tuỳ chọn)</label>
+                <input asp-for="Phone" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                <span asp-validation-for="Phone" class="text-red-600 text-xs"></span>
+            </div>
+            <div>
+                <label class="block font-bold text-gray-700 mb-1">Vai trò</label>
+                <select asp-for="UserType" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                    @foreach (var t in AdminRoles.Staff)
+                    {
+                        <option value="@t">@AdminRoles.Label(t)</option>
+                    }
+                </select>
+                <p class="text-gray-400 text-xs mt-1">Tài khoản học sinh / phụ huynh phải qua luồng đăng ký.</p>
+            </div>
+
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl">
+                Tạo tài khoản
+            </button>
+        </form>
+    </div>
+</div>

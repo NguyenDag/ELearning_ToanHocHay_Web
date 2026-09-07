@@ -1,0 +1,125 @@
+@model AdminUserDto
+@{
+    ViewData["Title"] = "Chi tiết người dùng";
+    var isLearner = Model.UserType is UserType.Student or UserType.Parent;
+}
+
+<a asp-action="Index" class="text-sm text-gray-500 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Danh sách người dùng</a>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-3">
+
+    <div class="lg:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <p class="text-lg font-black text-gray-800">@Model.FullName</p>
+        <p class="text-gray-500 text-sm">@Model.Email</p>
+        <dl class="mt-4 space-y-2 text-sm">
+            <div class="flex justify-between"><dt class="text-gray-400">Vai trò</dt><dd class="font-bold">@AdminRoles.Label(Model.UserType)</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-400">Điện thoại</dt><dd>@(Model.Phone ?? "—")</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-400">Trạng thái</dt>
+                <dd class="font-bold @(Model.IsLocked ? "text-red-600" : Model.IsActive ? "text-green-600" : "text-gray-500")">
+                    @(Model.IsLocked ? "Đã khoá" : Model.IsActive ? "Hoạt động" : "Vô hiệu hoá")
+                </dd></div>
+            <div class="flex justify-between"><dt class="text-gray-400">Email</dt><dd>@(Model.IsEmailConfirmed ? "Đã xác nhận" : "Chưa xác nhận")</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-400">Tạo lúc</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</dd></div>
+            <div class="flex justify-between"><dt class="text-gray-400">Đăng nhập gần nhất</dt><dd>@(Model.LastLogin?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</dd></div>
+            @if (Model.IsLocked)
+            {
+                <div class="pt-2 border-t border-gray-100"><dt class="text-gray-400">Lý do khoá</dt><dd class="text-red-600">@Model.LockedReason</dd></div>
+            }
+        </dl>
+    </div>
+
+    <div class="lg:col-span-2 space-y-4">
+
+        @* Khoá / mở khoá *@
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <h3 class="font-black text-gray-800 mb-3">Khoá tài khoản</h3>
+            @if (Model.IsLocked)
+            {
+                <form method="post" asp-action="Unlock" asp-route-id="@Model.UserId">
+                    @Html.AntiForgeryToken()
+                    <button class="bg-green-600 hover:bg-green-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Mở khoá</button>
+                </form>
+            }
+            else
+            {
+                <form method="post" asp-action="Lock" asp-route-id="@Model.UserId" class="flex gap-2">
+                    @Html.AntiForgeryToken()
+                    <input name="reason" placeholder="Lý do khoá" required class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                    <button class="bg-red-600 hover:bg-red-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Khoá</button>
+                </form>
+            }
+        </div>
+
+        @* Kích hoạt / vô hiệu hoá *@
+        @if (!Model.IsLocked)
+        {
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="font-black text-gray-800 mb-3">Hoạt động</h3>
+                <form method="post" asp-action="@(Model.IsActive ? "Deactivate" : "Activate")" asp-route-id="@Model.UserId">
+                    @Html.AntiForgeryToken()
+                    <button class="@(Model.IsActive ? "bg-gray-700 hover:bg-gray-800" : "bg-green-600 hover:bg-green-700") text-white font-bold text-sm px-4 py-2 rounded-xl">
+                        @(Model.IsActive ? "Vô hiệu hoá tài khoản" : "Kích hoạt tài khoản")
+                    </button>
+                </form>
+            </div>
+        }
+
+        @* Đặt lại mật khẩu *@
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <h3 class="font-black text-gray-800 mb-3">Đặt lại mật khẩu</h3>
+            <form method="post" asp-action="ResetPassword" asp-route-id="@Model.UserId" class="flex gap-2">
+                @Html.AntiForgeryToken()
+                <input name="newPassword" type="text" placeholder="Mật khẩu mới (≥ 6 ký tự)" required minlength="6"
+                       class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Đặt lại</button>
+            </form>
+            <p class="text-gray-400 text-xs mt-2">Thu hồi mọi phiên đăng nhập của người dùng.</p>
+        </div>
+
+        @* Xác nhận email *@
+        @if (!Model.IsEmailConfirmed)
+        {
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="font-black text-gray-800 mb-3">Xác nhận email thủ công</h3>
+                <form method="post" asp-action="ConfirmEmail" asp-route-id="@Model.UserId">
+                    @Html.AntiForgeryToken()
+                    <button class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm px-4 py-2 rounded-xl">Đánh dấu đã xác nhận</button>
+                </form>
+            </div>
+        }
+
+        @* Đổi vai trò *@
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <h3 class="font-black text-gray-800 mb-3">Đổi vai trò</h3>
+            @if (isLearner)
+            {
+                <p class="text-sm text-gray-500">Không thể đổi vai trò cho tài khoản học sinh / phụ huynh từ đây (còn hồ sơ phụ thuộc).</p>
+            }
+            else
+            {
+                <form method="post" asp-action="ChangeRole" asp-route-id="@Model.UserId" class="flex gap-2">
+                    @Html.AntiForgeryToken()
+                    <select name="newRole" class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                        @foreach (var t in AdminRoles.Staff)
+                        {
+                            <option value="@t" selected="@(t == Model.UserType)">@AdminRoles.Label(t)</option>
+                        }
+                    </select>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Đổi</button>
+                </form>
+                <p class="text-gray-400 text-xs mt-2">Người dùng cần đăng nhập lại sau khi đổi vai trò.</p>
+            }
+        </div>
+
+        @* Xoá *@
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
+            <h3 class="font-black text-red-700 mb-3">Xoá tài khoản</h3>
+            <form method="post" asp-action="Delete" asp-route-id="@Model.UserId"
+                  onsubmit="return confirm('Xoá vĩnh viễn tài khoản này? Chỉ áp dụng cho tài khoản nhân sự chưa từng đăng nhập.');">
+                @Html.AntiForgeryToken()
+                <button class="bg-white border-2 border-red-500 text-red-600 hover:bg-red-50 font-bold text-sm px-4 py-2 rounded-xl">Xoá tài khoản</button>
+            </form>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,87 @@
+@model List<RoleCapabilityDto>
+@{
+    ViewData["Title"] = "Phân quyền";
+    (string key, string label)[] cols =
+    {
+        ("CanManageUsers", "Người dùng"),
+        ("CanAuthorContent", "Soạn nội dung"),
+        ("CanReviewContent", "Duyệt nội dung"),
+        ("CanPublishContent", "Xuất bản"),
+        ("CanManageFinance", "Tài chính"),
+        ("CanManageConfig", "Cấu hình"),
+        ("CanViewAuditLog", "Nhật ký"),
+    };
+    bool Cap(RoleCapabilityDto r, string k) => k switch
+    {
+        "CanManageUsers" => r.CanManageUsers,
+        "CanAuthorContent" => r.CanAuthorContent,
+        "CanReviewContent" => r.CanReviewContent,
+        "CanPublishContent" => r.CanPublishContent,
+        "CanManageFinance" => r.CanManageFinance,
+        "CanManageConfig" => r.CanManageConfig,
+        "CanViewAuditLog" => r.CanViewAuditLog,
+        _ => false
+    };
+}
+
+<h2 class="text-xl font-black text-gray-800 mb-1">Phân quyền</h2>
+<p class="text-sm text-gray-500 mb-4">
+    Mỗi tài khoản có đúng một vai trò. Bảng dưới phản ánh quyền cố định theo vai trò (không chỉnh sửa được ở đây).
+</p>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto mb-6">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Vai trò</th>
+                @foreach (var c in cols)
+                {
+                    <th class="px-3 py-3 text-center">@c.label</th>
+                }
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-800">@r.Label</p>
+                    <p class="text-gray-400 text-xs">@r.Description</p>
+                </td>
+                @foreach (var c in cols)
+                {
+                    <td class="px-3 py-3 text-center">
+                        @if (Cap(r, c.key))
+                        {
+                            <i class="fa-solid fa-check text-green-600"></i>
+                        }
+                        else
+                        {
+                            <span class="text-gray-300">—</span>
+                        }
+                    </td>
+                }
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 max-w-xl">
+    <h3 class="font-black text-gray-800 mb-3">Gán vai trò cho tài khoản</h3>
+    <form method="post" asp-action="Assign" class="space-y-3 text-sm">
+        @Html.AntiForgeryToken()
+        <input name="email" type="email" required placeholder="Email người dùng"
+               class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+        <select name="newRole" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+            @foreach (var t in AdminRoles.Staff)
+            {
+                <option value="@t">@AdminRoles.Label(t)</option>
+            }
+        </select>
+        <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl">Gán vai trò</button>
+    </form>
+    <p class="text-gray-400 text-xs mt-3">
+        Chỉ áp dụng cho tài khoản nhân sự. Không thể chuyển đổi giữa học sinh / phụ huynh và nhân sự.
+    </p>
+</div>

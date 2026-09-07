@@ -28,9 +28,28 @@ namespace ToanHocHay.WebApp.Common.Constants
         // ---------- users ----------
         public static class Users
         {
+            public const string List = "users";                                     // GET (admin, có filter) / POST tạo staff
             public static string ById(int id) => $"users/{id}";
             public static string ByEmail(string email) => $"users/email/{email}";
             public static string UpdateProfile(int id) => $"users/update-profile/{id}";
+        }
+
+        // ---------- admin (SystemAdmin) ----------
+        public static class Admin
+        {
+            public const string Roles = "admin/roles";
+            public const string AuditLogs = "admin/audit-logs";
+            public const string AuditLogsExport = "admin/audit-logs/export";
+            public const string AuditLogsFacets = "admin/audit-logs/facets";
+            public const string Config = "admin/config";                            // ?group=
+            public static string ConfigKey(string key) => $"admin/config/{key}";
+            public static string LockUser(int id) => $"admin/users/{id}/lock";
+            public static string UnlockUser(int id) => $"admin/users/{id}/unlock";
+            public static string ChangeRole(int id) => $"admin/users/{id}/role";
+            public static string ResetPassword(int id) => $"admin/users/{id}/reset-password";
+            public static string ConfirmEmail(int id) => $"admin/users/{id}/confirm-email";
+            public static string DeactivateUser(int id) => $"admin/users/{id}/deactivate";
+            public static string ActivateUser(int id) => $"admin/users/{id}/activate";
         }
 
         // ---------- catalog / courses / learn / enrollments / progress ----------

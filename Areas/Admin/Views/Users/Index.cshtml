@@ -1,0 +1,122 @@
+@model UsersIndexVm
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    var f = Model.Filter;
+    string? Sel(bool? v, bool target) => v == target ? "selected" : null;
+    string RoleBadge(UserType t) => t switch
+    {
+        UserType.SystemAdmin => "bg-blue-100 text-blue-700",
+        UserType.FinanceManager => "bg-emerald-100 text-emerald-700",
+        UserType.ContentEditor or UserType.AcademicReviewer => "bg-indigo-100 text-indigo-700",
+        UserType.SupportStaff => "bg-amber-100 text-amber-700",
+        UserType.Parent => "bg-purple-100 text-purple-700",
+        _ => "bg-gray-100 text-gray-600"
+    };
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-black text-gray-800">Người dùng <span class="text-sm font-semibold text-gray-400">(@Model.Total)</span></h2>
+    <a asp-action="Create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
+        <i class="fa-solid fa-plus mr-1"></i> Tạo tài khoản nhân sự
+    </a>
+</div>
+
+<form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 grid grid-cols-1 md:grid-cols-6 gap-3 text-sm">
+    <input name="Search" value="@f.Search" placeholder="Tìm email / họ tên"
+           class="md:col-span-2 border border-gray-200 rounded-lg px-3 py-2" />
+    <select name="UserType" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Vai trò —</option>
+        @foreach (var t in Enum.GetValues<UserType>())
+        {
+            <option value="@t" selected="@(f.UserType == t)">@AdminRoles.Label(t)</option>
+        }
+    </select>
+    <select name="IsActive" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Hoạt động —</option>
+        <option value="true" selected="@Sel(f.IsActive, true)">Đang hoạt động</option>
+        <option value="false" selected="@Sel(f.IsActive, false)">Vô hiệu hoá</option>
+    </select>
+    <select name="Locked" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Khoá —</option>
+        <option value="true" selected="@Sel(f.Locked, true)">Đang khoá</option>
+        <option value="false" selected="@Sel(f.Locked, false)">Không khoá</option>
+    </select>
+    <div class="flex gap-2">
+        <select name="EmailConfirmed" class="flex-1 border border-gray-200 rounded-lg px-3 py-2">
+            <option value="">— Email —</option>
+            <option value="true" selected="@Sel(f.EmailConfirmed, true)">Đã xác nhận</option>
+            <option value="false" selected="@Sel(f.EmailConfirmed, false)">Chưa xác nhận</option>
+        </select>
+        <button class="bg-gray-800 text-white font-bold px-4 rounded-lg">Lọc</button>
+    </div>
+</form>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Người dùng</th>
+                <th class="text-left px-4 py-3">Vai trò</th>
+                <th class="text-left px-4 py-3">Trạng thái</th>
+                <th class="text-left px-4 py-3">Đăng nhập gần nhất</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var u in Model.Items)
+        {
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-800">@u.FullName</p>
+                    <p class="text-gray-400">@u.Email</p>
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-bold @RoleBadge(u.UserType)">@AdminRoles.Label(u.UserType)</span>
+                </td>
+                <td class="px-4 py-3 space-x-1">
+                    @if (u.IsLocked)
+                    {
+                        <span class="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">Đã khoá</span>
+                    }
+                    else if (!u.IsActive)
+                    {
+                        <span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">Vô hiệu hoá</span>
+                    }
+                    else
+                    {
+                        <span class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Hoạt động</span>
+                    }
+                    @if (!u.IsEmailConfirmed)
+                    {
+                        <span class="px-2 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Chưa xác nhận email</span>
+                    }
+                </td>
+                <td class="px-4 py-3 text-gray-500">@(u.LastLogin?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                <td class="px-4 py-3 text-right">
+                    <a asp-action="Details" asp-route-id="@u.UserId" class="text-blue-600 font-bold hover:underline">Chi tiết</a>
+                </td>
+            </tr>
+        }
+        @if (Model.Items.Count == 0)
+        {
+            <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">Không có người dùng nào khớp bộ lọc.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="flex justify-center gap-1 mt-4">
+        @for (var p = 1; p <= Model.TotalPages; p++)
+        {
+            <a asp-action="Index"
+               asp-route-Page="@p" asp-route-PageSize="@f.PageSize"
+               asp-route-Search="@f.Search" asp-route-UserType="@f.UserType"
+               asp-route-IsActive="@f.IsActive" asp-route-Locked="@f.Locked" asp-route-EmailConfirmed="@f.EmailConfirmed"
+               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">
+                @p
+            </a>
+        }
+    </div>
+}

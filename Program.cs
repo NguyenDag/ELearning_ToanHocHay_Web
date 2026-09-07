@@ -64,6 +64,11 @@ builder.Services.AddScoped<NotificationApiService>();
 builder.Services.AddScoped<ChatApiService>();
 builder.Services.AddScoped<ParentApiService>();
 
+// --- KHU QUẢN TRỊ (SystemAdmin) ---
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.UserAdminApiService>();
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.AuditLogAdminApiService>();
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ConfigAdminApiService>();
+
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -149,6 +154,10 @@ app.Use(async (context, next) =>
     }
     await next();
 });
+
+app.MapControllerRoute(
+    name: "admin_area",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",

@@ -134,6 +134,7 @@ namespace ToanHocHay.WebApp.Controllers
             {
                 UserType.Parent => RedirectToAction("Dashboard", "Parent"),
                 UserType.Student => RedirectToAction("Index", "Home"),
+                UserType.SystemAdmin => RedirectToAction("Index", "Dashboard", new { area = "Admin" }),
                 _ => RedirectToAction("Index", "Home")
             };
         }
@@ -141,6 +142,8 @@ namespace ToanHocHay.WebApp.Controllers
         // Helper: redirect theo role của user hiện tại
         private IActionResult RedirectByRole()
         {
+            if (User.IsInRole("SystemAdmin"))
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             if (User.IsInRole("Parent"))
                 return RedirectToAction("Dashboard", "Parent");
             if (User.IsInRole("Student"))

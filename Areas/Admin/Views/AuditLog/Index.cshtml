@@ -1,0 +1,138 @@
+@model AuditLogIndexVm
+@{
+    ViewData["Title"] = "Nhật ký hệ thống";
+    var f = Model.Filter;
+    string ActionBadge(string a) => a.ToLowerInvariant() switch
+    {
+        var s when s.Contains("delete") => "bg-red-100 text-red-700",
+        var s when s.Contains("create") => "bg-green-100 text-green-700",
+        var s when s.Contains("lock") => "bg-orange-100 text-orange-700",
+        var s when s.Contains("role") => "bg-indigo-100 text-indigo-700",
+        _ => "bg-gray-100 text-gray-600"
+    };
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-black text-gray-800">Nhật ký <span class="text-sm font-semibold text-gray-400">(@Model.Total)</span></h2>
+    <a asp-action="Export"
+       asp-route-EntityType="@f.EntityType" asp-route-Action="@f.Action" asp-route-UserId="@f.UserId"
+       asp-route-Q="@f.Q" asp-route-From="@f.From?.ToString("yyyy-MM-ddTHH:mm")" asp-route-To="@f.To?.ToString("yyyy-MM-ddTHH:mm")"
+       class="bg-gray-800 hover:bg-gray-900 text-white font-bold text-sm px-4 py-2 rounded-xl">
+        <i class="fa-solid fa-file-csv mr-1"></i> Xuất CSV
+    </a>
+</div>
+
+<form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 grid grid-cols-1 md:grid-cols-6 gap-3 text-sm">
+    <select name="EntityType" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Đối tượng —</option>
+        @foreach (var e in Model.Facets.EntityTypes)
+        {
+            <option value="@e" selected="@(f.EntityType == e)">@e</option>
+        }
+    </select>
+    <select name="Action" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Hành động —</option>
+        @foreach (var a in Model.Facets.Actions)
+        {
+            <option value="@a" selected="@(f.Action == a)">@a</option>
+        }
+    </select>
+    <input name="Q" value="@f.Q" placeholder="Tìm (người / đối tượng)" class="border border-gray-200 rounded-lg px-3 py-2" />
+    <input type="datetime-local" name="From" value="@f.From?.ToString("yyyy-MM-ddTHH:mm")" class="border border-gray-200 rounded-lg px-3 py-2" />
+    <input type="datetime-local" name="To" value="@f.To?.ToString("yyyy-MM-ddTHH:mm")" class="border border-gray-200 rounded-lg px-3 py-2" />
+    <div class="flex gap-2">
+        <button class="flex-1 bg-gray-800 text-white font-bold rounded-lg">Lọc</button>
+        <a asp-action="Index" class="flex-1 text-center bg-gray-100 text-gray-600 font-bold rounded-lg py-2">Xoá lọc</a>
+    </div>
+</form>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Thời gian</th>
+                <th class="text-left px-4 py-3">Người thực hiện</th>
+                <th class="text-left px-4 py-3">Hành động</th>
+                <th class="text-left px-4 py-3">Đối tượng</th>
+                <th class="text-left px-4 py-3">IP</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var l in Model.Items)
+        {
+            <tr class="hover:bg-gray-50 align-top">
+                <td class="px-4 py-3 whitespace-nowrap text-gray-500">@l.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</td>
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-800">@(l.ActorName ?? (l.UserId?.ToString() ?? "hệ thống"))</p>
+                    <p class="text-gray-400 text-xs">@l.ActorEmail</p>
+                </td>
+                <td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs font-bold @ActionBadge(l.Action)">@l.Action</span></td>
+                <td class="px-4 py-3 text-gray-600">@l.EntityType@(l.EntityId.HasValue ? $" #{l.EntityId}" : "")</td>
+                <td class="px-4 py-3 text-gray-400">@l.IpAddress</td>
+                <td class="px-4 py-3 text-right">
+                    @if (!string.IsNullOrEmpty(l.OldValueJson) || !string.IsNullOrEmpty(l.NewValueJson))
+                    {
+                        <button type="button" class="text-blue-600 font-bold hover:underline"
+                                onclick="showDiff(this)"
+                                data-old='@(l.OldValueJson ?? "")' data-new='@(l.NewValueJson ?? "")'>
+                            Chi tiết
+                        </button>
+                    }
+                </td>
+            </tr>
+        }
+        @if (Model.Items.Count == 0)
+        {
+            <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">Không có bản ghi nào khớp bộ lọc.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="flex justify-center gap-1 mt-4 flex-wrap">
+        @for (var p = Math.Max(1, Model.Page - 4); p <= Math.Min(Model.TotalPages, Model.Page + 4); p++)
+        {
+            <a asp-action="Index" asp-route-Page="@p" asp-route-PageSize="@f.PageSize"
+               asp-route-EntityType="@f.EntityType" asp-route-Action="@f.Action" asp-route-UserId="@f.UserId"
+               asp-route-Q="@f.Q" asp-route-From="@f.From?.ToString("yyyy-MM-ddTHH:mm")" asp-route-To="@f.To?.ToString("yyyy-MM-ddTHH:mm")"
+               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">@p</a>
+        }
+    </div>
+}
+
+<div id="diff-modal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-6">
+        <h3 class="font-black text-gray-800 mb-4">Chi tiết thay đổi</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div>
+                <p class="font-bold text-gray-500 mb-1">Giá trị cũ</p>
+                <pre id="diff-old" class="bg-gray-50 rounded-lg p-3 overflow-auto max-h-72 whitespace-pre-wrap"></pre>
+            </div>
+            <div>
+                <p class="font-bold text-gray-500 mb-1">Giá trị mới</p>
+                <pre id="diff-new" class="bg-gray-50 rounded-lg p-3 overflow-auto max-h-72 whitespace-pre-wrap"></pre>
+            </div>
+        </div>
+        <div class="text-right mt-4">
+            <button type="button" onclick="document.getElementById('diff-modal').classList.add('hidden')"
+                    class="bg-gray-800 text-white font-bold text-sm px-4 py-2 rounded-xl">Đóng</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function pretty(s) {
+            if (!s) return "—";
+            try { return JSON.stringify(JSON.parse(s), null, 2); } catch { return s; }
+        }
+        function showDiff(btn) {
+            document.getElementById('diff-old').textContent = pretty(btn.dataset.old);
+            document.getElementById('diff-new').textContent = pretty(btn.dataset.new);
+            document.getElementById('diff-modal').classList.remove('hidden');
+        }
+    </script>
+}
