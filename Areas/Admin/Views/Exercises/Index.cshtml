@@ -1,0 +1,53 @@
+@model List<ExerciseAdminDto>
+@{
+    ViewData["Title"] = "Bài kiểm tra";
+    string Badge(ExerciseStatus s) => s switch
+    {
+        ExerciseStatus.Published => "bg-green-100 text-green-700",
+        ExerciseStatus.Archived => "bg-gray-200 text-gray-600",
+        _ => "bg-amber-100 text-amber-700"
+    };
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-black text-gray-800">Bài kiểm tra <span class="text-sm font-semibold text-gray-400">(@Model.Count)</span></h2>
+    <a asp-action="Create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
+        <i class="fa-solid fa-plus mr-1"></i> Tạo bài kiểm tra
+    </a>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Tên</th>
+                <th class="text-left px-4 py-3">Loại</th>
+                <th class="text-center px-4 py-3">Số câu</th>
+                <th class="text-center px-4 py-3">Thời lượng</th>
+                <th class="text-left px-4 py-3">Trạng thái</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var e in Model)
+        {
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-bold text-gray-800">@e.ExerciseName</td>
+                <td class="px-4 py-3 text-gray-600">@ExerciseEnums.TypeLabel(e.ExerciseType)</td>
+                <td class="px-4 py-3 text-center">@e.TotalQuestions</td>
+                <td class="px-4 py-3 text-center">@(e.DurationMinutes.HasValue ? $"{e.DurationMinutes}′" : "—")</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-bold @Badge(e.Status)">@ExerciseEnums.StatusLabel(e.Status)</span>
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <a asp-action="Edit" asp-route-id="@e.ExerciseId" class="text-blue-600 font-bold hover:underline">Chỉnh sửa</a>
+                </td>
+            </tr>
+        }
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">Chưa có bài kiểm tra nào.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

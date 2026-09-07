@@ -1,0 +1,77 @@
+@model QuestionBankListVm
+@{
+    ViewData["Title"] = "Ngân hàng câu hỏi";
+    int? subjectId = ViewBag.SubjectId;
+    int? gradeLevelId = ViewBag.GradeLevelId;
+}
+
+<div class="flex items-center justify-between mb-4">
+    <h2 class="text-xl font-black text-gray-800">Ngân hàng câu hỏi <span class="text-sm font-semibold text-gray-400">(@Model.Banks.Count)</span></h2>
+    <a asp-action="Create" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
+        <i class="fa-solid fa-plus mr-1"></i> Tạo ngân hàng
+    </a>
+</div>
+
+<form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 flex flex-wrap gap-3 text-sm">
+    <select name="subjectId" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Môn —</option>
+        @foreach (var s in Model.Subjects)
+        {
+            <option value="@s.Id" selected="@(subjectId == s.Id)">@s.Name</option>
+        }
+    </select>
+    <select name="gradeLevelId" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Lớp —</option>
+        @foreach (var g in Model.Grades)
+        {
+            <option value="@g.Id" selected="@(gradeLevelId == g.Id)">@g.Name</option>
+        }
+    </select>
+    <button class="bg-gray-800 text-white font-bold px-4 rounded-lg">Lọc</button>
+</form>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Ngân hàng</th>
+                <th class="text-left px-4 py-3">Môn / Lớp</th>
+                <th class="text-center px-4 py-3">Câu hỏi</th>
+                <th class="text-center px-4 py-3">Kích hoạt</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var b in Model.Banks)
+        {
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-800">@b.BankName</p>
+                    <p class="text-gray-400 text-xs">@b.Description</p>
+                </td>
+                <td class="px-4 py-3 text-gray-600">@b.SubjectName / @b.GradeLevelName</td>
+                <td class="px-4 py-3 text-center font-bold">@b.QuestionCount</td>
+                <td class="px-4 py-3 text-center">
+                    @if (b.IsActive)
+                    {
+                        <span class="text-green-600"><i class="fa-solid fa-check"></i></span>
+                    }
+                    else
+                    {
+                        <span class="text-gray-300">—</span>
+                    }
+                </td>
+                <td class="px-4 py-3 text-right whitespace-nowrap">
+                    <a asp-action="Questions" asp-route-bankId="@b.BankId" class="text-blue-600 font-bold hover:underline">Câu hỏi</a>
+                    <span class="text-gray-300 mx-1">·</span>
+                    <a asp-action="Edit" asp-route-bankId="@b.BankId" class="text-gray-500 hover:underline">Sửa</a>
+                </td>
+            </tr>
+        }
+        @if (Model.Banks.Count == 0)
+        {
+            <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">Chưa có ngân hàng câu hỏi nào.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

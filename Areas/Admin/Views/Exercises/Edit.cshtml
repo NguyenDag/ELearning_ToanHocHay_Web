@@ -1,0 +1,169 @@
+@model ExerciseEditPageVm
+@{
+    var e = Model.Exercise;
+    var isNew = Model.IsNew;
+    ViewData["Title"] = isNew ? "Tạo bài kiểm tra" : $"Sửa · {e.ExerciseName}";
+}
+
+<a asp-action="Index" class="text-sm text-gray-500 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Bài kiểm tra</a>
+<h2 class="text-xl font-black text-gray-800 mt-2 mb-4">@ViewData["Title"]</h2>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <form method="post" asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@(isNew ? (int?)null : e.ExerciseId)">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ExerciseId" value="@e.ExerciseId" />
+            <div asp-validation-summary="All" class="text-red-600 text-sm mb-2"></div>
+
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Tên bài kiểm tra</label>
+                    <input name="ExerciseName" value="@e.ExerciseName" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Loại</label>
+                        <select name="ExerciseType" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                            @foreach (var t in Enum.GetValues<ExerciseType>())
+                            {
+                                <option value="@t" selected="@(e.ExerciseType == t)">@ExerciseEnums.TypeLabel(t)</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Trạng thái</label>
+                        <select name="Status" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                            @foreach (var s in Enum.GetValues<ExerciseStatus>())
+                            {
+                                <option value="@s" selected="@(e.Status == s)">@ExerciseEnums.StatusLabel(s)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Số câu</label>
+                        <input name="TotalQuestions" type="number" value="@e.TotalQuestions" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Phút</label>
+                        <input name="DurationMinutes" type="number" value="@e.DurationMinutes" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Tổng điểm</label>
+                        <input name="TotalScores" type="number" step="any" value="@e.TotalScores" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Điểm đạt</label>
+                        <input name="PassingScore" type="number" step="any" value="@e.PassingScore" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">TopicId (tuỳ chọn)</label>
+                        <input name="TopicId" type="number" value="@e.TopicId" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">ChapterId (tuỳ chọn)</label>
+                        <input name="ChapterId" type="number" value="@e.ChapterId" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 font-bold text-gray-700">
+                        <input type="checkbox" name="IsFree" value="true" @(e.IsFree ? "checked" : "") /> Miễn phí
+                    </label>
+                    <label class="flex items-center gap-2 font-bold text-gray-700">
+                        <input type="checkbox" name="IsActive" value="true" @(e.IsActive ? "checked" : "") /> Đang hoạt động
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="mt-5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl">
+                @(isNew ? "Tạo" : "Lưu")
+            </button>
+        </form>
+    </div>
+
+    @if (!isNew)
+    {
+        <div class="space-y-4">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="font-black text-gray-800 mb-3">Xuất bản</h3>
+                @if (e.Status == ExerciseStatus.Published)
+                {
+                    <form method="post" asp-action="Unpublish" asp-route-id="@e.ExerciseId">
+                        @Html.AntiForgeryToken()
+                        <button class="bg-gray-700 hover:bg-gray-800 text-white font-bold text-sm px-4 py-2 rounded-xl">Gỡ xuất bản</button>
+                    </form>
+                }
+                else
+                {
+                    <form method="post" asp-action="Publish" asp-route-id="@e.ExerciseId">
+                        @Html.AntiForgeryToken()
+                        <button class="bg-green-600 hover:bg-green-700 text-white font-bold text-sm px-4 py-2 rounded-xl">Xuất bản</button>
+                    </form>
+                }
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="font-black text-gray-800 mb-3">Thêm câu hỏi (theo mã)</h3>
+                <form method="post" asp-action="AddQuestions" asp-route-id="@e.ExerciseId" class="space-y-2">
+                    @Html.AntiForgeryToken()
+                    <input name="questionIds" placeholder="VD: 12, 15, 20" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                    <input name="scorePerQuestion" type="number" step="any" placeholder="Điểm mỗi câu (tuỳ chọn)" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl w-full">Thêm</button>
+                </form>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-red-100">
+                <form method="post" asp-action="Delete" asp-route-id="@e.ExerciseId"
+                      onsubmit="return confirm('Xoá bài kiểm tra này?');">
+                    @Html.AntiForgeryToken()
+                    <button class="bg-white border-2 border-red-500 text-red-600 hover:bg-red-50 font-bold text-sm px-4 py-2 rounded-xl">Xoá bài kiểm tra</button>
+                </form>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!isNew)
+{
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mt-5 overflow-x-auto">
+        <div class="px-4 py-3 border-b border-gray-50 font-black text-gray-800">
+            Câu hỏi trong bài (@Model.Questions.Count)
+        </div>
+        <table class="w-full text-sm">
+            <tbody class="divide-y divide-gray-50">
+            @foreach (var q in Model.Questions.OrderBy(x => x.OrderIndex))
+            {
+                <tr>
+                    <td class="px-4 py-3 text-gray-400 w-10">@(q.OrderIndex + 1)</td>
+                    <td class="px-4 py-3">
+                        <p class="text-gray-800">@q.QuestionText</p>
+                        <p class="text-xs text-gray-400">#@q.QuestionId · @QuestionEnums.TypeLabel(q.QuestionType)</p>
+                    </td>
+                    <td class="px-4 py-3 w-40">
+                        <form method="post" asp-action="SetScore" asp-route-id="@e.ExerciseId" class="flex items-center gap-1">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="questionId" value="@q.QuestionId" />
+                            <input name="score" type="number" step="any" value="@q.Score" class="w-20 border border-gray-200 rounded px-2 py-1 text-xs" />
+                            <button class="text-blue-600 font-bold text-xs hover:underline">Lưu</button>
+                        </form>
+                    </td>
+                    <td class="px-4 py-3 w-20 text-right">
+                        <form method="post" asp-action="RemoveQuestion" asp-route-id="@e.ExerciseId">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="questionId" value="@q.QuestionId" />
+                            <button class="text-gray-400 font-bold text-xs hover:text-red-600">Gỡ</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            @if (Model.Questions.Count == 0)
+            {
+                <tr><td class="px-4 py-8 text-center text-gray-400">Chưa có câu hỏi nào trong bài.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

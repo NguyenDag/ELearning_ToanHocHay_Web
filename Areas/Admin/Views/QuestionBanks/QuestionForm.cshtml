@@ -1,0 +1,102 @@
+@model QuestionEditVm
+@{
+    var bank = ViewBag.Bank as QuestionBankDto;
+    var isEdit = Model.QuestionId > 0;
+    ViewData["Title"] = isEdit ? "Sửa câu hỏi" : "Soạn câu hỏi";
+    var slots = 6;
+    while (Model.OptionTexts.Count < slots) Model.OptionTexts.Add("");
+}
+
+<div class="max-w-2xl">
+    <a asp-action="Questions" asp-route-bankId="@Model.BankId" class="text-sm text-gray-500 hover:underline">
+        <i class="fa-solid fa-arrow-left mr-1"></i> @(bank?.BankName ?? "Câu hỏi")
+    </a>
+    <h2 class="text-xl font-black text-gray-800 mt-2 mb-4">@ViewData["Title"]</h2>
+
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <form method="post" asp-action="@(isEdit ? "EditQuestion" : "CreateQuestion")"
+              asp-route-questionId="@(isEdit ? Model.QuestionId : (int?)null)">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="BankId" />
+            <input type="hidden" asp-for="QuestionId" />
+            <div asp-validation-summary="All" class="text-red-600 text-sm mb-2"></div>
+
+            <div class="space-y-4 text-sm">
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Nội dung câu hỏi</label>
+                    <textarea asp-for="QuestionText" rows="3" class="w-full border border-gray-200 rounded-lg px-3 py-2"></textarea>
+                    <span asp-validation-for="QuestionText" class="text-red-600 text-xs"></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Loại</label>
+                        <select asp-for="QuestionType" id="qtype" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                            @foreach (var t in Enum.GetValues<QuestionType>())
+                            {
+                                <option value="@t">@QuestionEnums.TypeLabel(t)</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-gray-700 mb-1">Độ khó</label>
+                        <select asp-for="DifficultyLevel" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                            @foreach (var d in Enum.GetValues<DifficultyLevel>())
+                            {
+                                <option value="@d">@QuestionEnums.DifficultyLabel(d)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div id="options-block">
+                    <label class="block font-bold text-gray-700 mb-1">Phương án (để trống dòng không dùng; tích ô là đáp án đúng)</label>
+                    @for (var i = 0; i < slots; i++)
+                    {
+                        <div class="flex items-center gap-2 mb-2">
+                            <input type="checkbox" name="CorrectIndexes" value="@i" @(Model.CorrectIndexes.Contains(i) ? "checked" : "") />
+                            <input name="OptionTexts[@i]" value="@Model.OptionTexts[i]" placeholder="Phương án @(i + 1)"
+                                   class="flex-1 border border-gray-200 rounded-lg px-3 py-2" />
+                        </div>
+                    }
+                </div>
+
+                <div id="answer-block">
+                    <label class="block font-bold text-gray-700 mb-1">Đáp án đúng (điền khuyết / tự luận)</label>
+                    <input asp-for="CorrectAnswer" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                </div>
+
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Giải thích (tuỳ chọn)</label>
+                    <textarea asp-for="Explanation" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2"></textarea>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-700 mb-1">Ảnh minh hoạ (URL, tuỳ chọn)</label>
+                    <input asp-for="QuestionImageUrl" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+                </div>
+            </div>
+
+            <button type="submit" class="mt-5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl">
+                @(isEdit ? "Lưu" : "Tạo câu hỏi")
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const sel = document.getElementById('qtype');
+            const opts = document.getElementById('options-block');
+            const ans = document.getElementById('answer-block');
+            function sync() {
+                const v = sel.value;
+                const showOpts = v === 'MultipleChoice' || v === 'TrueFalse';
+                opts.style.display = showOpts ? '' : 'none';
+                ans.style.display = showOpts ? 'none' : '';
+            }
+            sel.addEventListener('change', sync);
+            sync();
+        })();
+    </script>
+}

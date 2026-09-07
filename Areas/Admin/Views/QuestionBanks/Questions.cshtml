@@ -1,0 +1,116 @@
+@model QuestionListVm
+@{
+    ViewData["Title"] = $"Câu hỏi · {Model.Bank.BankName}";
+    string StatusBadge(QuestionStatus s) => s switch
+    {
+        QuestionStatus.Approved => "bg-green-100 text-green-700",
+        QuestionStatus.PendingReview => "bg-amber-100 text-amber-700",
+        QuestionStatus.Rejected => "bg-red-100 text-red-700",
+        _ => "bg-gray-100 text-gray-600"
+    };
+}
+
+<div class="flex items-center justify-between mb-1">
+    <div>
+        <a asp-action="Index" class="text-sm text-gray-500 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Ngân hàng câu hỏi</a>
+        <h2 class="text-xl font-black text-gray-800 mt-1">@Model.Bank.BankName <span class="text-sm font-semibold text-gray-400">(@Model.Total câu)</span></h2>
+    </div>
+    <div class="flex gap-2">
+        <a asp-action="Edit" asp-route-bankId="@Model.Bank.BankId" class="bg-white border border-gray-200 text-gray-600 font-bold text-sm px-4 py-2 rounded-xl">Sửa ngân hàng</a>
+        <a asp-action="CreateQuestion" asp-route-bankId="@Model.Bank.BankId" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-plus mr-1"></i> Soạn câu hỏi
+        </a>
+    </div>
+</div>
+
+<form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 my-4 flex flex-wrap gap-3 text-sm">
+    <input type="hidden" name="bankId" value="@Model.Bank.BankId" />
+    <select name="status" class="border border-gray-200 rounded-lg px-3 py-2">
+        <option value="">— Trạng thái —</option>
+        @foreach (var st in Enum.GetValues<QuestionStatus>())
+        {
+            <option value="@st" selected="@(Model.Status == st)">@QuestionEnums.StatusLabel(st)</option>
+        }
+    </select>
+    <input name="search" value="@Model.Search" placeholder="Tìm nội dung câu hỏi" class="flex-1 min-w-[200px] border border-gray-200 rounded-lg px-3 py-2" />
+    <button class="bg-gray-800 text-white font-bold px-4 rounded-lg">Lọc</button>
+</form>
+
+<div class="space-y-3">
+@foreach (var q in Model.Items)
+{
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+                <p class="font-bold text-gray-800">@q.QuestionText</p>
+                <p class="text-xs text-gray-400 mt-1">
+                    @QuestionEnums.TypeLabel(q.QuestionType) · @QuestionEnums.DifficultyLabel(q.DifficultyLevel)
+                    @if (!string.IsNullOrEmpty(q.CorrectAnswer)) { <text> · Đáp án: @q.CorrectAnswer</text> }
+                </p>
+                @if (q.Options?.Count > 0)
+                {
+                    <ul class="mt-2 text-xs text-gray-500 space-y-0.5">
+                        @foreach (var o in q.Options)
+                        {
+                            <li>@(o.IsCorrect ? "✓ " : "• ")@o.OptionText</li>
+                        }
+                    </ul>
+                }
+                @if (q.Status == QuestionStatus.Rejected && !string.IsNullOrEmpty(q.RejectReason))
+                {
+                    <p class="text-xs text-red-600 mt-1">Lý do từ chối: @q.RejectReason</p>
+                }
+            </div>
+            <span class="px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap @StatusBadge(q.Status)">@QuestionEnums.StatusLabel(q.Status)</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-50">
+            <a asp-action="EditQuestion" asp-route-questionId="@q.QuestionId" class="text-blue-600 font-bold text-sm hover:underline">Sửa</a>
+
+            @if (q.Status == QuestionStatus.Draft || q.Status == QuestionStatus.Rejected)
+            {
+                <form method="post" asp-action="SubmitQuestion" asp-route-questionId="@q.QuestionId" asp-route-bankId="@Model.Bank.BankId">
+                    @Html.AntiForgeryToken()
+                    <button class="text-amber-600 font-bold text-sm hover:underline">Gửi duyệt</button>
+                </form>
+            }
+
+            @if (q.Status == QuestionStatus.PendingReview)
+            {
+                <form method="post" asp-action="ReviewQuestion" asp-route-questionId="@q.QuestionId" asp-route-bankId="@Model.Bank.BankId">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="approve" value="true" />
+                    <button class="text-green-600 font-bold text-sm hover:underline">Duyệt</button>
+                </form>
+                <form method="post" asp-action="ReviewQuestion" asp-route-questionId="@q.QuestionId" asp-route-bankId="@Model.Bank.BankId" class="flex items-center gap-1">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="approve" value="false" />
+                    <input name="rejectReason" placeholder="Lý do từ chối" class="border border-gray-200 rounded px-2 py-1 text-xs" />
+                    <button class="text-red-600 font-bold text-sm hover:underline">Từ chối</button>
+                </form>
+            }
+
+            <form method="post" asp-action="DeleteQuestion" asp-route-questionId="@q.QuestionId" asp-route-bankId="@Model.Bank.BankId"
+                  onsubmit="return confirm('Xoá câu hỏi này?');" class="ml-auto">
+                @Html.AntiForgeryToken()
+                <button class="text-gray-400 font-bold text-sm hover:text-red-600">Xoá</button>
+            </form>
+        </div>
+    </div>
+}
+@if (Model.Items.Count == 0)
+{
+    <p class="text-center text-gray-400 py-10">Chưa có câu hỏi nào khớp bộ lọc.</p>
+}
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="flex justify-center gap-1 mt-4">
+        @for (var p = 1; p <= Model.TotalPages; p++)
+        {
+            <a asp-action="Questions" asp-route-bankId="@Model.Bank.BankId" asp-route-page="@p"
+               asp-route-status="@Model.Status" asp-route-search="@Model.Search"
+               class="w-9 h-9 flex items-center justify-center rounded-lg text-sm font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">@p</a>
+        }
+    </div>
+}

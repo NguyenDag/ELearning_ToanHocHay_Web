@@ -1,0 +1,55 @@
+@model QuestionBankVm
+@{
+    var subjects = ViewBag.Subjects as List<CatalogRefDto> ?? new();
+    var grades = ViewBag.Grades as List<CatalogRefDto> ?? new();
+}
+<div asp-validation-summary="All" class="text-red-600 text-sm mb-2"></div>
+
+<div class="space-y-4 text-sm">
+    <div>
+        <label class="block font-bold text-gray-700 mb-1">Tên ngân hàng</label>
+        <input asp-for="BankName" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+        <span asp-validation-for="BankName" class="text-red-600 text-xs"></span>
+    </div>
+    <div>
+        <label class="block font-bold text-gray-700 mb-1">Mô tả</label>
+        <textarea asp-for="Description" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2"></textarea>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="block font-bold text-gray-700 mb-1">Môn</label>
+            <select asp-for="SubjectId" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                <option value="">— Chọn —</option>
+                @foreach (var s in subjects)
+                {
+                    <option value="@s.Id">@s.Name</option>
+                }
+            </select>
+            <span asp-validation-for="SubjectId" class="text-red-600 text-xs"></span>
+        </div>
+        <div>
+            <label class="block font-bold text-gray-700 mb-1">Lớp</label>
+            <select asp-for="GradeLevelId" class="w-full border border-gray-200 rounded-lg px-3 py-2">
+                <option value="">— Chọn —</option>
+                @foreach (var g in grades)
+                {
+                    <option value="@g.Id">@g.Name</option>
+                }
+            </select>
+            <span asp-validation-for="GradeLevelId" class="text-red-600 text-xs"></span>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="block font-bold text-gray-700 mb-1">CourseId (tuỳ chọn)</label>
+            <input asp-for="CourseId" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+            <label class="block font-bold text-gray-700 mb-1">PrimaryNodeId (tuỳ chọn)</label>
+            <input asp-for="PrimaryNodeId" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+        </div>
+    </div>
+    <label class="flex items-center gap-2 font-bold text-gray-700">
+        <input asp-for="IsActive" type="checkbox" /> Kích hoạt (cho phép dùng trong bài kiểm tra)
+    </label>
+</div>

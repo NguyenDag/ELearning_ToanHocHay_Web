@@ -68,6 +68,9 @@ builder.Services.AddScoped<ParentApiService>();
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.UserAdminApiService>();
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.AuditLogAdminApiService>();
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ConfigAdminApiService>();
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.CatalogAdminApiService>();
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.QuestionBankAdminApiService>();
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ExerciseAdminApiService>();
 
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();

@@ -63,6 +63,30 @@ namespace ToanHocHay.WebApp.Common.Constants
             public static string Framework(int id) => $"catalog/frameworks/{id}";
         }
 
+        // ---------- question banks + questions (authoring) ----------
+        public static class QuestionBanks
+        {
+            public const string List = "question-banks";                            // ?subjectId=&gradeLevelId=&includeInactive=
+            public static string ById(int bankId) => $"question-banks/{bankId}";
+            public static string Questions(int bankId) => $"question-banks/{bankId}/questions"; // ?status=&search=&page=&pageSize=
+            public static string Question(int questionId) => $"question-banks/questions/{questionId}";
+            public static string SubmitQuestion(int questionId) => $"question-banks/questions/{questionId}/submit";
+            public static string ReviewQuestion(int questionId) => $"question-banks/questions/{questionId}/review";
+            public const string CreateQuestions = "questions";                       // POST list<CreateQuestionDto>
+        }
+
+        // ---------- exercises (authoring) ----------
+        public static class ExercisesAdmin
+        {
+            public const string List = "exercises";
+            public static string ById(int id) => $"exercises/{id}";
+            public static string ForEdit(int id) => $"exercises/{id}/for-edit";
+            public static string Questions(int id) => $"exercises/{id}/questions";
+            public static string Publish(int id) => $"exercises/{id}/publish";
+            public static string Unpublish(int id) => $"exercises/{id}/unpublish";
+            public static string Question(int exerciseId, int questionId) => $"exercises/{exerciseId}/questions/{questionId}";
+        }
+
         public static class Courses
         {
             public const string List = "courses";

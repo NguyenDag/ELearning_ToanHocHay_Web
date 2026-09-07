@@ -1,0 +1,14 @@
+@model QuestionBankVm
+@{ ViewData["Title"] = "Tạo ngân hàng câu hỏi"; }
+
+<div class="max-w-2xl">
+    <a asp-action="Index" class="text-sm text-gray-500 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Ngân hàng câu hỏi</a>
+    <h2 class="text-xl font-black text-gray-800 mt-2 mb-4">Tạo ngân hàng câu hỏi</h2>
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <form method="post" asp-action="Create">
+            @Html.AntiForgeryToken()
+            <partial name="_BankForm" model="Model" />
+            <button type="submit" class="mt-5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl">Tạo</button>
+        </form>
+    </div>
+</div>
