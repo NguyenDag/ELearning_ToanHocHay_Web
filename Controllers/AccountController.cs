@@ -375,19 +375,33 @@ namespace ToanHocHay.WebApp.Controllers
         }
 
         // ================= EMAIL CONFIRMATION =================
-        [HttpGet]
+        // GET /Account/ConfirmEmail?token=...  (khớp liên kết trong email backend)
+        [HttpGet("/xac-thuc-email")]
+        [HttpGet("Account/ConfirmEmail")]
         public async Task<IActionResult> ConfirmEmail(string token)
         {
             if (string.IsNullOrWhiteSpace(token)) return View("ConfirmEmailFailed");
 
-            var response = await _httpClient.GetAsync($"{ApiConstant.apiBaseUrl}/api/auth/confirm-email?token={token}");
+            try
+            {
+                var response = await _httpClient.GetAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/auth/confirm-email?token={Uri.EscapeDataString(token)}");
 
-            if (!response.IsSuccessStatusCode) return View("ConfirmEmailFailed");
+                var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
 
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-            if (result == null || !result.Success) return View("ConfirmEmailFailed");
+                if (result?.Success == true) return View("ConfirmEmailSuccess");
 
-            return View("ConfirmEmailSuccess");
+                // Liên kết quá hạn có trang riêng, kèm nút gửi lại email.
+                if ((result?.Message ?? string.Empty).Contains("hết hạn", StringComparison.OrdinalIgnoreCase))
+                    return View("ConfirmEmailExpired");
+
+                return View("ConfirmEmailFailed");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ConfirmEmail: lỗi khi gọi API xác thực email");
+                return View("ConfirmEmailFailed");
+            }
         }
 
         [HttpGet]

@@ -1,13 +1,15 @@
 @{
-    ViewData["Title"] = "Xác nhận email thành công";
+    ViewData["Title"] = "Xác thực email thành công";
 }
 
 <div class="container mx-auto px-4 py-16 flex justify-center">
     <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
-        <i class="fa-solid fa-circle-check text-green-500 text-5xl"></i>
-        <h1 class="mt-4 text-xl font-bold text-green-600">Xác nhận thành công</h1>
+        <div class="mx-auto w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+            <i class="fa-solid fa-circle-check text-green-500 text-5xl"></i>
+        </div>
+        <h1 class="mt-5 text-xl font-bold text-green-600">Xác thực email thành công</h1>
         <p class="mt-2 text-sm text-gray-500">
-            Email của bạn đã được xác nhận.<br />
+            Email của bạn đã được xác thực.<br />
             Bạn có thể đăng nhập và bắt đầu học ngay bây giờ.
         </p>
 
@@ -15,5 +17,11 @@
            class="inline-block mt-6 px-5 py-2.5 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700">
             <i class="fa-solid fa-right-to-bracket mr-2"></i> Đăng nhập
         </a>
+
+        <div class="mt-4">
+            <a asp-controller="Home" asp-action="Index" class="text-sm text-gray-500 hover:text-blue-600">
+                <i class="fa-solid fa-house mr-1"></i> Về trang chủ
+            </a>
+        </div>
     </div>
 </div>

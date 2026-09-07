@@ -129,7 +129,7 @@ access token hết hạn → mọi service nhận **401** → middleware trong `
 |---|---|
 | Quên / đặt lại mật khẩu (MỚI) | `POST /api/auth/forgot-password` `{ email }` (không lộ email có tồn tại hay không) → email chứa link. `POST /api/auth/reset-password` `{ token, newPassword }`. Token sống 1 giờ, dùng 1 lần. |
 | Gửi lại email xác nhận | `POST /api/auth/resend-confirmation` `{ email }` (route cũ WebApp gọi sai: `resend-confirmation-email`). |
-| Xác nhận email | Link trong email nay trỏ `/api/auth/confirm-email?token=…` (thống nhất). WebApp có action `Account/ConfirmEmail` bọc lại — vẫn OK, chỉ cần chắc URL. |
+| Xác nhận email | Link trong email trỏ trang WebApp `{BaseUrl}/Account/ConfirmEmail?token=…` (hoặc `/xac-thuc-email`). Action `Account/ConfirmEmail` gọi lại API `/api/auth/confirm-email` rồi render 1 trong 3 view: `ConfirmEmailSuccess` / `ConfirmEmailExpired` (message chứa "hết hạn") / `ConfirmEmailFailed`. |
 | Đổi mật khẩu | `POST /api/auth/change-password` (userId lấy từ **token**, KHÔNG có `{id}` trên route). Thành công → **thu hồi toàn bộ refresh token** + bump SecurityStamp. |
 | Đăng nhập | Rate-limit + khoá tạm: sai 5 lần → khoá 1→30 phút (tăng dần). Trả `401` kèm message kiểu "Tài khoản tạm khoá, thử lại sau N phút". |
 | `/api/auth/me` | Đã sửa, trả `UserId/Email/FullName/UserType/StudentId/ParentId` đúng — dùng để đồng bộ lại claim khi cần. |
