@@ -70,13 +70,15 @@ namespace ToanHocHay.WebApp.Controllers
                 _tokenStore.Clear();
                 Response.Cookies.Delete("ToanHocHay_Auth_Cookie");
             }
-            var (data, error) = await _authService.Login(new LoginRequestDto { Email = email, Password = password });
+            var (data, error, emailNotConfirmed) = await _authService.Login(new LoginRequestDto { Email = email, Password = password });
 
             if (error != null)
             {
                 this.ShowToastError(error);
                 ViewBag.Mode = "login";
                 ViewBag.Email = email;
+                // A1 — email chưa xác nhận: hiện khối "Gửi lại email xác nhận" ngay tại form login.
+                ViewBag.EmailNotConfirmed = emailNotConfirmed;
                 return View("Login");
             }
 
@@ -192,7 +194,9 @@ namespace ToanHocHay.WebApp.Controllers
                 return View("Login");
             }
 
-            this.PushToastSuccess("Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản.");
+            // A3 — nhắc người dùng đường thoát nếu email không tới.
+            this.PushToastSuccess("Đăng ký thành công! Vui lòng kiểm tra email (cả hộp thư spam) để xác nhận tài khoản. " +
+                "Chưa nhận được sau vài phút? Dùng \"Gửi lại email xác nhận\" ở trang đăng nhập.");
             return RedirectToAction("Login");
         }
 
@@ -405,25 +409,40 @@ namespace ToanHocHay.WebApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult ResendConfirmationEmail() => View();
+        public IActionResult ResendConfirmationEmail(string? email = null)
+        {
+            ViewBag.Email = email;
+            return View();
+        }
 
         [HttpPost]
-        public async Task<IActionResult> ResendConfirmationEmail(string email)
+        [ActionName("ResendConfirmationEmail")]
+        public async Task<IActionResult> ResendConfirmationEmailPost(string email)
         {
-            var response = await _httpClient.PostAsJsonAsync(
-                $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Auth.ResendConfirmation}",
-                new { Email = email });
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                this.PushToastSuccess("Nếu email hợp lệ và chưa xác nhận, chúng tôi đã gửi lại email xác nhận.");
-                return RedirectToAction("Login");
+                var response = await _httpClient.PostAsJsonAsync(
+                    $"{ApiConstant.apiBaseUrl}/api/{ApiRoutes.Auth.ResendConfirmation}",
+                    new { Email = email });
+
+                if (response.IsSuccessStatusCode)
+                {
+                    this.PushToastSuccess("Nếu email hợp lệ và chưa xác nhận, chúng tôi đã gửi lại email xác nhận. " +
+                        "Vui lòng kiểm tra cả hộp thư spam.");
+                    return RedirectToAction("Login");
+                }
+
+                this.PushToastError((int)response.StatusCode == 429
+                    ? "Bạn yêu cầu quá nhanh. Vui lòng thử lại sau ít phút."
+                    : "Không gửi lại được email xác nhận. Vui lòng thử lại sau.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ResendConfirmationEmail: lỗi khi gọi API");
+                this.PushToastError("Không kết nối được máy chủ. Vui lòng thử lại sau.");
             }
 
-            this.PushToastError((int)response.StatusCode == 429
-                ? "Bạn yêu cầu quá nhanh. Vui lòng thử lại sau ít phút."
-                : "Không gửi lại được email xác nhận. Vui lòng thử lại sau.");
-            return RedirectToAction("Login");
+            return RedirectToAction("ResendConfirmationEmail", new { email });
         }
     }
 }

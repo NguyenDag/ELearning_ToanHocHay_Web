@@ -18,7 +18,7 @@ namespace ToanHocHay.WebApp.Services
         }
 
         // 1. Đăng nhập
-        public async Task<(LoginResponseDto? data, string? error)> Login(LoginRequestDto request)
+        public async Task<(LoginResponseDto? data, string? error, bool emailNotConfirmed)> Login(LoginRequestDto request)
         {
             HttpResponseMessage response;
             try
@@ -27,15 +27,18 @@ namespace ToanHocHay.WebApp.Services
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
-                return (null, "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.");
+                return (null, "Không kết nối được máy chủ. Vui lòng kiểm tra mạng và thử lại.", false);
             }
 
             var apiResponse = await TryReadEnvelopeAsync<LoginResponseDto>(response);
 
-            if (!response.IsSuccessStatusCode)
-                return (null, apiResponse?.Message ?? FallbackByStatus(response, "Đăng nhập thất bại"));
+            // A1 — mã lỗi từ backend: email chưa xác nhận → WebApp hiện nút gửi lại.
+            var emailNotConfirmed = apiResponse?.Errors?.Contains("EMAIL_NOT_CONFIRMED") == true;
 
-            return (apiResponse?.Data, apiResponse?.Data == null ? "Đăng nhập thất bại" : null);
+            if (!response.IsSuccessStatusCode)
+                return (null, apiResponse?.Message ?? FallbackByStatus(response, "Đăng nhập thất bại"), emailNotConfirmed);
+
+            return (apiResponse?.Data, apiResponse?.Data == null ? "Đăng nhập thất bại" : null, false);
         }
 
         // 2. Đăng ký

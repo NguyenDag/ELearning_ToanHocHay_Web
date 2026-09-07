@@ -284,8 +284,28 @@
                             <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500">
                             <span class="ml-2 text-gray-600 group-hover:text-gray-800">Ghi nhớ đăng nhập</span>
                         </label>
-                        <a href="/Account/ForgotPassword" class="text-blue-600 font-semibold hover:text-blue-700 hover:underline">Quên mật khẩu?</a>
+                        <div class="flex items-center gap-3">
+                            <a href="/Account/ResendConfirmationEmail" class="text-blue-600 font-semibold hover:text-blue-700 hover:underline">Gửi lại email xác nhận</a>
+                            <span class="text-gray-300">|</span>
+                            <a href="/Account/ForgotPassword" class="text-blue-600 font-semibold hover:text-blue-700 hover:underline">Quên mật khẩu?</a>
+                        </div>
                     </div>
+
+                    @if (ViewBag.EmailNotConfirmed == true)
+                    {
+                        <div class="rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm">
+                            <p class="font-semibold text-amber-800">
+                                <i class="fa-solid fa-envelope-circle-check mr-1"></i> Tài khoản chưa được xác nhận
+                            </p>
+                            <p class="mt-1 text-amber-700">
+                                Bạn cần xác nhận email trước khi đăng nhập. Không nhận được email? Gửi lại ngay:
+                            </p>
+                            <a href="/Account/ResendConfirmationEmail?email=@Uri.EscapeDataString((string)(ViewBag.Email ?? ""))"
+                               class="inline-block mt-3 px-4 py-2 rounded-lg bg-amber-500 text-white font-semibold hover:bg-amber-600">
+                                <i class="fa-solid fa-paper-plane mr-1"></i> Gửi lại email xác nhận
+                            </a>
+                        </div>
+                    }
 
                     <!-- Submit Button -->
                     <button type="submit"
