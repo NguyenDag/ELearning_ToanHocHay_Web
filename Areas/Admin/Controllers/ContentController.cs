@@ -366,8 +366,10 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
             else if (r.Data.Committed)
             {
                 vm.CreatedCourseId = r.Data.CourseId;
+                var c = r.Data.Counts;
+                var extra = c.Questions > 0 || c.Exercises > 0 ? $" · {c.Questions} câu hỏi · {c.Exercises} bài tập" : "";
                 this.ShowToastSuccess(
-                    $"Đã import: {r.Data.Counts.Chapters} chương · {r.Data.Counts.Lessons} bài · {r.Data.Counts.Blocks} block · {r.Data.Counts.Flashcards} thẻ"
+                    $"Đã import: {c.Chapters} chương · {c.Lessons} bài · {c.Blocks} block · {c.Flashcards} thẻ{extra}"
                     + (r.Data.WarningCount > 0 ? $" ({r.Data.WarningCount} cảnh báo)" : "") + ".");
 
                 if (form.PublishNow && r.Data.CourseVersionId is int vid)

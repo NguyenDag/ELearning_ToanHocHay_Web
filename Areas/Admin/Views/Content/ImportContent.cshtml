@@ -56,6 +56,39 @@
                         <input asp-for="Form.Resources" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
                     </label>
                 </div>
+
+                <details class="mt-4 border border-gray-100 rounded-xl p-3" @(Model.Result?.Counts.Questions > 0 ? "open" : "")>
+                    <summary class="font-bold text-gray-700 cursor-pointer text-xs">
+                        Ngân hàng câu hỏi &amp; bài tập / đề <span class="text-gray-400 font-normal">(tuỳ chọn — Free / Standard / Premium)</span>
+                    </summary>
+                    <div class="space-y-3 mt-3">
+                        <label class="flex items-center gap-3">
+                            <span class="w-40 font-bold text-gray-700">question-bank.csv</span>
+                            <input asp-for="Form.QuestionBank" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                        </label>
+                        <label class="flex items-center gap-3">
+                            <span class="w-40 font-bold text-gray-700">questions.csv</span>
+                            <input asp-for="Form.Questions" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                        </label>
+                        <label class="flex items-center gap-3">
+                            <span class="w-40 font-bold text-gray-700">question-options.csv</span>
+                            <input asp-for="Form.QuestionOptions" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                        </label>
+                        <label class="flex items-center gap-3">
+                            <span class="w-40 font-bold text-gray-700">exercises.csv</span>
+                            <input asp-for="Form.Exercises" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                        </label>
+                        <label class="flex items-center gap-3">
+                            <span class="w-40 font-bold text-gray-700">exercise-questions.csv</span>
+                            <input asp-for="Form.ExerciseQuestions" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                        </label>
+                        <p class="text-[11px] text-gray-400">
+                            Bài tập gắn vào node chương/bài theo <code class="bg-gray-100 px-1 rounded">NodeKey</code>.
+                            Tier <b>Free</b> mở cho mọi học sinh; <b>Standard</b> / <b>Premium</b> yêu cầu gói tương ứng.
+                            Câu hỏi và bài tập được tạo ở trạng thái đã duyệt / đã xuất bản.
+                        </p>
+                    </div>
+                </details>
             </div>
 
             <hr class="border-gray-100" />
@@ -120,10 +153,23 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center mb-4">
-                    @foreach (var (label, val) in new[] {
+                @{
+                    var tiles = new List<(string, int)>
+                    {
                         ("Chương", r.Counts.Chapters), ("Bài", r.Counts.Lessons), ("Mục khác", r.Counts.OtherNodes),
-                        ("Block", r.Counts.Blocks), ("Bộ thẻ", r.Counts.FlashcardDecks), ("Thẻ", r.Counts.Flashcards) })
+                        ("Block", r.Counts.Blocks), ("Bộ thẻ", r.Counts.FlashcardDecks), ("Thẻ", r.Counts.Flashcards),
+                    };
+                    if (r.Counts.Questions > 0 || r.Counts.Exercises > 0)
+                    {
+                        tiles.Add(("Ngân hàng", r.Counts.QuestionBanks));
+                        tiles.Add(("Câu hỏi", r.Counts.Questions));
+                        tiles.Add(("Phương án", r.Counts.QuestionOptions));
+                        tiles.Add(("Bài tập / đề", r.Counts.Exercises));
+                        tiles.Add(("Câu trong đề", r.Counts.ExerciseQuestions));
+                    }
+                }
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center mb-4">
+                    @foreach (var (label, val) in tiles)
                     {
                         <div class="bg-gray-50 rounded-xl py-2">
                             <p class="text-lg font-black text-gray-800">@val</p>

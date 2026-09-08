@@ -170,6 +170,11 @@ namespace ToanHocHay.WebApp.Services.Admin
             Add(vm.Blocks, "Blocks");
             Add(vm.Flashcards, "Flashcards");
             Add(vm.Resources, "Resources");
+            Add(vm.QuestionBank, "QuestionBank");
+            Add(vm.Questions, "Questions");
+            Add(vm.QuestionOptions, "QuestionOptions");
+            Add(vm.Exercises, "Exercises");
+            Add(vm.ExerciseQuestions, "ExerciseQuestions");
             return form;
         }
 

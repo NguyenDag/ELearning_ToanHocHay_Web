@@ -240,6 +240,11 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public int FlashcardDecks { get; set; }
         public int Flashcards { get; set; }
         public int Resources { get; set; }
+        public int QuestionBanks { get; set; }
+        public int Questions { get; set; }
+        public int QuestionOptions { get; set; }
+        public int Exercises { get; set; }
+        public int ExerciseQuestions { get; set; }
     }
 
     public class ContentImportResultDto
@@ -277,6 +282,13 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public IFormFile? Blocks { get; set; }
         public IFormFile? Flashcards { get; set; }
         public IFormFile? Resources { get; set; }
+
+        // Ngân hàng câu hỏi + bài tập / đề (tuỳ chọn)
+        public IFormFile? QuestionBank { get; set; }
+        public IFormFile? Questions { get; set; }
+        public IFormFile? QuestionOptions { get; set; }
+        public IFormFile? Exercises { get; set; }
+        public IFormFile? ExerciseQuestions { get; set; }
 
         /// <summary>"new" = tạo khoá học mới từ course.csv · "version" = import vào một CourseVersion Draft.</summary>
         public string Mode { get; set; } = "new";
