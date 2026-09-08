@@ -284,11 +284,7 @@
                             <input type="checkbox" class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-2 focus:ring-blue-500">
                             <span class="ml-2 text-gray-600 group-hover:text-gray-800">Ghi nhớ đăng nhập</span>
                         </label>
-                        <div class="flex items-center gap-3">
-                            <a href="/Account/ResendConfirmationEmail" class="text-blue-600 font-semibold hover:text-blue-700 hover:underline">Gửi lại email xác nhận</a>
-                            <span class="text-gray-300">|</span>
-                            <a href="/Account/ForgotPassword" class="text-blue-600 font-semibold hover:text-blue-700 hover:underline">Quên mật khẩu?</a>
-                        </div>
+                        <a href="/Account/ForgotPassword" class="text-blue-600 font-semibold hover:text-blue-700 hover:underline">Quên mật khẩu?</a>
                     </div>
 
                     @if (ViewBag.EmailNotConfirmed == true)
