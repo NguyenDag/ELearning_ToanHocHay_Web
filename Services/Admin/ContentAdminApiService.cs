@@ -136,6 +136,43 @@ namespace ToanHocHay.WebApp.Services.Admin
 
         public Task<ApiResult> DeleteBlockAsync(int blockId) => _api.DeleteAsync(ApiRoutes.ContentAuthoring.Block(blockId));
 
+        // ---------------- import CSV ----------------
+        public Task<ApiResult<ContentImportResultDto>> ValidateImportAsync(ContentImportUploadVm vm, int? versionId)
+            => _api.PostFormAsync<ContentImportResultDto>(ApiRoutes.ContentImport.Validate(versionId), BuildImportForm(vm));
+
+        public Task<ApiResult<ContentImportResultDto>> ImportNewCourseAsync(ContentImportUploadVm vm)
+            => _api.PostFormAsync<ContentImportResultDto>(ApiRoutes.ContentImport.Course, BuildImportForm(vm));
+
+        public Task<ApiResult<ContentImportResultDto>> ImportIntoVersionAsync(int versionId, bool replace, ContentImportUploadVm vm)
+            => _api.PostFormAsync<ContentImportResultDto>(ApiRoutes.ContentImport.IntoVersion(versionId, replace), BuildImportForm(vm));
+
+        public async Task<List<ContentImportJobDto>> ListImportJobsAsync(int take = 20)
+        {
+            var r = await _api.GetAsync<List<ContentImportJobDto>>(ApiRoutes.ContentImport.Jobs(take));
+            return r.IsSuccess && r.Data != null ? r.Data : new();
+        }
+
+        private static MultipartFormDataContent BuildImportForm(ContentImportUploadVm vm)
+        {
+            var form = new MultipartFormDataContent();
+
+            void Add(IFormFile? file, string field)
+            {
+                if (file == null || file.Length == 0) return;
+                var part = new StreamContent(file.OpenReadStream());
+                part.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue("text/csv") { CharSet = "utf-8" };
+                form.Add(part, field, string.IsNullOrWhiteSpace(file.FileName) ? $"{field.ToLowerInvariant()}.csv" : file.FileName);
+            }
+
+            Add(vm.Course, "Course");
+            Add(vm.Nodes, "Nodes");
+            Add(vm.Blocks, "Blocks");
+            Add(vm.Flashcards, "Flashcards");
+            Add(vm.Resources, "Resources");
+            return form;
+        }
+
         // ---------------- helpers ----------------
         private static object CoursePayload(CourseEditVm vm) => new
         {

@@ -1,0 +1,230 @@
+@model ContentImportPageVm
+@{
+    ViewData["Title"] = "Import nội dung";
+    var r = Model.Result;
+
+    string SevBadge(ImportIssueSeverity s) => s == ImportIssueSeverity.Error
+        ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700";
+    string JobBadge(string s) => s switch
+    {
+        "Completed" => "bg-green-100 text-green-700",
+        "CompletedWithErrors" => "bg-amber-100 text-amber-700",
+        "Failed" => "bg-red-100 text-red-700",
+        _ => "bg-gray-100 text-gray-600"
+    };
+}
+
+<div class="flex items-center justify-between mb-4">
+    <div>
+        <a asp-action="Courses" class="text-sm text-gray-500 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Khoá học</a>
+        <h2 class="text-xl font-black text-gray-800 mt-1">Import nội dung từ file CSV</h2>
+    </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-5">
+    <!-- ================= FORM ================= -->
+    <div class="lg:col-span-2 space-y-5">
+        <form method="post" asp-action="ImportContent" enctype="multipart/form-data"
+              class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5 text-sm">
+            @Html.AntiForgeryToken()
+
+            <div>
+                <p class="font-black text-gray-800 mb-2">1. Chọn file</p>
+                <p class="text-gray-500 mb-3 text-xs leading-relaxed">
+                    Bộ file lấy từ <code class="bg-gray-100 px-1 rounded">docs/content-import/&lt;bộ-sách&gt;/</code> trong mã nguồn,
+                    hoặc xuất từ Excel theo lược đồ trong <b>README</b>. <code class="bg-gray-100 px-1 rounded">nodes.csv</code> là bắt buộc.
+                </p>
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3">
+                        <span class="w-28 font-bold text-gray-700">course.csv</span>
+                        <input asp-for="Form.Course" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <span class="w-28 font-bold text-gray-700">nodes.csv <span class="text-red-500">*</span></span>
+                        <input asp-for="Form.Nodes" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <span class="w-28 font-bold text-gray-700">blocks.csv</span>
+                        <input asp-for="Form.Blocks" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <span class="w-28 font-bold text-gray-700">flashcards.csv</span>
+                        <input asp-for="Form.Flashcards" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <span class="w-28 font-bold text-gray-700">resources.csv</span>
+                        <input asp-for="Form.Resources" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                </div>
+            </div>
+
+            <hr class="border-gray-100" />
+
+            <div>
+                <p class="font-black text-gray-800 mb-2">2. Đích import</p>
+                <label class="flex items-start gap-2 mb-2">
+                    <input type="radio" name="Form.Mode" value="new" checked="@(Model.Form.Mode != "version")" class="mt-1" />
+                    <span>
+                        <b>Tạo khoá học mới</b> từ <code class="bg-gray-100 px-1 rounded">course.csv</code>
+                        <span class="block text-gray-500 text-xs">Môn / lớp / bộ sách lấy theo mã trong course.csv. Bộ sách chưa có sẽ được tạo.</span>
+                    </span>
+                </label>
+                <label class="flex items-start gap-2">
+                    <input type="radio" name="Form.Mode" value="version" checked="@(Model.Form.Mode == "version")" class="mt-1" />
+                    <span class="flex-1">
+                        <b>Import vào phiên bản Draft có sẵn</b>
+                        <span class="flex items-center gap-2 mt-1">
+                            <span class="text-gray-500 text-xs">CourseVersionId:</span>
+                            <input asp-for="Form.VersionId" type="number" min="1" class="w-28 border border-gray-200 rounded-lg px-2 py-1" />
+                            <label class="text-xs flex items-center gap-1">
+                                <input type="checkbox" asp-for="Form.Replace" /> thay toàn bộ nội dung cũ
+                            </label>
+                        </span>
+                    </span>
+                </label>
+            </div>
+
+            <hr class="border-gray-100" />
+
+            <div>
+                <p class="font-black text-gray-800 mb-2">3. Thực hiện</p>
+                <label class="flex items-center gap-2 mb-2 text-xs">
+                    <input type="checkbox" asp-for="Form.PublishNow" />
+                    Xuất bản ngay sau khi import (gửi duyệt → duyệt → xuất bản). Chỉ áp dụng khi không có lỗi.
+                </label>
+                <div class="flex gap-2 pt-1">
+                    <button type="submit" name="Form.ValidateOnly" value="true"
+                            class="bg-white border border-gray-300 text-gray-700 font-bold px-4 py-2 rounded-xl hover:bg-gray-50">
+                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Chỉ kiểm tra
+                    </button>
+                    <button type="submit" name="Form.ValidateOnly" value="false"
+                            class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl">
+                        <i class="fa-solid fa-file-import mr-1"></i> Import
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- ================= KẾT QUẢ ================= -->
+        @if (r != null)
+        {
+            <div class="bg-white rounded-2xl p-6 shadow-sm border @(r.Valid ? "border-green-200" : "border-red-200")">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="font-black text-gray-800">
+                        Kết quả
+                        @if (r.Committed) { <span class="text-green-600">· đã ghi vào CSDL</span> }
+                        else if (r.DryRun || r.Valid && !r.Committed) { <span class="text-gray-500">· chưa ghi (kiểm tra)</span> }
+                    </p>
+                    <span class="text-xs font-bold px-2 py-1 rounded-full @(r.Valid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")">
+                        @(r.Valid ? "Hợp lệ" : $"{r.ErrorCount} lỗi") · @r.WarningCount cảnh báo
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 text-center mb-4">
+                    @foreach (var (label, val) in new[] {
+                        ("Chương", r.Counts.Chapters), ("Bài", r.Counts.Lessons), ("Mục khác", r.Counts.OtherNodes),
+                        ("Block", r.Counts.Blocks), ("Bộ thẻ", r.Counts.FlashcardDecks), ("Thẻ", r.Counts.Flashcards) })
+                    {
+                        <div class="bg-gray-50 rounded-xl py-2">
+                            <p class="text-lg font-black text-gray-800">@val</p>
+                            <p class="text-[11px] text-gray-500">@label</p>
+                        </div>
+                    }
+                </div>
+
+                @if (r.Committed && Model.CreatedCourseId is int cid)
+                {
+                    <a asp-action="Course" asp-route-id="@cid"
+                       class="inline-block bg-blue-50 text-blue-700 font-bold text-sm px-4 py-2 rounded-xl mb-3">
+                        Mở khoá học vừa tạo <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </a>
+                }
+                else if (r.Committed && r.CourseVersionId is int vid2)
+                {
+                    <a asp-action="Version" asp-route-versionId="@vid2"
+                       class="inline-block bg-blue-50 text-blue-700 font-bold text-sm px-4 py-2 rounded-xl mb-3">
+                        Mở phiên bản <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </a>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.PublishSummary))
+                {
+                    <div class="text-sm rounded-xl px-4 py-2 mb-3 @(Model.PublishSummary.StartsWith("Đã xuất bản") ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700")">
+                        @Model.PublishSummary
+                    </div>
+                }
+
+                @if (r.Issues.Count > 0)
+                {
+                    <div class="overflow-x-auto border border-gray-100 rounded-xl">
+                        <table class="w-full text-xs">
+                            <thead class="bg-gray-50 text-gray-500 uppercase">
+                                <tr>
+                                    <th class="text-left px-3 py-2 w-24">Mức</th>
+                                    <th class="text-left px-3 py-2 w-28">File · dòng</th>
+                                    <th class="text-left px-3 py-2 w-28">Node</th>
+                                    <th class="text-left px-3 py-2">Mã · nội dung</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                            @foreach (var i in r.Issues.OrderBy(x => x.Severity).ThenBy(x => x.File).ThenBy(x => x.Row ?? 0))
+                            {
+                                <tr>
+                                    <td class="px-3 py-2"><span class="px-2 py-0.5 rounded-full font-bold @SevBadge(i.Severity)">@ContentImportPageVm.IssueSeverityLabel(i.Severity)</span></td>
+                                    <td class="px-3 py-2 text-gray-600">@i.File@(i.Row.HasValue ? $" · {i.Row}" : "")</td>
+                                    <td class="px-3 py-2 text-gray-500">@(i.NodeKey ?? "—")</td>
+                                    <td class="px-3 py-2"><code class="text-gray-400">@i.Code</code> · @i.Message</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-sm text-gray-500">Không có vấn đề nào.</p>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- ================= HƯỚNG DẪN + LỊCH SỬ ================= -->
+    <div class="space-y-5">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-xs text-gray-600 leading-relaxed">
+            <p class="font-black text-gray-800 text-sm mb-2">Quy trình</p>
+            <ol class="list-decimal ml-4 space-y-1">
+                <li>Chọn file → <b>Chỉ kiểm tra</b> để xem lỗi/cảnh báo.</li>
+                <li>Sửa file đến khi "Hợp lệ" → bấm <b>Import</b>.</li>
+                <li>Tích <b>Xuất bản ngay</b> để học sinh thấy liền, hoặc mở khoá học và tự publish sau.</li>
+            </ol>
+            <p class="mt-3">
+                Cập nhật về sau: tạo phiên bản Draft mới trong khoá học rồi import vào phiên bản đó
+                (hoặc dùng "thay toàn bộ nội dung cũ").
+            </p>
+            <p class="mt-2 text-gray-400">Giới hạn: 5000 dòng / lần, cây sâu tối đa 4 cấp, 10 MB / file.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <p class="font-black text-gray-800 text-sm mb-3">Lần import gần đây</p>
+            @if (Model.RecentJobs.Count == 0)
+            {
+                <p class="text-xs text-gray-400">Chưa có lần import nào.</p>
+            }
+            else
+            {
+                <ul class="space-y-2 text-xs">
+                @foreach (var j in Model.RecentJobs)
+                {
+                    <li class="flex items-center justify-between gap-2">
+                        <span class="text-gray-600">
+                            #@j.ImportJobId · @j.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")
+                            <span class="text-gray-400">· @j.SuccessRows/@j.TotalRows dòng</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full font-bold @JobBadge(j.Status)">@j.Status</span>
+                    </li>
+                }
+                </ul>
+            }
+        </div>
+    </div>
+</div>

@@ -214,4 +214,89 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public int CourseId { get; set; }
         public int? SelectedNodeId { get; set; }
     }
+
+    // ============================================================
+    //  Import khung chương trình từ file CSV (api/content/import)
+    // ============================================================
+
+    public enum ImportIssueSeverity { Error, Warning }
+
+    public class ImportIssueDto
+    {
+        public string File { get; set; } = "";
+        public int? Row { get; set; }
+        public string? NodeKey { get; set; }
+        public string Code { get; set; } = "";
+        public ImportIssueSeverity Severity { get; set; }
+        public string Message { get; set; } = "";
+    }
+
+    public class ContentImportCountsDto
+    {
+        public int Chapters { get; set; }
+        public int Lessons { get; set; }
+        public int OtherNodes { get; set; }
+        public int Blocks { get; set; }
+        public int FlashcardDecks { get; set; }
+        public int Flashcards { get; set; }
+        public int Resources { get; set; }
+    }
+
+    public class ContentImportResultDto
+    {
+        public bool Valid { get; set; }
+        public bool Committed { get; set; }
+        public bool DryRun { get; set; }
+        public int? ImportJobId { get; set; }
+        public int? CourseId { get; set; }
+        public int? CourseVersionId { get; set; }
+        public ContentImportCountsDto Counts { get; set; } = new();
+        public int ErrorCount { get; set; }
+        public int WarningCount { get; set; }
+        public List<ImportIssueDto> Issues { get; set; } = new();
+    }
+
+    public class ContentImportJobDto
+    {
+        public int ImportJobId { get; set; }
+        public string? UploadedByName { get; set; }
+        public string FileUrl { get; set; } = "";
+        public string TargetType { get; set; } = "";
+        public int? CourseVersionId { get; set; }
+        public string Status { get; set; } = "";
+        public int TotalRows { get; set; }
+        public int SuccessRows { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    /// <summary>Dữ liệu form upload trên trang Import.</summary>
+    public class ContentImportUploadVm
+    {
+        public IFormFile? Course { get; set; }
+        public IFormFile? Nodes { get; set; }
+        public IFormFile? Blocks { get; set; }
+        public IFormFile? Flashcards { get; set; }
+        public IFormFile? Resources { get; set; }
+
+        /// <summary>"new" = tạo khoá học mới từ course.csv · "version" = import vào một CourseVersion Draft.</summary>
+        public string Mode { get; set; } = "new";
+        public int? VersionId { get; set; }
+        public bool Replace { get; set; }
+        public bool PublishNow { get; set; }
+        public bool ValidateOnly { get; set; }
+    }
+
+    public class ContentImportPageVm
+    {
+        public ContentImportUploadVm Form { get; set; } = new();
+        public ContentImportResultDto? Result { get; set; }
+        public List<ContentImportJobDto> RecentJobs { get; set; } = new();
+
+        /// <summary>Kết quả chạy submit → duyệt → xuất bản (khi tích "Xuất bản ngay").</summary>
+        public string? PublishSummary { get; set; }
+        public int? CreatedCourseId { get; set; }
+
+        public static string IssueSeverityLabel(ImportIssueSeverity s)
+            => s == ImportIssueSeverity.Error ? "Lỗi" : "Cảnh báo";
+    }
 }

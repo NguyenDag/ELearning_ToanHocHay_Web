@@ -35,6 +35,10 @@ namespace ToanHocHay.WebApp.Services.Http
         public Task<ApiResult> PostAsync(string path, object? body = null, CancellationToken ct = default)
             => AsUnit(PostAsync<object>(path, body, ct));
 
+        /// <summary>POST multipart/form-data (upload file). <paramref name="content"/> sẽ được HttpClient dispose sau khi gửi.</summary>
+        public Task<ApiResult<T>> PostFormAsync<T>(string path, HttpContent content, CancellationToken ct = default)
+            => SendAsync<T>(new HttpRequestMessage(HttpMethod.Post, path) { Content = content }, path, ct);
+
         public Task<ApiResult<T>> PutAsync<T>(string path, object? body = null, CancellationToken ct = default)
             => SendAsync<T>(Build(HttpMethod.Put, path, body), path, ct);
 

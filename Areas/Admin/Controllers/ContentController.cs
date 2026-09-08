@@ -313,6 +313,86 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
             return RedirectToAction(nameof(Version), new { versionId, nodeId });
         }
 
+        // ================= IMPORT (file CSV) =================
+
+        [HttpGet]
+        public async Task<IActionResult> ImportContent()
+            => View(new ContentImportPageVm { RecentJobs = await _content.ListImportJobsAsync() });
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(20_000_000)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 20_000_000)]
+        public async Task<IActionResult> ImportContent(ContentImportUploadVm form)
+        {
+            var vm = new ContentImportPageVm { Form = form };
+
+            var guard =
+                form.Nodes == null ? "Cần chọn ít nhất file nodes.csv."
+                : form.Mode == "new" && form.Course == null ? "Chế độ \"Tạo khoá học mới\" cần file course.csv."
+                : form.Mode == "version" && form.VersionId is not > 0 ? "Nhập CourseVersionId (Draft) để import vào."
+                : null;
+            if (guard != null)
+            {
+                this.ShowToastError(guard);
+                vm.RecentJobs = await _content.ListImportJobsAsync();
+                return View(vm);
+            }
+
+            var r = (form.ValidateOnly, form.Mode) switch
+            {
+                (true, "version") => await _content.ValidateImportAsync(form, form.VersionId),
+                (true, _)         => await _content.ValidateImportAsync(form, null),
+                (false, "version") => await _content.ImportIntoVersionAsync(form.VersionId!.Value, form.Replace, form),
+                (false, _)         => await _content.ImportNewCourseAsync(form),
+            };
+
+            if (this.AuthRedirectOrNull(r) is { } redirect) return redirect;
+
+            vm.Result = r.Data;
+
+            if (r.Data == null)
+            {
+                this.ShowToastError(r); // lỗi hạ tầng, không phải lỗi nội dung file
+            }
+            else if (!r.Data.Valid)
+            {
+                this.ShowToastError($"File có {r.Data.ErrorCount} lỗi cần sửa trước khi import.");
+            }
+            else if (form.ValidateOnly)
+            {
+                this.ShowToastSuccess($"File hợp lệ để import — {r.Data.Counts.Chapters} chương, {r.Data.Counts.Lessons} bài, {r.Data.Counts.Blocks} block.");
+            }
+            else if (r.Data.Committed)
+            {
+                vm.CreatedCourseId = r.Data.CourseId;
+                this.ShowToastSuccess(
+                    $"Đã import: {r.Data.Counts.Chapters} chương · {r.Data.Counts.Lessons} bài · {r.Data.Counts.Blocks} block · {r.Data.Counts.Flashcards} thẻ"
+                    + (r.Data.WarningCount > 0 ? $" ({r.Data.WarningCount} cảnh báo)" : "") + ".");
+
+                if (form.PublishNow && r.Data.CourseVersionId is int vid)
+                    vm.PublishSummary = await PublishPipelineAsync(vid);
+            }
+
+            vm.RecentJobs = await _content.ListImportJobsAsync();
+            return View(vm);
+        }
+
+        /// <summary>submit → duyệt (Approve) → xuất bản. Trả về câu tóm tắt tiếng Việt.</summary>
+        private async Task<string> PublishPipelineAsync(int versionId)
+        {
+            var submit = await _content.SubmitVersionAsync(versionId);
+            if (!submit.IsSuccess) return "Chưa xuất bản được — gửi duyệt thất bại: " + submit.DisplayMessage;
+
+            var review = await _content.ReviewVersionAsync(versionId, ReviewDecision.Approve, "Duyệt tự động khi import");
+            if (!review.IsSuccess) return "Chưa xuất bản được — duyệt thất bại: " + review.DisplayMessage;
+
+            var publish = await _content.PublishVersionAsync(versionId);
+            return publish.IsSuccess
+                ? "Đã xuất bản khoá học — học sinh xem được ngay."
+                : "Chưa xuất bản được: " + publish.DisplayMessage;
+        }
+
         private async Task FillCatalogAsync()
         {
             ViewBag.Subjects = await _catalog.GetSubjectsAsync();

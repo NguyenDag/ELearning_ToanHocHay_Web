@@ -120,6 +120,18 @@ namespace ToanHocHay.WebApp.Common.Constants
             public static string Resource(int resourceId) => $"content/resources/{resourceId}";
         }
 
+        // ---------- import khung chương trình từ file CSV ----------
+        public static class ContentImport
+        {
+            public static string Validate(int? versionId) =>
+                "content/import/validate" + (versionId is int v ? $"?versionId={v}" : "");
+            public const string Course = "content/import/course";
+            public static string IntoVersion(int versionId, bool replace) =>
+                $"content/import/versions/{versionId}" + (replace ? "?replace=true" : "");
+            public static string Jobs(int take) => $"content/import/jobs?take={take}";
+            public static string Job(int id) => $"content/import/jobs/{id}";
+        }
+
         public static class CatalogAuthoring
         {
             public const string Subjects = "catalog/subjects";
