@@ -100,6 +100,68 @@ namespace ToanHocHay.WebApp.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // ---------- import câu hỏi / đề ----------
+
+        [HttpGet]
+        public async Task<IActionResult> Import(int? bankId)
+        {
+            var vm = new QuestionImportPageVm
+            {
+                Form = new QuestionImportUploadVm { BankId = bankId },
+                Subjects = await _catalog.GetSubjectsAsync(),
+                Grades = await _catalog.GetGradeLevelsAsync()
+            };
+            if (bankId is > 0)
+            {
+                vm.TargetBank = await _banks.GetBankAsync(bankId.Value);
+                if (vm.TargetBank == null) { this.PushToastError("Không tìm thấy ngân hàng."); return RedirectToAction(nameof(Index)); }
+            }
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(20_000_000)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 20_000_000)]
+        public async Task<IActionResult> Import(QuestionImportUploadVm form)
+        {
+            var vm = new QuestionImportPageVm
+            {
+                Form = form,
+                Subjects = await _catalog.GetSubjectsAsync(),
+                Grades = await _catalog.GetGradeLevelsAsync()
+            };
+            if (form.BankId is > 0) vm.TargetBank = await _banks.GetBankAsync(form.BankId.Value);
+
+            var guard =
+                form.Questions == null && form.Exercises == null ? "Cần chọn ít nhất questions.csv."
+                : form.BankId is not > 0 && (form.SubjectId is not > 0 || form.GradeLevelId is not > 0)
+                    ? "Chọn Môn và Lớp cho ngân hàng mới, hoặc chọn một ngân hàng có sẵn để thêm vào."
+                    : null;
+            if (guard != null) { this.ShowToastError(guard); return View(vm); }
+
+            var r = await _banks.ImportAsync(form);
+            if (this.AuthRedirectOrNull(r) is { } redirect) return redirect;
+            vm.Result = r.Data;
+
+            if (r.Data == null) this.ShowToastError(r);
+            else if (!r.Data.Valid) this.ShowToastError($"File có {r.Data.ErrorCount} lỗi cần sửa.");
+            else if (form.ValidateOnly)
+                this.ShowToastSuccess($"File hợp lệ — {r.Data.Counts.Questions} câu hỏi, {r.Data.Counts.Exercises} bài tập.");
+            else if (r.Data.Committed)
+            {
+                var c = r.Data.Counts;
+                this.PushToastSuccess($"Đã import {c.Questions} câu hỏi" + (c.Exercises > 0 ? $" · {c.Exercises} bài tập" : "")
+                    + (r.Data.WarningCount > 0 ? $" ({r.Data.WarningCount} cảnh báo)" : "") + ".");
+                // về trang ngân hàng: đích cụ thể nếu thêm vào bank có sẵn, ngược lại danh sách
+                return form.BankId is > 0
+                    ? RedirectToAction(nameof(Questions), new { bankId = form.BankId })
+                    : RedirectToAction(nameof(Index));
+            }
+
+            return View(vm);
+        }
+
         // ---------- questions in a bank ----------
 
         [HttpGet]

@@ -17,6 +17,9 @@
     </div>
     <div class="flex gap-2">
         <a asp-action="Edit" asp-route-bankId="@Model.Bank.BankId" class="bg-white border border-gray-200 text-gray-600 font-bold text-sm px-4 py-2 rounded-xl">Sửa ngân hàng</a>
+        <a asp-action="Import" asp-route-bankId="@Model.Bank.BankId" class="bg-white border border-gray-200 text-gray-600 font-bold text-sm px-4 py-2 rounded-xl">
+            <i class="fa-solid fa-file-import mr-1"></i> Import thêm
+        </a>
         <a asp-action="CreateQuestion" asp-route-bankId="@Model.Bank.BankId" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2 rounded-xl">
             <i class="fa-solid fa-plus mr-1"></i> Soạn câu hỏi
         </a>

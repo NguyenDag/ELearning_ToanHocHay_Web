@@ -130,6 +130,17 @@ namespace ToanHocHay.WebApp.Common.Constants
                 $"content/import/versions/{versionId}" + (replace ? "?replace=true" : "");
             public static string Jobs(int take) => $"content/import/jobs?take={take}";
             public static string Job(int id) => $"content/import/jobs/{id}";
+
+            /// <summary>Import ngân hàng câu hỏi / đề độc lập. bankId → thêm vào; ngược lại subjectId+gradeLevelId tạo mới.</summary>
+            public static string QuestionBank(int? bankId, int? subjectId, int? gradeLevelId, bool dryRun)
+            {
+                var q = new List<string>();
+                if (bankId is > 0) q.Add($"bankId={bankId}");
+                if (subjectId is > 0) q.Add($"subjectId={subjectId}");
+                if (gradeLevelId is > 0) q.Add($"gradeLevelId={gradeLevelId}");
+                if (dryRun) q.Add("dryRun=true");
+                return "content/import/question-bank" + (q.Count > 0 ? "?" + string.Join('&', q) : "");
+            }
         }
 
         public static class CatalogAuthoring

@@ -1,0 +1,152 @@
+@model QuestionImportPageVm
+@{
+    ViewData["Title"] = "Import câu hỏi";
+    var r = Model.Result;
+    var append = Model.TargetBank != null;
+    string SevBadge(ImportIssueSeverity s) => s == ImportIssueSeverity.Error ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700";
+}
+
+<div class="flex items-center justify-between mb-4">
+    <div>
+        <a asp-action="Index" class="text-sm text-gray-500 hover:underline"><i class="fa-solid fa-arrow-left mr-1"></i> Ngân hàng câu hỏi</a>
+        <h2 class="text-xl font-black text-gray-800 mt-1">
+            Import câu hỏi @(append ? $"vào \"{Model.TargetBank!.BankName}\"" : "(tạo ngân hàng mới)")
+        </h2>
+    </div>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-5">
+    <div class="lg:col-span-2 space-y-5">
+        <form method="post" asp-action="Import" enctype="multipart/form-data"
+              class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-5 text-sm">
+            @Html.AntiForgeryToken()
+            @if (append)
+            {
+                <input type="hidden" asp-for="Form.BankId" />
+            }
+
+            <div>
+                <p class="font-black text-gray-800 mb-2">1. Chọn file CSV</p>
+                <p class="text-gray-500 mb-3 text-xs">
+                    Lược đồ cột: xem <b>docs/content-import/README.md</b>. Bắt buộc: <code class="bg-gray-100 px-1 rounded">questions.csv</code>
+                    (và <code class="bg-gray-100 px-1 rounded">question-options.csv</code> nếu có câu trắc nghiệm).
+                    <code class="bg-gray-100 px-1 rounded">exercises.csv</code> +
+                    <code class="bg-gray-100 px-1 rounded">exercise-questions.csv</code> để tạo luôn đề.
+                </p>
+                <div class="space-y-3">
+                    @if (!append)
+                    {
+                        <label class="flex items-center gap-3">
+                            <span class="w-40 font-bold text-gray-700">question-bank.csv</span>
+                            <input asp-for="Form.QuestionBank" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                        </label>
+                    }
+                    <label class="flex items-center gap-3">
+                        <span class="w-40 font-bold text-gray-700">questions.csv <span class="text-red-500">*</span></span>
+                        <input asp-for="Form.Questions" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <span class="w-40 font-bold text-gray-700">question-options.csv</span>
+                        <input asp-for="Form.QuestionOptions" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <span class="w-40 font-bold text-gray-700">exercises.csv</span>
+                        <input asp-for="Form.Exercises" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                    <label class="flex items-center gap-3">
+                        <span class="w-40 font-bold text-gray-700">exercise-questions.csv</span>
+                        <input asp-for="Form.ExerciseQuestions" type="file" accept=".csv,text/csv" class="flex-1 text-xs" />
+                    </label>
+                </div>
+            </div>
+
+            @if (!append)
+            {
+                <hr class="border-gray-100" />
+                <div>
+                    <p class="font-black text-gray-800 mb-2">2. Ngân hàng mới thuộc</p>
+                    <div class="flex gap-3">
+                        <select asp-for="Form.SubjectId" class="border border-gray-200 rounded-lg px-3 py-2">
+                            <option value="">— Môn —</option>
+                            @foreach (var s in Model.Subjects) { <option value="@s.Id">@s.Name</option> }
+                        </select>
+                        <select asp-for="Form.GradeLevelId" class="border border-gray-200 rounded-lg px-3 py-2">
+                            <option value="">— Lớp —</option>
+                            @foreach (var g in Model.Grades) { <option value="@g.Id">@g.Name</option> }
+                        </select>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-1">
+                        Tên ngân hàng lấy từ <code class="bg-gray-100 px-1 rounded">question-bank.csv</code>; nếu không có sẽ lấy tên mặc định.
+                    </p>
+                </div>
+            }
+
+            <hr class="border-gray-100" />
+            <div class="flex gap-2">
+                <button type="submit" name="Form.ValidateOnly" value="true"
+                        class="bg-white border border-gray-300 text-gray-700 font-bold px-4 py-2 rounded-xl hover:bg-gray-50">
+                    <i class="fa-solid fa-magnifying-glass mr-1"></i> Chỉ kiểm tra
+                </button>
+                <button type="submit" name="Form.ValidateOnly" value="false"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2 rounded-xl">
+                    <i class="fa-solid fa-file-import mr-1"></i> Import
+                </button>
+            </div>
+        </form>
+
+        @if (r != null)
+        {
+            <div class="bg-white rounded-2xl p-6 shadow-sm border @(r.Valid ? "border-green-200" : "border-red-200")">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="font-black text-gray-800">Kết quả @(r.Committed ? "· đã ghi" : "· chưa ghi (kiểm tra)")</p>
+                    <span class="text-xs font-bold px-2 py-1 rounded-full @(r.Valid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")">
+                        @(r.Valid ? "Hợp lệ" : $"{r.ErrorCount} lỗi") · @r.WarningCount cảnh báo
+                    </span>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 text-center mb-4">
+                    @foreach (var (label, val) in new[] {
+                        ("Ngân hàng", r.Counts.QuestionBanks), ("Câu hỏi", r.Counts.Questions),
+                        ("Phương án", r.Counts.QuestionOptions), ("Bài tập", r.Counts.Exercises),
+                        ("Câu trong đề", r.Counts.ExerciseQuestions) })
+                    {
+                        <div class="bg-gray-50 rounded-xl py-2">
+                            <p class="text-lg font-black text-gray-800">@val</p>
+                            <p class="text-[11px] text-gray-500">@label</p>
+                        </div>
+                    }
+                </div>
+                @if (r.Issues.Count > 0)
+                {
+                    <div class="overflow-x-auto border border-gray-100 rounded-xl">
+                        <table class="w-full text-xs">
+                            <thead class="bg-gray-50 text-gray-500 uppercase">
+                                <tr><th class="text-left px-3 py-2 w-20">Mức</th><th class="text-left px-3 py-2 w-32">File · dòng</th><th class="text-left px-3 py-2">Mã · nội dung</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                            @foreach (var i in r.Issues.OrderBy(x => x.Severity).ThenBy(x => x.File).ThenBy(x => x.Row ?? 0))
+                            {
+                                <tr>
+                                    <td class="px-3 py-2"><span class="px-2 py-0.5 rounded-full font-bold @SevBadge(i.Severity)">@(i.Severity == ImportIssueSeverity.Error ? "Lỗi" : "C.báo")</span></td>
+                                    <td class="px-3 py-2 text-gray-600">@i.File@(i.Row.HasValue ? $" · {i.Row}" : "")</td>
+                                    <td class="px-3 py-2"><code class="text-gray-400">@i.Code</code> · @i.Message</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-xs text-gray-600 leading-relaxed h-fit">
+        <p class="font-black text-gray-800 text-sm mb-2">Ghi chú</p>
+        <ul class="list-disc ml-4 space-y-1">
+            <li>Câu hỏi tạo ở trạng thái <b>đã duyệt</b>, dùng được ngay trong đề.</li>
+            <li>Đề (exercises.csv) tạo ở trạng thái <b>đã xuất bản</b>; tier <b>Free / Standard / Premium</b> theo cột <code class="bg-gray-100 px-1 rounded">Tier</code>.</li>
+            <li>Import độc lập: đề <b>không gắn</b> vào bài học (cột <code class="bg-gray-100 px-1 rounded">NodeKey</code> bị bỏ qua).</li>
+            <li>"Chỉ kiểm tra" không ghi gì — xem lỗi/cảnh báo rồi sửa file.</li>
+            <li>Có thể tải file mẫu từ <code class="bg-gray-100 px-1 rounded">docs/content-import/&lt;bộ-sách&gt;/</code>.</li>
+        </ul>
+    </div>
+</div>

@@ -123,4 +123,29 @@ namespace ToanHocHay.WebApp.Areas.Admin.Models
         public int Id { get; set; }
         public string Name { get; set; } = "";
     }
+
+    // ---------- import câu hỏi / đề ----------
+    public class QuestionImportUploadVm
+    {
+        public IFormFile? QuestionBank { get; set; }
+        public IFormFile? Questions { get; set; }
+        public IFormFile? QuestionOptions { get; set; }
+        public IFormFile? Exercises { get; set; }
+        public IFormFile? ExerciseQuestions { get; set; }
+
+        /// <summary>Có giá trị = thêm câu hỏi vào ngân hàng này; ngược lại tạo ngân hàng mới.</summary>
+        public int? BankId { get; set; }
+        public int? SubjectId { get; set; }
+        public int? GradeLevelId { get; set; }
+        public bool ValidateOnly { get; set; }
+    }
+
+    public class QuestionImportPageVm
+    {
+        public QuestionImportUploadVm Form { get; set; } = new();
+        public ContentImportResultDto? Result { get; set; }
+        public QuestionBankDto? TargetBank { get; set; }
+        public List<CatalogRefDto> Subjects { get; set; } = new();
+        public List<CatalogRefDto> Grades { get; set; } = new();
+    }
 }

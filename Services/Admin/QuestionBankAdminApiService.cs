@@ -37,6 +37,29 @@ namespace ToanHocHay.WebApp.Services.Admin
         public Task<ApiResult> DeleteBankAsync(int bankId)
             => _api.DeleteAsync(ApiRoutes.QuestionBanks.ById(bankId));
 
+        // ---------- import câu hỏi / đề ----------
+        public Task<ApiResult<ContentImportResultDto>> ImportAsync(QuestionImportUploadVm vm)
+        {
+            var route = ApiRoutes.ContentImport.QuestionBank(
+                vm.BankId, vm.SubjectId, vm.GradeLevelId, dryRun: vm.ValidateOnly);
+
+            var form = new MultipartFormDataContent();
+            void Add(IFormFile? f, string field)
+            {
+                if (f == null || f.Length == 0) return;
+                var part = new StreamContent(f.OpenReadStream());
+                part.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("text/csv") { CharSet = "utf-8" };
+                form.Add(part, field, string.IsNullOrWhiteSpace(f.FileName) ? $"{field.ToLowerInvariant()}.csv" : f.FileName);
+            }
+            Add(vm.QuestionBank, "QuestionBank");
+            Add(vm.Questions, "Questions");
+            Add(vm.QuestionOptions, "QuestionOptions");
+            Add(vm.Exercises, "Exercises");
+            Add(vm.ExerciseQuestions, "ExerciseQuestions");
+
+            return _api.PostFormAsync<ContentImportResultDto>(route, form);
+        }
+
         // ---------- questions ----------
         public async Task<QuestionListVm> ListQuestionsAsync(int bankId, QuestionStatus? status, string? search, int page, int pageSize)
         {
