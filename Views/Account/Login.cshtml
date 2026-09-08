@@ -240,7 +240,12 @@
                 </div>
 
                 <!-- Login Form -->
-                    <form action="/Account/Login" method="POST" class="space-y-4">
+                    @{
+                        var loginAction = "/Account/Login";
+                        if (ViewBag.ReturnUrl is string ru && !string.IsNullOrEmpty(ru) && Url.IsLocalUrl(ru))
+                            loginAction += "?returnUrl=" + Uri.EscapeDataString(ru);
+                    }
+                    <form action="@loginAction" method="POST" class="space-y-4">
         @Html.AntiForgeryToken()
                     <!-- Email Field -->
                     <div>

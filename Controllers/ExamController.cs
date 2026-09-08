@@ -42,8 +42,13 @@ namespace ToanHocHay.WebApp.Controllers
         public async Task<IActionResult> DoExam(int id)
         {
             if (id <= 0) return RedirectToAction("Index");
+
+            // Khách xem được danh sách bài free, nhưng muốn LÀM BÀI thì bắt buộc đăng nhập.
             if (!User.Identity!.IsAuthenticated)
-                return RedirectToAction("Login", "Account");
+            {
+                this.PushToast("Vui lòng đăng nhập để làm bài.", "info", "Đăng nhập", "/Account/Login");
+                return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("DoExam", "Exam", new { id }) });
+            }
 
             var studentIdClaim = User.FindFirst("StudentId");
             if (studentIdClaim == null)

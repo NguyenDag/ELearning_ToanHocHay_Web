@@ -49,19 +49,24 @@ namespace ToanHocHay.WebApp.Controllers
 
         // ================= LOGIN (GET) =================
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
             if (User.Identity?.IsAuthenticated == true)
-                return RedirectByRole();
+                return SafeRedirect(returnUrl) ?? RedirectByRole();
 
             ViewBag.Mode = "login";
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
+
+        /// <summary>Chỉ nhận đường dẫn nội bộ (chống open-redirect).</summary>
+        private IActionResult? SafeRedirect(string? returnUrl)
+            => !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : null;
 
         // ================= LOGIN (POST) =================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(string email, string password, string? returnUrl = null)
         {
             if (User.Identity?.IsAuthenticated == true)
             {
@@ -77,6 +82,7 @@ namespace ToanHocHay.WebApp.Controllers
                 this.ShowToastError(error);
                 ViewBag.Mode = "login";
                 ViewBag.Email = email;
+                ViewBag.ReturnUrl = returnUrl;
                 // A1 — email chưa xác nhận: hiện khối "Gửi lại email xác nhận" ngay tại form login.
                 ViewBag.EmailNotConfirmed = emailNotConfirmed;
                 return View("Login");
@@ -128,6 +134,9 @@ namespace ToanHocHay.WebApp.Controllers
                 SameSite = SameSiteMode.Lax,
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
             });
+
+            // Quay lại trang khách đang muốn vào (vd đang định làm một bài free) nếu là đường dẫn nội bộ.
+            if (SafeRedirect(returnUrl) is { } back) return back;
 
             // FIX: redirect theo role
             return data.UserType switch
