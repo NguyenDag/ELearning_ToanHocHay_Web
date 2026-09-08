@@ -32,6 +32,10 @@
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
+<!-- Render nội dung Markdown (nhập từ import) sang HTML + công thức toán -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script src="~/js/content-render.js" asp-append-version="true"></script>
+
 <div class="min-h-screen bg-[#F8FAFC] flex flex-col font-nunito mathjax-enabled">
     <div class="container mx-auto px-4 py-6 flex-1">
         <div class="flex flex-col lg:flex-row gap-6">
@@ -87,15 +91,11 @@
                                 switch (block.BlockType)
                                 {
                                     case LessonBlockType.Heading:
-                                        <h2 class="text-2xl font-black text-gray-800 border-l-4 border-blue-600 pl-4">
-                                            @Html.Raw(block.ContentText)
-                                        </h2>
+                                        <h2 class="text-2xl font-black text-gray-800 border-l-4 border-blue-600 pl-4" data-md-inline>@block.ContentText</h2>
                                         break;
 
                                     case LessonBlockType.Text:
-                                        <div class="prose max-w-none text-slate-700 leading-relaxed text-lg text-justify">
-                                            @Html.Raw(block.ContentText)
-                                        </div>
+                                        <div class="prose max-w-none text-slate-700 leading-relaxed text-lg text-justify" data-md>@block.ContentText</div>
                                         break;
 
                                     case LessonBlockType.Definition:
@@ -103,9 +103,7 @@
                                             <div class="text-blue-700 font-bold mb-2 flex items-center gap-2 text-sm uppercase tracking-wide">
                                                 <i class="fa-solid fa-lightbulb"></i> Định nghĩa
                                             </div>
-                                            <div class="text-gray-700 leading-relaxed italic font-medium">
-                                                @Html.Raw(block.ContentText)
-                                            </div>
+                                            <div class="prose max-w-none text-gray-700 leading-relaxed italic font-medium" data-md>@block.ContentText</div>
                                         </div>
                                         break;
 
@@ -115,9 +113,7 @@
                                             <h4 class="text-green-700 font-bold text-sm mb-3 flex items-center gap-2 relative z-10 uppercase tracking-wide">
                                                 <i class="fa-solid fa-layer-group"></i> Ví dụ minh họa
                                             </h4>
-                                            <div class="text-gray-700 relative z-10">
-                                                @Html.Raw(block.ContentText)
-                                            </div>
+                                            <div class="prose max-w-none text-gray-700 relative z-10" data-md>@block.ContentText</div>
                                         </div>
                                         break;
 
@@ -126,18 +122,14 @@
                                             <i class="fa-solid fa-triangle-exclamation text-yellow-500 text-xl mt-1 flex-shrink-0"></i>
                                             <div class="flex-1">
                                                 <h4 class="text-yellow-800 font-bold text-sm mb-1 uppercase">Lưu ý quan trọng</h4>
-                                                <div class="text-yellow-900 text-sm">
-                                                    @Html.Raw(block.ContentText)
-                                                </div>
+                                                <div class="prose prose-sm max-w-none text-yellow-900 text-sm" data-md>@block.ContentText</div>
                                             </div>
                                         </div>
                                         break;
 
                                     case LessonBlockType.Formula:
                                         <div class="bg-slate-900 text-yellow-300 p-8 rounded-2xl text-center my-6 text-2xl shadow-xl overflow-x-auto">
-                                            <div class="mathjax-formula">
-                                                \[ @Html.Raw(block.ContentText) \]
-                                            </div>
+                                            <div class="mathjax-formula">\[ @block.ContentText \]</div>
                                         </div>
                                         break;
 
