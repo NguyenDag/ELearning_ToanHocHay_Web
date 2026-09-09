@@ -71,7 +71,7 @@ namespace ToanHocHay.WebApp.Controllers
                 }
             }
 
-            var (attemptId, needUpgrade, error) = await _examService.StartExercise(id);
+            var (attemptId, plannedEndUtc, needUpgrade, error) = await _examService.StartExercise(id);
 
             if (attemptId == 0)
             {
@@ -87,7 +87,10 @@ namespace ToanHocHay.WebApp.Controllers
             }
 
             ViewData["AttemptId"] = attemptId;
-            ViewData["Time"] = exam.DurationMinutes.HasValue ? $"{exam.DurationMinutes}:00" : "15:00";
+            // Hạn nộp bài do backend quyết định: null với bài luyện tập / bài không đặt thời lượng
+            // → làm tự do, không đếm giờ. Có giá trị → đếm ngược theo đồng hồ máy chủ.
+            ViewData["PlannedEndUtc"] = plannedEndUtc?.ToString("o");
+            ViewData["ServerNowUtc"] = DateTime.UtcNow.ToString("o");
             return View(exam);
         }
 

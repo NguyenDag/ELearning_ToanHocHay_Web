@@ -94,15 +94,16 @@ namespace ToanHocHay.WebApp.Services
         // 3. Bắt đầu làm bài (Tạo AttemptId).
         // Backend lấy StudentId TỪ TOKEN. 403 khi tier gói < Exercise.RequiredTier;
         // 409/400 khi hết lượt (MaxAttempts) hoặc đề chưa publish.
-        public async Task<(int attemptId, bool needUpgrade, string? error)> StartExercise(int exerciseId)
+        /// <param name="plannedEndUtc">Hạn nộp bài (UTC). <c>null</c> = làm tự do, không đếm giờ.</param>
+        public async Task<(int attemptId, DateTime? plannedEndUtc, bool needUpgrade, string? error)> StartExercise(int exerciseId)
         {
             var r = await _api.PostAsync<ExerciseAttemptDto>(
                 ApiRoutes.ExerciseAttempts.Start, new { ExerciseId = exerciseId });
 
             if (r.IsSuccess && r.Data is { AttemptId: > 0 })
-                return (r.Data.AttemptId, false, null);
+                return (r.Data.AttemptId, r.Data.PlannedEndTime?.ToUniversalTime(), false, null);
 
-            return (0, r.IsForbidden, r.DisplayMessage);
+            return (0, null, r.IsForbidden, r.DisplayMessage);
         }
 
         // 4. Nộp từng câu trả lời (Ajax/Realtime)

@@ -125,9 +125,12 @@
                     <h1 class="text-lg font-bold text-gray-800">@Model.Title</h1>
                     <p class="text-xs text-gray-500">Môn Toán • Lớp 6</p>
                 </div>
-                <div class="flex items-center gap-3 bg-slate-800 text-white px-5 py-2 rounded-xl">
+                <div id="timer-box" class="flex items-center gap-3 bg-slate-800 text-white px-5 py-2 rounded-xl">
                     <i class="fa-regular fa-clock text-blue-300 animate-pulse"></i>
                     <span id="timer" class="font-mono font-bold text-xl">00:00</span>
+                </div>
+                <div id="free-mode-box" class="hidden items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-sm font-bold">
+                    <i class="fa-solid fa-infinity"></i> Làm bài tự do
                 </div>
             </div>
 
@@ -364,24 +367,47 @@
         }
 
         // ── Timer ────────────────────────────────────────────────────
-        let rawTime = "@ViewData["Time"]" || "15:00";
-        let totalSeconds = rawTime.toString().includes(':')
-            ? (parseInt(rawTime.split(':')[0]) || 0) * 60 + (parseInt(rawTime.split(':')[1]) || 0)
-            : (parseInt(rawTime) || 15) * 60;
-
+        // Backend quyết định: có hạn nộp bài → đếm ngược theo đồng hồ máy chủ;
+        // không có (bài luyện tập / đề không đặt thời lượng) → làm tự do, không đếm giờ.
+        const plannedEndUtc = "@ViewData["PlannedEndUtc"]";
+        const serverNowUtc = "@ViewData["ServerNowUtc"]";
         const timerEl = document.getElementById('timer');
-        const timerInterval = setInterval(() => {
-            if (totalSeconds <= 0) {
-                clearInterval(timerInterval);
-                timerEl.innerText = "00:00";
+        const timerBox = document.getElementById('timer-box');
+        const freeModeBox = document.getElementById('free-mode-box');
+
+        if (!plannedEndUtc) {
+            // Làm bài tự do — ẩn đồng hồ, không tự nộp.
+            timerBox.classList.add('hidden');
+            freeModeBox.classList.remove('hidden');
+            freeModeBox.classList.add('flex');
+        } else {
+            // Quy về đồng hồ trình duyệt: deadline = now + (plannedEnd - serverNow).
+            const skewMs = Date.now() - Date.parse(serverNowUtc);
+            const deadline = Date.parse(plannedEndUtc) + skewMs;
+
+            const render = () => {
+                const remaining = Math.max(0, Math.round((deadline - Date.now()) / 1000));
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                timerEl.innerText = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+                if (remaining <= 60) {
+                    timerBox.classList.remove('bg-slate-800');
+                    timerBox.classList.add('bg-red-600');
+                }
+                return remaining;
+            };
+
+            if (render() <= 0) {
                 submitExam(true);
-                return;
+            } else {
+                const timerInterval = setInterval(() => {
+                    if (render() <= 0) {
+                        clearInterval(timerInterval);
+                        submitExam(true);
+                    }
+                }, 1000);
             }
-            const mins = Math.floor(totalSeconds / 60);
-            const secs = totalSeconds % 60;
-            timerEl.innerText = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-            totalSeconds--;
-        }, 1000);
+        }
 
         // ── Submit ───────────────────────────────────────────────────
         async function submitExam(force = false) {
