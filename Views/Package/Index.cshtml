@@ -166,7 +166,17 @@
         <!-- Cards -->
         @if (Model != null && Model.Any())
         {
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 items-start fade-up d3">
+            // Gói Free (0đ) đã có card tĩnh bên dưới — bỏ khỏi danh sách động để không hiện 2 lần.
+            var paidPackages = Model.Where(p => p.IsActive && p.Price > 0)
+                                    .OrderBy(p => p.Price)
+                                    .ToList();
+            var totalCards = 1 + paidPackages.Count;
+            var gridClass = totalCards <= 3 ? "sm:grid-cols-2 lg:grid-cols-3"
+                          : totalCards == 4 ? "sm:grid-cols-2 lg:grid-cols-4"
+                          : "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5";
+            var containerClass = totalCards <= 3 ? "max-w-5xl" : totalCards == 4 ? "max-w-6xl" : "max-w-7xl";
+
+            <div class="grid grid-cols-1 @gridClass gap-6 items-stretch justify-center @containerClass mx-auto fade-up d3">
                 <!-- Free card -->
                 <div class="pkg-card @(!hasActiveSub ? "active-plan" : "") p-8">
                     @if (!hasActiveSub)
@@ -194,7 +204,7 @@
                 </div>
 
                 <!-- Dynamic package cards -->
-                @foreach (var pkg in Model.Where(p => p.IsActive))
+                @foreach (var pkg in paidPackages)
                 {
                     bool isFeatured = pkg.PackageName.ToLower().Contains("năm"); // Gói năm nổi bật nhất
                     bool isPremiumMonth = pkg.PackageName.ToLower().Contains("premium") && !pkg.PackageName.ToLower().Contains("năm");

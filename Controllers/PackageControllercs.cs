@@ -76,6 +76,8 @@ namespace ToanHocHay.WebApp.Controllers
             ViewData["QrUrl"] = result.QrUrl;
             ViewData["StudentName"] = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
             ViewData["StudentId"] = studentId;
+            // Mốc QR hết hạn (UTC, ISO-8601) — reload dùng lại đúng đơn Pending nên đồng hồ đếm ngược không reset.
+            ViewData["ExpiresAt"] = result.ExpiresAt?.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
             return View(package);
         }
@@ -91,7 +93,8 @@ namespace ToanHocHay.WebApp.Controllers
                 status = status.Status,
                 endDate = DateTime.TryParse(status.EndDate, out var parsedDate)
     ? parsedDate.ToString("dd/MM/yyyy")
-    : status.EndDate
+    : status.EndDate,
+                expiresAt = status.ExpiresAt?.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'")
             });
         }
     }

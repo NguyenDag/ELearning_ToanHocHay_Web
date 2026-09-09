@@ -22,11 +22,20 @@ namespace ToanHocHay.WebApp.Models.DTOs
     {
         public int SubscriptionId { get; set; }
         public string QrUrl { get; set; } = "";
+
+        /// <summary>UTC. Reload dùng lại đúng đơn Pending này nên đồng hồ đếm ngược không bị reset.</summary>
+        public DateTime? CreatedAt { get; set; }
+
+        /// <summary>UTC = CreatedAt + QrTimeoutMinutes. Mốc QR hết hiệu lực.</summary>
+        public DateTime? ExpiresAt { get; set; }
     }
 
     public class SubscriptionStatusDto
     {
         public string Status { get; set; } = "Pending"; // Pending | Active | Expired | Cancelled
         public string? EndDate { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? ExpiresAt { get; set; }
     }
 }

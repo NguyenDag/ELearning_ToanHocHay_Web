@@ -7,6 +7,7 @@
     var qrUrl = (string)ViewData["QrUrl"]!;
     var stuName = ViewData["StudentName"]?.ToString() ?? "";
     var stuId = ViewData["StudentId"]?.ToString() ?? "";
+    var expiresAtIso = ViewData["ExpiresAt"]?.ToString() ?? "";
 
     var transferContent = $"TKPTTS SUBSCRIPTION_{subId}";
     var priceRaw = package.Price.ToString("N0");
@@ -280,7 +281,7 @@
                         <img src="@qrUrl" alt="QR Thanh toán"
                              class="qr-img w-64 h-64 object-contain mx-auto mb-4" />
                         <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Mã QR hết hạn sau</p>
-                        <p class="text-2xl font-black text-indigo-600" id="countdown">15:00</p>
+                        <p class="text-2xl font-black text-indigo-600" id="countdown">--:--</p>
                     </div>
                 </div>
 
@@ -483,11 +484,24 @@
         const SUBSCRIPTION_ID = @subId;
         const API_STATUS_URL  = `/Package/CheckStatus?subscriptionId=${SUBSCRIPTION_ID}`;
         const POLL_INTERVAL_MS   = 3000;   // 3 giây
-        const QR_TIMEOUT_SECONDS = 15 * 60; // 15 phút
+        const QR_TIMEOUT_SECONDS = 15 * 60; // dự phòng khi server không trả expiresAt
+
+        // Mốc QR hết hạn (UTC) do server quyết định. Reload trang KHÔNG reset đồng hồ vì
+        // backend dùng lại đúng đơn Pending và trả về expiresAt gốc.
+        let qrExpiresAt = @Html.Raw(string.IsNullOrEmpty(expiresAtIso) ? "null" : $"new Date(\"{expiresAtIso}\")");
+
+        function hasServerExpiry() {
+            return qrExpiresAt instanceof Date && !isNaN(qrExpiresAt.getTime());
+        }
+        function remainingSeconds() {
+            return hasServerExpiry()
+                ? Math.round((qrExpiresAt.getTime() - Date.now()) / 1000)
+                : QR_TIMEOUT_SECONDS;
+        }
 
         // ── State ────────────────────────────────────────────────
         let pollInterval;
-        let countdownSeconds = QR_TIMEOUT_SECONDS;
+        let countdownSeconds = remainingSeconds();
         let isFinished = false;
 
         // ── Elements ─────────────────────────────────────────────
@@ -495,27 +509,40 @@
         const statusBadge  = document.getElementById('status-badge');
 
         // ── Countdown ────────────────────────────────────────────
+        function renderCountdown() {
+            const m = Math.floor(countdownSeconds / 60);
+            const s = countdownSeconds % 60;
+            countdownEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            if (countdownSeconds < 120) {
+                countdownEl.classList.remove('text-indigo-600');
+                countdownEl.classList.add('text-red-500');
+            }
+        }
+
+        // Vẽ ngay theo thời gian còn lại thực (không chờ 1s, không hiện nhầm 15:00).
+        if (countdownSeconds > 0) {
+            renderCountdown();
+        } else {
+            countdownEl.textContent = 'Hết hạn';
+            countdownEl.classList.remove('text-indigo-600');
+            countdownEl.classList.add('text-red-500');
+        }
+
         const countdownTimer = setInterval(() => {
             if (isFinished) return clearInterval(countdownTimer);
 
-            countdownSeconds--;
+            // Có mốc từ server → tính lại từ đồng hồ thực (chuẩn kể cả khi tab bị treo / reload).
+            countdownSeconds = hasServerExpiry() ? remainingSeconds() : countdownSeconds - 1;
 
             if (countdownSeconds <= 0) {
+                countdownSeconds = 0;
                 clearInterval(countdownTimer);
                 stopPolling();
                 showFailure('timeout');
                 return;
             }
 
-            // Warning colour when < 2 min
-            if (countdownSeconds < 120) {
-                countdownEl.classList.remove('text-indigo-600');
-                countdownEl.classList.add('text-red-500');
-            }
-
-            const m = Math.floor(countdownSeconds / 60);
-            const s = countdownSeconds % 60;
-            countdownEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            renderCountdown();
         }, 1000);
 
         // ── Polling ───────────────────────────────────────────────
@@ -526,6 +553,12 @@
                 if (!res.ok) return; // Bỏ qua lỗi mạng tạm thời
 
                 const data = await res.json();
+
+                // Đồng bộ lại mốc hết hạn theo server (phòng khi trang mở mà chưa có expiresAt).
+                if (data.expiresAt) {
+                    const d = new Date(data.expiresAt);
+                    if (!isNaN(d.getTime())) qrExpiresAt = d;
+                }
 
                 switch (data.status) {
                     case 'Active':
