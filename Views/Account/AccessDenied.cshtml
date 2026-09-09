@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Không có quyền truy cập";
+    var homeHref = "/";
+    if (User.IsInRole("SystemAdmin")) homeHref = "/Admin";
+    else if (User.IsInRole("FinanceManager")) homeHref = "/Admin/Finance/Revenue";
+}
+
+<div class="container mx-auto px-4 py-16 flex justify-center">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
+        <div class="mx-auto w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center">
+            <i class="fa-solid fa-lock text-amber-500 text-4xl"></i>
+        </div>
+        <h1 class="mt-5 text-xl font-bold text-gray-800">Không có quyền truy cập</h1>
+        <p class="mt-2 text-sm text-gray-500">
+            Tài khoản của bạn không được phép mở khu vực này.<br />
+            Nếu bạn nghĩ đây là nhầm lẫn, hãy liên hệ quản trị viên.
+        </p>
+
+        <a href="@homeHref"
+           class="inline-block mt-6 px-5 py-2.5 rounded-lg bg-[#1e3a5f] text-white font-semibold hover:bg-[#2a4074]">
+            <i class="fa-solid fa-house mr-2"></i> Về trang chính
+        </a>
+
+        <div class="mt-4">
+            <a asp-controller="Account" asp-action="Logout" class="text-sm text-gray-500 hover:text-blue-600">
+                <i class="fa-solid fa-right-from-bracket mr-1"></i> Đăng nhập bằng tài khoản khác
+            </a>
+        </div>
+    </div>
+</div>

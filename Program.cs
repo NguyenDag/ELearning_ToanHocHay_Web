@@ -103,7 +103,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
-        options.AccessDeniedPath = "/Account/Login";
+        // 403 (đã đăng nhập, sai vai trò) phải KHÁC trang đăng nhập — nếu trỏ về /Account/Login,
+        // mà Login (GET) lại đẩy người đã đăng nhập về returnUrl → vòng lặp ERR_TOO_MANY_REDIRECTS.
+        options.AccessDeniedPath = "/Account/AccessDenied";
         options.Cookie.Name = "ToanHocHay_Auth_Cookie";
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.ExpireTimeSpan = TimeSpan.FromDays(cookieExpireDays);
@@ -116,6 +118,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                     ctx.Request.Path.StartsWithSegments("/api"))
                 {
                     ctx.Response.StatusCode = 401;
+                    return Task.CompletedTask;
+                }
+                ctx.Response.Redirect(ctx.RedirectUri);
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = ctx =>
+            {
+                if (ctx.Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                    ctx.Request.Path.StartsWithSegments("/api"))
+                {
+                    ctx.Response.StatusCode = 403;
                     return Task.CompletedTask;
                 }
                 ctx.Response.Redirect(ctx.RedirectUri);

@@ -51,11 +51,25 @@ namespace ToanHocHay.WebApp.Controllers
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
+            // Đã đăng nhập → về trang chủ theo vai trò. KHÔNG bám theo returnUrl ở đây:
+            // nếu returnUrl là trang vừa gây 403/AccessDenied thì sẽ dội qua dội lại vô hạn.
+            // returnUrl vẫn được tôn trọng ở luồng POST (sau khi đăng nhập thành công).
             if (User.Identity?.IsAuthenticated == true)
-                return SafeRedirect(returnUrl) ?? RedirectByRole();
+                return RedirectByRole();
 
             ViewBag.Mode = "login";
             ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
+        // ================= ACCESS DENIED (GET) =================
+        // Đã đăng nhập nhưng không đủ quyền cho khu vực yêu cầu. Trang tĩnh — KHÔNG redirect,
+        // để tránh vòng lặp với trang đăng nhập.
+        [HttpGet]
+        public IActionResult AccessDenied(string? returnUrl = null)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+            Response.StatusCode = 403;
             return View();
         }
 
