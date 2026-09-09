@@ -84,6 +84,10 @@ builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.QuestionBankAdminApi
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ExerciseAdminApiService>();
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ContentAdminApiService>();
 
+// --- KHU TÀI CHÍNH (SystemAdmin + FinanceManager) ---
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.PackageAdminApiService>();
+builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.FinanceAdminApiService>();
+
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

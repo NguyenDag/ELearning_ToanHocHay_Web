@@ -1,0 +1,118 @@
+@using ToanHocHay.WebApp.Models.DTOs.Payment
+@model TransactionListVm
+@{
+    ViewData["Title"] = "Giao dịch";
+    var ci = System.Globalization.CultureInfo.InvariantCulture;
+    string Money(decimal v) => v.ToString("#,##0", ci) + " ₫";
+    var f = Model.Filter;
+}
+
+<div class="flex items-center justify-between mb-4">
+    <div>
+        <h2 class="text-xl font-black text-gray-800">Giao dịch <span class="text-sm font-semibold text-gray-400">(@Model.Total)</span></h2>
+        <p class="text-sm text-gray-500">Toàn bộ giao dịch thanh toán. Lọc theo ngày, trạng thái, phương thức.</p>
+    </div>
+    <a asp-action="Revenue" class="bg-white border border-gray-200 text-gray-700 font-bold text-sm px-4 py-2 rounded-xl">← Doanh thu</a>
+</div>
+
+@if (Model.Failed)
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">
+        <b>Không tải được danh sách giao dịch</b> (mã @Model.ErrorStatus): @Model.Error
+    </div>
+}
+
+<form method="get" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 flex flex-wrap gap-3 text-sm items-end">
+    <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">Từ ngày</label>
+        <input type="date" name="from" value="@(f.From?.ToString("yyyy-MM-dd"))" class="border border-gray-200 rounded-lg px-3 py-2" />
+    </div>
+    <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">Đến ngày</label>
+        <input type="date" name="to" value="@(f.To?.ToString("yyyy-MM-dd"))" class="border border-gray-200 rounded-lg px-3 py-2" />
+    </div>
+    <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">Trạng thái</label>
+        <select name="status" class="border border-gray-200 rounded-lg px-3 py-2">
+            <option value="">Tất cả</option>
+            @foreach (var st in Enum.GetValues<PaymentStatusVm>())
+            {
+                <option value="@st" selected="@(f.Status == st.ToString())">@PaymentEnums.StatusLabel(st)</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label class="block text-xs font-bold text-gray-500 mb-1">Phương thức</label>
+        <select name="method" class="border border-gray-200 rounded-lg px-3 py-2">
+            <option value="">Tất cả</option>
+            @foreach (var m in Enum.GetValues<PaymentMethodVm>())
+            {
+                <option value="@m" selected="@(f.Method == m.ToString())">@PaymentEnums.MethodLabel(m)</option>
+            }
+        </select>
+    </div>
+    <div class="flex-1 min-w-[180px]">
+        <label class="block text-xs font-bold text-gray-500 mb-1">Tìm kiếm</label>
+        <input name="q" value="@f.Q" placeholder="Mã giao dịch / tên học sinh" class="w-full border border-gray-200 rounded-lg px-3 py-2" />
+    </div>
+    <button class="bg-gray-800 text-white font-bold px-4 py-2 rounded-lg">Lọc</button>
+    <a asp-action="Transactions" class="text-gray-500 font-bold px-2 py-2">Xoá lọc</a>
+</form>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Thời gian</th>
+                <th class="text-left px-4 py-3">Học sinh</th>
+                <th class="text-left px-4 py-3">Gói</th>
+                <th class="text-left px-4 py-3">Phương thức</th>
+                <th class="text-right px-4 py-3">Số tiền</th>
+                <th class="text-center px-4 py-3">Trạng thái</th>
+                <th class="text-left px-4 py-3">Mã giao dịch</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var t in Model.Items)
+        {
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 text-gray-600 whitespace-nowrap">@t.PaymentDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-800">@(t.StudentName ?? "—")</p>
+                    @if (!string.IsNullOrWhiteSpace(t.PayerName) && t.PayerName != t.StudentName)
+                    {
+                        <p class="text-gray-400 text-xs">Trả bởi: @t.PayerName</p>
+                    }
+                </td>
+                <td class="px-4 py-3 text-gray-600">@(t.PackageName ?? "—")</td>
+                <td class="px-4 py-3 text-gray-600">@PaymentEnums.MethodLabel(t.PaymentMethod)</td>
+                <td class="px-4 py-3 text-right font-bold text-gray-800">@Money(t.Amount)</td>
+                <td class="px-4 py-3 text-center">
+                    <span class="px-2 py-1 rounded-full text-xs font-bold @PaymentEnums.StatusBadge(t.Status)">@PaymentEnums.StatusLabel(t.Status)</span>
+                </td>
+                <td class="px-4 py-3 text-gray-500 font-mono text-xs">@(t.TransactionId ?? "—")</td>
+            </tr>
+        }
+        @if (Model.Items.Count == 0 && !Model.Failed)
+        {
+            <tr><td colspan="7" class="px-4 py-10 text-center text-gray-400">Không có giao dịch nào khớp bộ lọc.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <div class="flex justify-between items-center mt-4 text-sm">
+        <span class="text-gray-400">Trang @Model.Page / @Model.TotalPages · @Model.Total giao dịch</span>
+        <div class="flex gap-1 flex-wrap">
+            @for (var p = Math.Max(1, Model.Page - 3); p <= Math.Min(Model.TotalPages, Model.Page + 3); p++)
+            {
+                <a asp-action="Transactions" asp-route-page="@p"
+                   asp-route-from="@(f.From?.ToString("yyyy-MM-dd"))" asp-route-to="@(f.To?.ToString("yyyy-MM-dd"))"
+                   asp-route-status="@f.Status" asp-route-method="@f.Method" asp-route-q="@f.Q"
+                   class="w-9 h-9 flex items-center justify-center rounded-lg font-bold @(p == Model.Page ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-600")">@p</a>
+            }
+        </div>
+    </div>
+}

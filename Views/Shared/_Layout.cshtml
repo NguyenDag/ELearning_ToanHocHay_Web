@@ -211,6 +211,12 @@
                                                     <i class="fa-solid fa-shield-halved w-6 text-center"></i> Khu quản trị
                                                 </a>
                                             }
+                                            else if (User.IsInRole("FinanceManager"))
+                                            {
+                                                <a href="/Admin/Finance/Revenue" class="block px-4 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-50 transition border-b border-gray-50">
+                                                    <i class="fa-solid fa-chart-line w-6 text-center"></i> Khu tài chính
+                                                </a>
+                                            }
                                             <a href="/Student/Profile" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition">
                                                 <i class="fa-solid fa-user-gear w-6 text-center"></i> Hồ sơ cá nhân
                                             </a>

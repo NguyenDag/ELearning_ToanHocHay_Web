@@ -1,11 +1,17 @@
 @{
     var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+    const string navActive = "flex items-center gap-3 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm";
+    const string navIdle = "flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-blue-50 hover:text-blue-700 font-semibold text-sm transition";
     string NavClass(string controller) =>
+        string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase) ? navActive : navIdle;
+    string NavClass2(string controller, string action) =>
         string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
-            ? "flex items-center gap-3 px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm"
-            : "flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-blue-50 hover:text-blue-700 font-semibold text-sm transition";
+        && string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase) ? navActive : navIdle;
 
     var adminName = User.Identity?.Name ?? "Quản trị viên";
+    var isSystemAdmin = User.IsInRole("SystemAdmin");
+    var roleLabel = isSystemAdmin ? "SystemAdmin" : "FinanceManager";
 }
 <!DOCTYPE html>
 <html lang="vi">
@@ -26,36 +32,51 @@
 
     <aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
         <div class="px-6 py-5 border-b border-gray-100">
-            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="flex items-center gap-2">
+            <a asp-area="Admin" asp-controller="@(isSystemAdmin ? "Dashboard" : "Finance")" asp-action="@(isSystemAdmin ? "Index" : "Revenue")" class="flex items-center gap-2">
                 <i class="fa-solid fa-shield-halved text-blue-600 text-xl"></i>
-                <span class="font-black text-lg text-gray-800">Quản trị</span>
+                <span class="font-black text-lg text-gray-800">@(isSystemAdmin ? "Quản trị" : "Tài chính")</span>
             </a>
         </div>
 
         <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@NavClass("Dashboard")">
-                <i class="fa-solid fa-gauge-high w-5 text-center"></i> Tổng quan
+            @if (isSystemAdmin)
+            {
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="@NavClass("Dashboard")">
+                    <i class="fa-solid fa-gauge-high w-5 text-center"></i> Tổng quan
+                </a>
+                <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="@NavClass("Users")">
+                    <i class="fa-solid fa-users w-5 text-center"></i> Người dùng
+                </a>
+                <a asp-area="Admin" asp-controller="Roles" asp-action="Index" class="@NavClass("Roles")">
+                    <i class="fa-solid fa-user-shield w-5 text-center"></i> Phân quyền
+                </a>
+                <a asp-area="Admin" asp-controller="Content" asp-action="Courses" class="@NavClass("Content")">
+                    <i class="fa-solid fa-book w-5 text-center"></i> Khoá học &amp; bài học
+                </a>
+                <a asp-area="Admin" asp-controller="Exercises" asp-action="Index" class="@NavClass("Exercises")">
+                    <i class="fa-solid fa-pen-to-square w-5 text-center"></i> Bài kiểm tra
+                </a>
+                <a asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index" class="@NavClass("QuestionBanks")">
+                    <i class="fa-solid fa-layer-group w-5 text-center"></i> Ngân hàng câu hỏi
+                </a>
+                <a asp-area="Admin" asp-controller="Config" asp-action="Index" class="@NavClass("Config")">
+                    <i class="fa-solid fa-sliders w-5 text-center"></i> Cấu hình hệ thống
+                </a>
+                <a asp-area="Admin" asp-controller="AuditLog" asp-action="Index" class="@NavClass("AuditLog")">
+                    <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Nhật ký
+                </a>
+
+                <p class="px-4 pt-4 pb-1 text-[11px] font-black uppercase tracking-wide text-gray-400">Tài chính</p>
+            }
+
+            <a asp-area="Admin" asp-controller="Packages" asp-action="Index" class="@NavClass("Packages")">
+                <i class="fa-solid fa-box-open w-5 text-center"></i> Gói &amp; giá
             </a>
-            <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="@NavClass("Users")">
-                <i class="fa-solid fa-users w-5 text-center"></i> Người dùng
+            <a asp-area="Admin" asp-controller="Finance" asp-action="Revenue" class="@NavClass2("Finance", "Revenue")">
+                <i class="fa-solid fa-chart-line w-5 text-center"></i> Doanh thu
             </a>
-            <a asp-area="Admin" asp-controller="Roles" asp-action="Index" class="@NavClass("Roles")">
-                <i class="fa-solid fa-user-shield w-5 text-center"></i> Phân quyền
-            </a>
-            <a asp-area="Admin" asp-controller="Content" asp-action="Courses" class="@NavClass("Content")">
-                <i class="fa-solid fa-book w-5 text-center"></i> Khoá học &amp; bài học
-            </a>
-            <a asp-area="Admin" asp-controller="Exercises" asp-action="Index" class="@NavClass("Exercises")">
-                <i class="fa-solid fa-pen-to-square w-5 text-center"></i> Bài kiểm tra
-            </a>
-            <a asp-area="Admin" asp-controller="QuestionBanks" asp-action="Index" class="@NavClass("QuestionBanks")">
-                <i class="fa-solid fa-layer-group w-5 text-center"></i> Ngân hàng câu hỏi
-            </a>
-            <a asp-area="Admin" asp-controller="Config" asp-action="Index" class="@NavClass("Config")">
-                <i class="fa-solid fa-sliders w-5 text-center"></i> Cấu hình hệ thống
-            </a>
-            <a asp-area="Admin" asp-controller="AuditLog" asp-action="Index" class="@NavClass("AuditLog")">
-                <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i> Nhật ký
+            <a asp-area="Admin" asp-controller="Finance" asp-action="Transactions" class="@NavClass2("Finance", "Transactions")">
+                <i class="fa-solid fa-receipt w-5 text-center"></i> Giao dịch
             </a>
         </nav>
 
@@ -71,7 +92,7 @@
             <h1 class="font-bold text-gray-700">@ViewData["Title"]</h1>
             <div class="flex items-center gap-3">
                 <span class="text-sm font-semibold text-gray-600">@adminName</span>
-                <span class="text-[11px] font-black uppercase tracking-wide text-blue-600 bg-blue-50 px-2 py-1 rounded">SystemAdmin</span>
+                <span class="text-[11px] font-black uppercase tracking-wide text-blue-600 bg-blue-50 px-2 py-1 rounded">@roleLabel</span>
                 <a href="/Account/Logout" class="text-sm font-bold text-red-600 hover:underline">
                     <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
                 </a>

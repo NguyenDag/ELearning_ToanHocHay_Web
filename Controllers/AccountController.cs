@@ -144,6 +144,7 @@ namespace ToanHocHay.WebApp.Controllers
                 UserType.Parent => RedirectToAction("Dashboard", "Parent"),
                 UserType.Student => RedirectToAction("Index", "Home"),
                 UserType.SystemAdmin => RedirectToAction("Index", "Dashboard", new { area = "Admin" }),
+                UserType.FinanceManager => RedirectToAction("Revenue", "Finance", new { area = "Admin" }),
                 _ => RedirectToAction("Index", "Home")
             };
         }
@@ -153,6 +154,8 @@ namespace ToanHocHay.WebApp.Controllers
         {
             if (User.IsInRole("SystemAdmin"))
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            if (User.IsInRole("FinanceManager"))
+                return RedirectToAction("Revenue", "Finance", new { area = "Admin" });
             if (User.IsInRole("Parent"))
                 return RedirectToAction("Dashboard", "Parent");
             if (User.IsInRole("Student"))

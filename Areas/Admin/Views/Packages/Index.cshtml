@@ -1,0 +1,78 @@
+@model PackageListVm
+@{
+    ViewData["Title"] = "Gói & giá";
+    string Money(decimal v) => v.ToString("#,##0", System.Globalization.CultureInfo.InvariantCulture) + " ₫";
+}
+
+<div class="flex items-center justify-between mb-4">
+    <div>
+        <h2 class="text-xl font-black text-gray-800">Gói &amp; giá <span class="text-sm font-semibold text-gray-400">(@Model.Items.Count)</span></h2>
+        <p class="text-sm text-gray-500">Sửa giá, thời hạn và quyền lợi của từng gói. Bậc gói (Tier) cố định.</p>
+    </div>
+</div>
+
+@if (Model.Failed)
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">
+        <b>Không tải được danh sách gói</b> (mã @Model.ErrorStatus): @Model.Error
+    </div>
+}
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+                <th class="text-left px-4 py-3">Gói</th>
+                <th class="text-left px-4 py-3">Bậc</th>
+                <th class="text-right px-4 py-3">Giá</th>
+                <th class="text-center px-4 py-3">Thời hạn</th>
+                <th class="text-center px-4 py-3">Người đăng ký</th>
+                <th class="text-center px-4 py-3">Trạng thái</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+        @foreach (var p in Model.Items)
+        {
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                    <p class="font-bold text-gray-800">@p.PackageName</p>
+                    @if (!string.IsNullOrWhiteSpace(p.Description))
+                    {
+                        <p class="text-gray-400 text-xs line-clamp-1">@p.Description</p>
+                    }
+                </td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-bold @PackageEnums.TierBadge(p.Tier)">@PackageEnums.TierLabel(p.Tier)</span>
+                </td>
+                <td class="px-4 py-3 text-right font-bold text-gray-800">@Money(p.Price)</td>
+                <td class="px-4 py-3 text-center text-gray-600">@(p.DurationDays > 0 ? $"{p.DurationDays} ngày" : "—")</td>
+                <td class="px-4 py-3 text-center text-gray-600">@p.ActiveSubscriberCount</td>
+                <td class="px-4 py-3 text-center">
+                    @if (p.IsActive)
+                    {
+                        <span class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Đang bán</span>
+                    }
+                    else
+                    {
+                        <span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-200 text-gray-600">Đã tắt</span>
+                    }
+                </td>
+                <td class="px-4 py-3 text-right whitespace-nowrap">
+                    <a asp-action="Edit" asp-route-id="@p.PackageId" class="text-blue-600 font-bold hover:underline">Chỉnh sửa</a>
+                    <form asp-action="ToggleActive" method="post" class="inline ml-3">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@p.PackageId" />
+                        <input type="hidden" name="isActive" value="@((!p.IsActive).ToString().ToLowerInvariant())" />
+                        <button class="text-gray-500 font-bold hover:underline">@(p.IsActive ? "Tắt" : "Bật")</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        @if (Model.Items.Count == 0 && !Model.Failed)
+        {
+            <tr><td colspan="7" class="px-4 py-10 text-center text-gray-400">Chưa có gói nào.</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -229,13 +229,27 @@ namespace ToanHocHay.WebApp.Common.Constants
         public static class Payments
         {
             public const string Mine = "payments/me";
+
+            /// <summary>Toàn bộ giao dịch (Finance/Admin) — ?page=&pageSize=&status=&method=&from=&to=&search=</summary>
+            public const string All = "payments";
             public static string ById(int id) => $"payments/{id}";
         }
 
         public static class Packages
         {
             public const string List = "packages";
+
+            /// <summary>Danh sách quản lý gồm gói đã tắt + số thuê bao (Finance/Admin).</summary>
+            public const string Manage = "packages/manage";
             public static string ById(int id) => $"packages/{id}";
+        }
+
+        // ---------- finance analytics (Finance/Admin) ----------
+        public static class Finance
+        {
+            public const string AnalyticsSummary = "finance/analytics/summary";
+            public const string RevenueSeries = "finance/analytics/revenue-series";
+            public const string RevenueByPackage = "finance/analytics/by-package";
         }
 
         // ---------- parents ----------

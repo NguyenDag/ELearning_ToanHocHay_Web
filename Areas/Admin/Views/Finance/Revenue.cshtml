@@ -1,0 +1,179 @@
+@using System.Text.Json
+@model RevenueDashboardVm
+@{
+    ViewData["Title"] = "Doanh thu";
+    var ci = System.Globalization.CultureInfo.InvariantCulture;
+    string Money(decimal v) => v.ToString("#,##0", ci) + " ₫";
+
+    var jsonOpts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    var seriesJson = JsonSerializer.Serialize(Model.Series.Select(b => new
+    {
+        label = Model.Interval == "month" ? b.PeriodStart.ToString("MM/yyyy") : b.PeriodStart.ToString("dd/MM"),
+        gross = b.GrossRevenue,
+        net = b.NetRevenue
+    }), jsonOpts);
+    var packageJson = JsonSerializer.Serialize(Model.ByPackage.Select(p => new { label = p.PackageName, value = p.GrossRevenue }), jsonOpts);
+    var methodJson = JsonSerializer.Serialize(
+        Model.Summary.MethodBreakdown.Select(m => new { label = PaymentEnums.MethodLabel(m.Method), value = m.Amount }), jsonOpts);
+}
+
+<div class="flex flex-wrap items-end justify-between gap-3 mb-5">
+    <div>
+        <h2 class="text-xl font-black text-gray-800">Doanh thu</h2>
+        <p class="text-sm text-gray-500">
+            @Model.From.ToLocalTime().ToString("dd/MM/yyyy") – @Model.To.ToLocalTime().ToString("dd/MM/yyyy")
+        </p>
+    </div>
+    <form method="get" class="flex flex-wrap items-end gap-2 text-sm">
+        <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1">Từ ngày</label>
+            <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" class="border border-gray-200 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1">Đến ngày</label>
+            <input type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" class="border border-gray-200 rounded-lg px-3 py-2" />
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1">Gộp theo</label>
+            <select name="interval" class="border border-gray-200 rounded-lg px-3 py-2">
+                <option value="day" selected="@(Model.Interval == "day")">Ngày</option>
+                <option value="week" selected="@(Model.Interval == "week")">Tuần</option>
+                <option value="month" selected="@(Model.Interval == "month")">Tháng</option>
+            </select>
+        </div>
+        <button class="bg-gray-800 text-white font-bold px-4 py-2 rounded-lg">Xem</button>
+        <a asp-action="Transactions" class="bg-white border border-gray-200 text-gray-700 font-bold px-4 py-2 rounded-lg">Danh sách giao dịch →</a>
+    </form>
+</div>
+
+@if (Model.Failed)
+{
+    <div class="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">
+        <b>Không tải được số liệu doanh thu</b> (mã @Model.ErrorStatus): @Model.Error
+    </div>
+}
+
+@{
+    var s = Model.Summary;
+    (string Label, string Value, string Sub, string Icon, string Color)[] kpis =
+    {
+        ("Doanh thu gộp", Money(s.GrossRevenue), $"{s.CompletedCount} giao dịch hoàn tất", "fa-sack-dollar", "blue"),
+        ("Doanh thu ròng", Money(s.NetRevenue), $"đã trừ {Money(s.RefundedAmount)} hoàn tiền", "fa-wallet", "green"),
+        ("Khách trả phí", s.PayingCustomers.ToString("#,##0", ci), "người trả tiền khác nhau", "fa-users", "indigo"),
+        ("Thuê bao mới", s.NewSubscriptions.ToString("#,##0", ci), "kích hoạt trong kỳ", "fa-bolt", "amber"),
+        ("ARPU", Money(s.Arpu), "doanh thu ròng / khách", "fa-chart-simple", "purple"),
+        ("Chờ / thất bại", $"{s.PendingCount} / {s.FailedCount}", "giao dịch chưa thành công", "fa-hourglass-half", "rose"),
+    };
+}
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+    @foreach (var k in kpis)
+    {
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <div class="w-10 h-10 rounded-xl bg-@(k.Color)-50 text-@(k.Color)-600 flex items-center justify-center mb-3">
+                <i class="fa-solid @k.Icon"></i>
+            </div>
+            <p class="text-2xl font-black text-gray-800">@k.Value</p>
+            <p class="font-bold text-gray-600 text-sm">@k.Label</p>
+            <p class="text-gray-400 text-xs mt-0.5">@k.Sub</p>
+        </div>
+    }
+</div>
+
+<div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-6">
+    <p class="font-bold text-gray-800 mb-3">Doanh thu theo thời gian</p>
+    <div class="h-72"><canvas id="chartRevenue"></canvas></div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <p class="font-bold text-gray-800 mb-3">Doanh thu theo gói</p>
+        @if (Model.ByPackage.Count == 0)
+        {
+            <p class="text-sm text-gray-400 py-10 text-center">Chưa có giao dịch nào gắn với gói trong kỳ.</p>
+        }
+        else
+        {
+            <div class="h-64"><canvas id="chartPackage"></canvas></div>
+        }
+    </div>
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <p class="font-bold text-gray-800 mb-3">Theo phương thức thanh toán</p>
+        @if (Model.Summary.MethodBreakdown.Count == 0)
+        {
+            <p class="text-sm text-gray-400 py-10 text-center">Chưa có dữ liệu.</p>
+        }
+        else
+        {
+            <div class="h-64"><canvas id="chartMethod"></canvas></div>
+        }
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <p class="font-bold text-gray-800 mb-3">Cơ cấu theo trạng thái</p>
+    <div class="flex flex-wrap gap-3">
+        @foreach (var slice in Model.Summary.StatusBreakdown)
+        {
+            <div class="px-4 py-3 rounded-xl @PaymentEnums.StatusBadge(slice.Status)">
+                <p class="text-xs font-bold uppercase tracking-wide">@PaymentEnums.StatusLabel(slice.Status)</p>
+                <p class="text-lg font-black">@Money(slice.Amount)</p>
+                <p class="text-xs opacity-80">@slice.Count giao dịch</p>
+            </div>
+        }
+        @if (Model.Summary.StatusBreakdown.Count == 0)
+        {
+            <p class="text-sm text-gray-400">Chưa có giao dịch trong kỳ.</p>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script>
+        const series = @Html.Raw(seriesJson);
+        const byPackage = @Html.Raw(packageJson);
+        const byMethod = @Html.Raw(methodJson);
+        const palette = ['#2563eb', '#16a34a', '#f59e0b', '#7c3aed', '#e11d48', '#0891b2', '#64748b'];
+        const vnd = new Intl.NumberFormat('vi-VN');
+
+        if (window.Chart) {
+            new Chart(document.getElementById('chartRevenue'), {
+                type: 'line',
+                data: {
+                    labels: series.map(x => x.label),
+                    datasets: [
+                        { label: 'Doanh thu gộp', data: series.map(x => x.gross), borderColor: palette[0], backgroundColor: 'rgba(37,99,235,.1)', fill: true, tension: .3 },
+                        { label: 'Doanh thu ròng', data: series.map(x => x.net), borderColor: palette[1], backgroundColor: 'rgba(22,163,74,.08)', fill: true, tension: .3 }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { tooltip: { callbacks: { label: c => c.dataset.label + ': ' + vnd.format(c.parsed.y) + ' ₫' } } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: v => vnd.format(v) } } }
+                }
+            });
+
+            const pkgEl = document.getElementById('chartPackage');
+            if (pkgEl) new Chart(pkgEl, {
+                type: 'doughnut',
+                data: { labels: byPackage.map(x => x.label), datasets: [{ data: byPackage.map(x => x.value), backgroundColor: palette }] },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: c => c.label + ': ' + vnd.format(c.parsed) + ' ₫' } } }
+                }
+            });
+
+            const mEl = document.getElementById('chartMethod');
+            if (mEl) new Chart(mEl, {
+                type: 'bar',
+                data: { labels: byMethod.map(x => x.label), datasets: [{ label: 'Doanh thu', data: byMethod.map(x => x.value), backgroundColor: palette[3] }] },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => vnd.format(c.parsed.y) + ' ₫' } } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: v => vnd.format(v) } } }
+                }
+            });
+        }
+    </script>
+}

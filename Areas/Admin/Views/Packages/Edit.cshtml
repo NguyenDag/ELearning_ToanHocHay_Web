@@ -1,0 +1,73 @@
+@model PackageEditVm
+@{
+    ViewData["Title"] = "Sửa gói — " + Model.PackageName;
+}
+
+<div class="flex items-center gap-2 mb-4 text-sm">
+    <a asp-action="Index" class="text-gray-500 hover:underline">← Gói &amp; giá</a>
+    <span class="text-gray-300">/</span>
+    <span class="font-bold text-gray-700">@Model.PackageName</span>
+</div>
+
+<form asp-action="Edit" asp-route-id="@Model.PackageId" method="post" class="max-w-2xl space-y-5">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="PackageId" />
+    <input type="hidden" asp-for="Tier" />
+    <input type="hidden" asp-for="ActiveSubscriberCount" />
+
+    <div asp-validation-summary="All" class="text-red-600 text-sm"></div>
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+        <div class="flex items-center gap-3">
+            <span class="px-2 py-1 rounded-full text-xs font-bold @PackageEnums.TierBadge(Model.Tier)">Bậc: @PackageEnums.TierLabel(Model.Tier)</span>
+            <span class="text-xs text-gray-400">@Model.ActiveSubscriberCount người đang dùng gói này</span>
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Tên gói</label>
+            <input asp-for="PackageName" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <span asp-validation-for="PackageName" class="text-red-600 text-xs"></span>
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Mô tả</label>
+            <textarea asp-for="Description" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Giá (₫)</label>
+                <input asp-for="Price" type="number" step="1000" min="0" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <span asp-validation-for="Price" class="text-red-600 text-xs"></span>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Thời hạn (ngày)</label>
+                <input asp-for="DurationDays" type="number" min="0" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <span asp-validation-for="DurationDays" class="text-red-600 text-xs"></span>
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Hạn mức gợi ý AI / ngày</label>
+                <input asp-for="AiHintLimitDaily" type="number" min="0" placeholder="Trống = không giới hạn"
+                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+        <p class="text-sm font-bold text-gray-700">Quyền lợi</p>
+        <label class="flex items-center gap-2 text-sm text-gray-700"><input asp-for="UnlimitedAiHint" type="checkbox" /> Gợi ý AI không giới hạn</label>
+        <label class="flex items-center gap-2 text-sm text-gray-700"><input asp-for="PersonalizedPath" type="checkbox" /> Lộ trình học cá nhân hoá</label>
+        <label class="flex items-center gap-2 text-sm text-gray-700"><input asp-for="MistakeRetry" type="checkbox" /> Luyện lại câu sai</label>
+        <label class="flex items-center gap-2 text-sm text-gray-700"><input asp-for="SmartReminder" type="checkbox" /> Nhắc học thông minh</label>
+        <label class="flex items-center gap-2 text-sm text-gray-700"><input asp-for="PrioritySupport" type="checkbox" /> Hỗ trợ ưu tiên</label>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <label class="flex items-center gap-2 text-sm font-bold text-gray-700"><input asp-for="IsActive" type="checkbox" /> Đang bán (hiển thị ở trang gói)</label>
+    </div>
+
+    <div class="flex gap-3">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl">Lưu thay đổi</button>
+        <a asp-action="Index" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm px-5 py-2.5 rounded-xl">Huỷ</a>
+    </div>
+</form>
