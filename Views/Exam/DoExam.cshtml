@@ -120,12 +120,18 @@
         <!-- Main -->
         <main class="flex-1 flex flex-col gap-4 overflow-hidden">
             <!-- Header -->
-            <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-3 px-6 flex justify-between items-center">
-                <div>
-                    <h1 class="text-lg font-bold text-gray-800">@Model.Title</h1>
-                    <p class="text-xs text-gray-500">Môn Toán • Lớp 6</p>
+            <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-3 px-6 flex justify-between items-center gap-4">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button type="button" onclick="exitExam()"
+                            class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-gray-200 text-gray-500 font-bold text-sm hover:bg-gray-50 hover:text-gray-700 transition">
+                        <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Thoát</span>
+                    </button>
+                    <div class="min-w-0">
+                        <h1 class="text-lg font-bold text-gray-800 truncate">@Model.Title</h1>
+                        <p class="text-xs text-gray-500">Môn Toán • Lớp 6</p>
+                    </div>
                 </div>
-                <div id="timer-box" class="flex items-center gap-3 bg-slate-800 text-white px-5 py-2 rounded-xl">
+                <div id="timer-box" class="shrink-0 flex items-center gap-3 bg-slate-800 text-white px-5 py-2 rounded-xl">
                     <i class="fa-regular fa-clock text-blue-300 animate-pulse"></i>
                     <span id="timer" class="font-mono font-bold text-xl">00:00</span>
                 </div>
@@ -294,7 +300,7 @@
         function queueSave(qId) {
             if (_restoring) return;
             clearTimeout(_saveTimers[qId]);
-            _saveTimers[qId] = setTimeout(() => saveAnswer(qId), 700);
+            _saveTimers[qId] = setTimeout(() => { _saveTimers[qId] = null; saveAnswer(qId); }, 700);
         }
 
         async function saveAnswer(qId) {
@@ -461,6 +467,22 @@
                     }
                 }, 1000);
             }
+        }
+
+        // ── Exit (thoát tạm, không nộp) ──────────────────────────────
+        async function flushPendingSaves() {
+            const pending = Object.keys(_saveTimers).filter(q => _saveTimers[q]);
+            pending.forEach(q => clearTimeout(_saveTimers[q]));
+            await Promise.allSettled(pending.map(q => saveAnswer(q)));
+        }
+
+        async function exitExam() {
+            const msg = plannedEndUtc
+                ? "Thoát khỏi bài thi?\n\nBài làm đã được lưu tự động — bạn có thể quay lại làm tiếp.\nLưu ý: đây là bài có tính giờ, đồng hồ vẫn tiếp tục chạy khi bạn thoát ra."
+                : "Thoát khỏi bài làm?\n\nBài làm đã được lưu tự động — bạn có thể quay lại làm tiếp bất cứ lúc nào.";
+            if (!confirm(msg)) return;
+            await flushPendingSaves();
+            window.location.href = '/Exam';
         }
 
         // ── Submit ───────────────────────────────────────────────────
