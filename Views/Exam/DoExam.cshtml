@@ -156,6 +156,7 @@
                                     @foreach (var opt in q.Options)
                                     {
                                         <div onclick="selectOption(@i, @q.QuestionId, @opt.OptionId, this)"
+                                             data-q="@q.QuestionId" data-opt="@opt.OptionId"
                                              class="option-card group relative p-6 rounded-2xl border-2 border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 cursor-pointer transition-all duration-200 flex items-center gap-5">
                                             <div class="option-label w-10 h-10 rounded-xl border-2 border-gray-200 flex items-center justify-center font-bold text-lg text-gray-400 transition-colors">
                                                 @((char)('A' + q.Options.IndexOf(opt)))
@@ -172,11 +173,13 @@
                                 <div class="flex gap-4 mt-2" id="tf-group-@q.QuestionId">
                                     <button type="button"
                                             onclick="selectTrueFalse(@i, @q.QuestionId, 'true', this)"
+                                            data-q="@q.QuestionId" data-val="true"
                                             class="tf-btn flex-1 py-5 rounded-2xl border-2 border-gray-200 text-xl font-black text-green-600 hover:border-green-400 hover:bg-green-50 flex items-center justify-center gap-3 transition">
                                         <i class="fa-solid fa-check"></i> ĐÚNG
                                     </button>
                                     <button type="button"
                                             onclick="selectTrueFalse(@i, @q.QuestionId, 'false', this)"
+                                            data-q="@q.QuestionId" data-val="false"
                                             class="tf-btn flex-1 py-5 rounded-2xl border-2 border-gray-200 text-xl font-black text-red-500 hover:border-red-400 hover:bg-red-50 flex items-center justify-center gap-3 transition">
                                         <i class="fa-solid fa-xmark"></i> SAI
                                     </button>
@@ -283,6 +286,54 @@
         // userAnswers[qId] = { selectedOptionId, answerText }
         let userAnswers = {};
 
+        // ── Tự lưu + khôi phục khi tải lại giữa chừng ────────────────
+        const savedAnswers = @Html.Raw(string.IsNullOrEmpty(ViewData["SavedAnswers"] as string) ? "{}" : (string)ViewData["SavedAnswers"]);
+        const _saveTimers = {};
+        let _restoring = false;
+
+        function queueSave(qId) {
+            if (_restoring) return;
+            clearTimeout(_saveTimers[qId]);
+            _saveTimers[qId] = setTimeout(() => saveAnswer(qId), 700);
+        }
+
+        async function saveAnswer(qId) {
+            const a = userAnswers[qId] || {};
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            try {
+                await fetch('/Exam/SaveAnswer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({
+                        attemptId: parseInt(attemptId),
+                        questionId: parseInt(qId),
+                        selectedOptionId: a.selectedOptionId ?? null,
+                        answerText: a.answerText ?? null
+                    })
+                });
+            } catch { /* mạng chập chờn — lần chọn sau sẽ lưu lại, và nộp bài vẫn gửi full */ }
+        }
+
+        function restoreAnswers() {
+            _restoring = true;
+            Object.keys(savedAnswers).forEach(qId => {
+                const a = savedAnswers[qId] || {};
+                if (a.selectedOptionId != null) {
+                    document.querySelector(`.option-card[data-q="${qId}"][data-opt="${a.selectedOptionId}"]`)?.click();
+                } else if (a.answerText != null && a.answerText !== '') {
+                    const tf = document.querySelector(`.tf-btn[data-q="${qId}"][data-val="${a.answerText}"]`);
+                    if (tf) {
+                        tf.click();
+                    } else {
+                        const fill = document.getElementById(`fill-${qId}`);
+                        if (fill) { fill.value = a.answerText; fill.dispatchEvent(new Event('input')); }
+                    }
+                }
+            });
+            _restoring = false;
+        }
+
+        restoreAnswers();
         updateNavigationButtons();
         goToQuestion(0);
 
@@ -329,6 +380,7 @@
             userAnswers[qId] = { selectedOptionId: optId, answerText: null };
 
             markAnswered(index, qId);
+            queueSave(qId);
         }
 
         // TrueFalse — AnswerText = "true" hoặc "false" (khớp với CorrectAnswer trong DB)
@@ -341,6 +393,7 @@
 
             userAnswers[qId] = { selectedOptionId: null, answerText: value };
             markAnswered(index, qId);
+            queueSave(qId);
         }
 
         // FillBlank — AnswerText = nội dung học sinh nhập
@@ -353,6 +406,7 @@
                 markAnswered(index, qId);
             }
             updateStats();
+            queueSave(qId);
         }
 
         function markAnswered(index, qId) {

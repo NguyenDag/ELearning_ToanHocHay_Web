@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using ToanHocHay.WebApp.Common;
 using ToanHocHay.WebApp.Models.DTOs;
@@ -71,9 +72,9 @@ namespace ToanHocHay.WebApp.Controllers
                 }
             }
 
-            var (attemptId, plannedEndUtc, needUpgrade, error) = await _examService.StartExercise(id);
+            var (attempt, needUpgrade, error) = await _examService.StartExercise(id);
 
-            if (attemptId == 0)
+            if (attempt == null)
             {
                 if (needUpgrade)
                 {
@@ -86,12 +87,33 @@ namespace ToanHocHay.WebApp.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewData["AttemptId"] = attemptId;
+            ViewData["AttemptId"] = attempt.AttemptId;
             // Hạn nộp bài do backend quyết định: null với bài luyện tập / bài không đặt thời lượng
             // → làm tự do, không đếm giờ. Có giá trị → đếm ngược theo đồng hồ máy chủ.
-            ViewData["PlannedEndUtc"] = plannedEndUtc?.ToString("o");
+            ViewData["PlannedEndUtc"] = attempt.PlannedEndTime?.ToUniversalTime().ToString("o");
             ViewData["ServerNowUtc"] = DateTime.UtcNow.ToString("o");
+
+            // Câu trả lời đã tự lưu — trả về JS để khôi phục khi tải lại giữa chừng.
+            var saved = attempt.Questions
+                .Where(q => q.SavedOptionId != null || !string.IsNullOrEmpty(q.SavedAnswerText))
+                .ToDictionary(
+                    q => q.QuestionId.ToString(),
+                    q => new { selectedOptionId = q.SavedOptionId, answerText = q.SavedAnswerText });
+            ViewData["SavedAnswers"] = JsonSerializer.Serialize(saved);
+
             return View(exam);
+        }
+
+        // 2b. Tự lưu một câu trả lời (gọi khi thí sinh chọn / gõ, có debounce ở View).
+        // Nhờ vậy reload / mất mạng giữa chừng không mất bài đã làm.
+        [HttpPost]
+        public async Task<IActionResult> SaveAnswer([FromBody] SubmitAnswerRequestDto dto)
+        {
+            if (dto == null || dto.AttemptId <= 0 || dto.QuestionId <= 0)
+                return BadRequest(new { success = false });
+
+            var ok = await _examService.SaveSingleAnswer(dto);
+            return ok ? Ok(new { success = true }) : StatusCode(502, new { success = false });
         }
 
         // 3. Xử lý nộp bài (Gọi từ Ajax bên View)
