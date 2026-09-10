@@ -113,7 +113,7 @@
                 </div>
             }
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            <div class="grid grid-cols-2 @(Model.IsTimed ? "md:grid-cols-4" : "md:grid-cols-3") gap-4 mb-10">
                 <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
                     <i class="fa-solid fa-circle-check text-2xl text-green-500 mb-2"></i>
                     <p class="text-2xl font-bold text-gray-800">@correctCount</p>
@@ -129,26 +129,38 @@
                     <p class="text-2xl font-bold text-gray-800">@skippedCount</p>
                     <p class="text-[10px] text-gray-500 uppercase font-bold">Bỏ qua</p>
                 </div>
-                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                    <i class="fa-solid fa-stopwatch text-2xl text-blue-500 mb-2"></i>
-                    <p class="text-2xl font-bold text-gray-800">@timeTaken</p>
-                    <p class="text-[10px] text-gray-500 uppercase font-bold">Thời gian</p>
-                </div>
+                @if (Model.IsTimed)
+                {
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                        <i class="fa-solid fa-stopwatch text-2xl text-blue-500 mb-2"></i>
+                        <p class="text-2xl font-bold text-gray-800">@timeTaken</p>
+                        <p class="text-[10px] text-gray-500 uppercase font-bold">Thời gian</p>
+                    </div>
+                }
             </div>
 
             @{
-                var wrongNeedingFeedback = Model.AnswerDetails
-                    .Count(d => !d.IsCorrect
-                        && string.IsNullOrEmpty(d.FullSolution)
-                        && string.IsNullOrEmpty(d.MistakeAnalysis));
+                // Một câu cần AI hướng dẫn khi: làm sai HOẶC bỏ qua, và không phải câu tự luận chờ chấm tay.
+                Func<AnswerDetailDto, bool> hasAiContent = d =>
+                    !string.IsNullOrEmpty(d.FullSolution)
+                    || !string.IsNullOrEmpty(d.MistakeAnalysis)
+                    || !string.IsNullOrEmpty(d.ImprovementAdvice);
+
+                Func<AnswerDetailDto, bool> needsAi = d =>
+                    !d.IsCorrect && !d.NeedsManualGrading;
+
+                var needAiTotal = Model.AnswerDetails.Count(needsAi);
+                var readyAtRender = Model.AnswerDetails.Count(d => needsAi(d) && hasAiContent(d));
+                var stillWaiting = needAiTotal - readyAtRender;
             }
-            @if (wrongNeedingFeedback > 0)
+            @if (stillWaiting > 0)
             {
                 <div id="ai-feedback-banner"
                      class="mb-8 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 text-sm flex items-center gap-3"
-                     data-attempt-id="@Model.AttemptId">
+                     data-attempt-id="@Model.AttemptId"
+                     data-ready="@readyAtRender">
                     <i class="fa-solid fa-robot animate-pulse"></i>
-                    <span>AI đang soạn nhận xét cho <b>@wrongNeedingFeedback</b> câu sai… trang sẽ tự cập nhật.</span>
+                    <span>AI đang soạn hướng dẫn cho <b>@stillWaiting</b> câu sai / chưa làm… trang sẽ tự cập nhật.</span>
                 </div>
             }
 
@@ -173,7 +185,8 @@
                 @foreach (var detail in Model.AnswerDetails)
                 {
                     // Xác định trạng thái của câu hỏi
-                    var isSkipped = detail.StudentAnswer == "Bạn chưa trả lời câu hỏi này";
+                    var isSkipped = !detail.IsAnswered
+                        || detail.StudentAnswer == "Bạn chưa trả lời câu hỏi này";
 
                     <div class="rounded-3xl p-6 border-2 transition-all @(isSkipped ? "border-amber-100 bg-amber-50/20" : (detail.IsCorrect ? "border-green-100 bg-green-50/10" : "border-red-100 bg-red-50/10"))">
                         <div class="flex justify-between items-start mb-4">
@@ -283,23 +296,52 @@
         });
 
         // ── Poll nhận xét AI (chạy nền phía backend) ──────────────────
+        // Chỉ RELOAD MỘT LẦN, khi backend đã sinh thêm nhận xét mới so với lúc trang được render.
+        // Nếu AI không tạo được một số câu, dừng lại và báo nhẹ nhàng — KHÔNG reload lặp.
         (function () {
             const banner = document.getElementById('ai-feedback-banner');
             if (!banner) return;
+
             const attemptId = banner.getAttribute('data-attempt-id');
+            const readyAtRender = parseInt(banner.getAttribute('data-ready') || '0', 10);
+            const MAX_TRIES = 20; // ~90 giây
+
             let tries = 0;
+            let stopped = false;
+
+            const stop = () => { stopped = true; clearInterval(timer); };
+
+            const reloadOnce = () => {
+                stop();
+                banner.innerHTML = '<i class="fa-solid fa-circle-check text-green-600"></i> ' +
+                    '<span>Đã có hướng dẫn từ AI. Đang tải lại…</span>';
+                setTimeout(() => location.reload(), 600);
+            };
+
+            const settleWithoutReload = () => {
+                stop();
+                banner.className = 'mb-8 rounded-2xl bg-slate-50 border border-slate-200 text-slate-600 px-5 py-4 text-sm flex items-center gap-3';
+                banner.innerHTML = '<i class="fa-solid fa-circle-info"></i> ' +
+                    '<span>Một vài câu chưa có hướng dẫn AI (dịch vụ AI đang bận). Bạn vẫn xem được đáp án đúng và lời giải của giáo viên; thử tải lại trang sau ít phút.</span>';
+            };
+
             const timer = setInterval(async () => {
+                if (stopped) return;
                 tries++;
-                if (tries > 20) { clearInterval(timer); return; } // ~1.5 phút thì thôi
                 try {
                     const r = await fetch(`/Exam/FeedbackStatus/${attemptId}`);
                     const s = await r.json();
-                    if (s.isComplete || s.pending <= 0) {
-                        clearInterval(timer);
-                        banner.innerHTML = '<i class="fa-solid fa-circle-check text-green-600"></i> <span>Đã có nhận xét AI. Đang tải lại…</span>';
-                        setTimeout(() => location.reload(), 800);
+                    const ready = s.ready ?? 0;
+                    const hasNew = ready > readyAtRender;
+
+                    if (s.isComplete === true) {
+                        hasNew ? reloadOnce() : settleWithoutReload();
+                    } else if (tries >= MAX_TRIES) {
+                        hasNew ? reloadOnce() : settleWithoutReload();
                     }
-                } catch { /* thử lại lần sau */ }
+                } catch {
+                    if (tries >= MAX_TRIES) settleWithoutReload();
+                }
             }, 4500);
         })();
 

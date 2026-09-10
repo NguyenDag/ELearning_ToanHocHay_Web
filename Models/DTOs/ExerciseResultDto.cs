@@ -12,6 +12,8 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public TimeSpan Duration { get; set; }
+        // False cho bài luyện tập / bài không giới hạn thời gian — ẩn ô "Thời gian" ở trang kết quả.
+        public bool IsTimed { get; set; }
         public double TotalScore { get; set; }
         public double MaxScore { get; set; }
         public decimal CompletionPercentage { get; set; }
@@ -28,7 +30,9 @@ namespace ToanHocHay.WebApp.Models.DTOs
         public string QuestionText { get; set; }
         public string StudentAnswer { get; set; }
         public string CorrectAnswer { get; set; }
+        public bool IsAnswered { get; set; }
         public bool IsCorrect { get; set; }
+        public bool NeedsManualGrading { get; set; }
         public double PointsEarned { get; set; }
         public double MaxScores { get; set; }
         public string Explanation { get; set; }
