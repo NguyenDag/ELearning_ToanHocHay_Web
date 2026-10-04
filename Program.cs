@@ -17,7 +17,6 @@ ApiConstant.apiBaseUrl = builder.Configuration["Api:BaseUrl"]?.Trim().TrimEnd('/
 ApiConstant.webBaseUrl = builder.Configuration["Api:WebBaseUrl"]?.Trim().TrimEnd('/') is { Length: > 0 } webUrl
     ? webUrl : ApiConstant.webBaseUrl.TrimEnd('/');
 
-var sessionIdleMinutes = builder.Configuration.GetValue<int?>("Session:IdleTimeoutMinutes") ?? 60;
 var cookieExpireDays = builder.Configuration.GetValue<int?>("Auth:CookieExpireDays") ?? 7;
 
 var finalApiUrl = new Uri(ApiConstant.apiBaseUrl + "/api/");
@@ -88,11 +87,19 @@ builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.ContentAdminApiServi
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.PackageAdminApiService>();
 builder.Services.AddScoped<ToanHocHay.WebApp.Services.Admin.FinanceAdminApiService>();
 
+// --- COOKIE CHỈ ĐI QUA HTTPS ---
+// Áp cho mọi cookie (session, auth, *_hint). Dev giữ SameAsRequest để profile "http" vẫn đăng nhập được.
+builder.Services.Configure<CookiePolicyOptions>(o =>
+    o.Secure = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always);
+
 // --- CẤU HÌNH SESSION ---
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(sessionIdleMinutes);
+    // Session giữ token nên phải sống bằng cookie đăng nhập; thiếu MaxAge thì đóng trình duyệt là mất phiên.
+    // ponytail: session nằm trong RAM — restart vẫn mất phiên, 1 instance; cần bền/scale thì đổi sang Redis/SQL cache.
+    options.IdleTimeout = TimeSpan.FromDays(cookieExpireDays);
+    options.Cookie.MaxAge = TimeSpan.FromDays(cookieExpireDays);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
@@ -152,10 +159,13 @@ else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
+    app.UseHsts();
 }
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCookiePolicy();
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();

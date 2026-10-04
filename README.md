@@ -18,7 +18,6 @@ Rồi sửa giá trị cho phù hợp.
 |---|---|---|---|
 | `Api:BaseUrl` | `Api__BaseUrl` | URL gốc Backend API (không kèm `/api`) | `http://103.98.152.182` |
 | `Api:WebBaseUrl` | `Api__WebBaseUrl` | URL công khai của WebApp | `https://www.toanhochay.com` |
-| `Session:IdleTimeoutMinutes` | `Session__IdleTimeoutMinutes` | Thời gian sống session (phút) | `60` |
 | `Auth:CookieExpireDays` | `Auth__CookieExpireDays` | Số ngày giữ cookie đăng nhập | `7` |
 | — | `ASPNETCORE_ENVIRONMENT` | `Development` / `Staging` / `Production` | `Production` |
 
